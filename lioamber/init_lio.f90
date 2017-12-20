@@ -36,7 +36,8 @@ subroutine lio_defaults()
                            energy_all_iterations, free_global_memory, dipole,  &
                            lowdin, mulliken, print_coeffs, number_restr, Dbug, &
                            steep, Force_cut, Energy_cut, minimzation_steep,    &
-                           n_min_steeps, lineal_search, n_points, timers
+                           n_min_steeps, lineal_search, n_points, timers,      &
+                           calc_propM, spinpop
 
 
 
@@ -100,7 +101,8 @@ subroutine lio_defaults()
     restart_freq   = 0             ; writeforces        = .false.       ;
     fukui          = .false.       ; lowdin             = .false.       ;
     mulliken       = .false.       ; dipole             = .false.       ;
-    print_coeffs   = .false.       ;
+    print_coeffs   = .false.       ; calc_propM         = .false.       ;
+    spinpop        = .false.       ;
 
 !   Old GPU_options
     max_function_exponent = 10     ; little_cube_size     = 8.0         ;
@@ -440,7 +442,8 @@ end subroutine init_lioamber_ehren
 ! Subroutine init_lio_hybrid performs Lio initialization when called from      !
 ! Hybrid software package, in order to conduct a hybrid QM/MM calculation.     !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
-subroutine init_lio_hybrid(hyb_natom, mm_natom, charge, iza)
+subroutine init_lio_hybrid(hyb_natom, mm_natom, charge, iza, spin)
+    use garcha_mod, only: OPEN, Nunp
     implicit none
     integer, intent(in) :: hyb_natom !number of total atoms
     integer, intent(in) :: mm_natom  !number of MM atoms
@@ -448,13 +451,25 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, charge, iza)
     character(len=20)   :: inputFile
     integer, intent(in) :: charge   !total charge of QM system
     integer, dimension(hyb_natom), intent(in) :: iza  !array of charges of all QM/MM atoms
+    double precision, intent(in) :: spin !number of unpaired electrons
+    integer :: Nunp_aux
 
     ! Gives default values to runtime variables.
     call lio_defaults()
 
+    !select spin case
+    Nunp_aux=int(spin)
+    Nunp=Nunp_aux
+
     ! Checks if input file exists and writes data to namelist variables.
     inputFile = 'lio.in'
     call read_options(inputFile, dummy)
+
+    !select spin case
+    Nunp_aux=int(spin)
+    if (Nunp_aux .ne. Nunp) STOP "lio.in have a different spin than *.fdf"
+    if (Nunp .ne. 0) OPEN=.true.
+    if (OPEN) write(*,*) "Runing hybrid open shell, with ", Nunp, "unpaired electrons"
 
     ! Initializes LIO. The last argument indicates LIO is not being used alone.
     call init_lio_common(hyb_natom, Iza, mm_natom, charge, 1)

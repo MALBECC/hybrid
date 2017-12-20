@@ -1,0 +1,127 @@
+
+#FDF: Opened INPUT_TMP.1228645266 for input. Unit: 11
+
+fdf-debug              0     # Default value
+SystemName     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+NumberMPInodes              1     # Default value
+NumberOfAtoms                        4
+NumberOfSolventAtoms                        0
+NumberOfSpecies                        2
+AtomicCoordinatesFormat     Ang                                                                                                                                 
+
+%block AtomicCoordinatesAndAtomicSpecies                                       
+   0.00000   0.00000   0.000000        1                                       
+   0.00000   0.00000   1.480000        1                                       
+   0.89567   0.00000  -0.316663        2                                       
+  -0.44783   0.77567   1.796667        2                                       
+%endblock AtomicCoordinatesAndAtomicSpecies                                    
+ 
+
+%block ChemicalSpeciesLabel                                                    
+       1   8  O                                                                
+       2   1  H                                                                
+%endblock ChemicalSpeciesLabel                                                 
+ 
+NetCharge          0.000000000    
+TotalSpin          0.000000000    
+LinkAtoms              0     # Default value
+
+%block ConstrainedOpt                                                          
+nconstr 1                                                                      
+steps 99                                                                       
+type 2                                                                         
+kte 200                                                                        
+inicoord 1.2 fincoord  5.000                                                   
+atoms 1 2                                                                      
+%endblock ConstrainedOpt                                                       
+ 
+WriIniParLas              F     # Default value
+MD.TypeOfRun     CG                                                                                                                                  
+MD.UseSaveCG              T
+MD.UseSaveXV              T
+MD.NumCGsteps                      500
+MD.MaxCGDispl         0.2000000000     Bohr     # Default value
+MD.MaxForceTol         0.1555739508E-02    Ry/Bohr
+# Above item originally: MD.MaxForceTol         0.4000000000E-01 eV/Ang    
+MD.InitialTimeStep              1     # Default value
+MD.FinalTimeStep              1     # Default value
+MD.LengthTimeStep         0.1000000015     fs     # Default value
+MD.Quench              F     # Default value
+MD.InitialTemperature          300.0000000     K     # Default value
+MD.TargetTemperature          300.0000000     K     # Default value
+MD.NoseMass          100.0000000     eV*fs**2     # Default value
+MD.FCDispl         0.4000000000E-01 Bohr     # Default value
+MD.FCfirst              1     # Default value
+MD.FClast              4     # Default value
+WriteCoordinates              1     # Default value
+WriteMullikenPop                        0
+MD.MMxQMsteps              1     # Default value
+WriteForcesQMMM              1     # Default value
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+
+%block ConstrainedOpt                                                          
+nconstr 1                                                                      
+steps 99                                                                       
+type 2                                                                         
+kte 200                                                                        
+inicoord 1.2 fincoord  5.000                                                   
+atoms 1 2                                                                      
+%endblock ConstrainedOpt                                                       
+ 
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
+SystemLabel     cut5                                                                                                                                
