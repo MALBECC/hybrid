@@ -1,12 +1,12 @@
 c subroutine that writes the energy  
 
-      subroutine wriene(istp,slabel,idyn,Etots,cfmax,Ekinion,tempion)  
+      subroutine wriene(istp,slabel,idyn,Etots,cfmax)  
 
       use ionew
       implicit          none
       character         slabel*20, paste*24
       integer           istp,idyn
-      double precision  Etots, cfmax, Ekinion, tempion  
+      double precision  Etots, cfmax
       external          paste 
 
       character         fname*24 
@@ -32,10 +32,7 @@ c cambiado para E de lio
      .      status='unknown')
 
 	if(idyn .eq. 0 .or. idyn .eq. 5 ) then
-      write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
-	else
-      write(unit,'(i5,2x,F18.4,2x,F12.4,2x,F12.4,2x,F7.2)')
-     .istp,Ekinion/eV,Etots/eV,(Etots+Ekinion)/eV,tempion
+	  write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
 	endif
 
       call io_close(unit)

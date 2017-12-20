@@ -117,11 +117,11 @@ C Check mumber of electrons with solute spin multiplicity
 c************************************************************************************
 C Read the Dynamics Options
 
-      subroutine read_md(ianneal, idyn, ifinal, iquench, istart, nmove,
-     .                   dt, dxmax, ftol, mn, tauber, taurelax, 
-     .                   tempinit, tt, usesavecg, usesavexv , 
-     .                   na, dx, ia1, ia2, 
-     .                   nat, nfce, wricoord, mullipop, mmsteps )
+      subroutine read_md(idyn, nmove,
+     .                   dt, dxmax, ftol,  
+     .                   usesavecg, usesavexv , 
+     .                   na, 
+     .                   nat, nfce, wricoord, mmsteps )
 
 C  Modules
       use precision
@@ -131,14 +131,13 @@ C  Modules
       implicit none
 
       integer
-     .  ianneal, idyn, ifinal, 
-     .  iquench, istart, nmove, 
-     .  na, ia1, ia2, nfce, mmsteps,
-     .  wricoord, mullipop, nat
+     .  idyn,  
+     .  nmove, 
+     .  na, nfce, mmsteps,
+     .  wricoord, nat
 
       double precision
-     .  dt, dxmax, ftol, mn, tauber,  
-     .  taurelax, tempinit, tt, dx 
+     .  dt, dxmax, ftol
 
       logical
      .    usesavecg, usesavexv
@@ -151,13 +150,12 @@ C  Internal variables .................................................
      .  dyntype_default*22 
 
       integer 
-     .  ifinal_default, istart_default, nmove_default,
-     .  ia1_default, ia2_default, iunit, wrifces
+     .  nmove_default,
+     .  iunit, wrifces
 
       double precision
      .  dt_default, dxmax_default,
-     .  ftol_default, mn_default, taurelax_default, 
-     .  ti_default,  tt_default, tauber_default,
+     .  ftol_default,  
      .  dx_default
 
       logical
@@ -214,17 +212,6 @@ C Tolerance in the maximum atomic force (def 0.04 eV/Ang)
      .  'read: Force tolerance                  = ',ftol,'  Ry/Bohr'
       endif
   
-C Initial time step for MD
-      istart_default = 1
-        istart = fdf_integer('MD.InitialTimeStep',istart_default)
-      if(istart.eq.0 ) 
-     .call die('read: istart value of a MD run could not be zero')
-
-C Final time step for MD
-      ifinal_default = 1
-        ifinal = fdf_integer('MD.FinalTimeStep',ifinal_default)
-      if(ifinal.eq.0 )
-     .call die('read: ifinal value of a MD run could not be zero')
 
 C Length of time step for MD
       dt_default = 0.1 
@@ -234,114 +221,15 @@ C Quench Option
       qnch_default = .false.
         qnch = fdf_boolean('MD.Quench',qnch_default)
 
-      if (qnch .and. idyn .eq. 2 ) then
-          write(6,100)
-          write(6,101)
-          write(6,'(a)')
-     .    'redata: ERROR: You cannot quench and use a Nose'
-          write(6,'(a)')
-     .    'redata: ERROR: thermostat simultaneously.'
-          write(6,102)
-        stop
-      endif
-      iquench = 0
-      if (qnch) iquench = 1
-
-C Initial Temperature of MD simulation
-C (draws random velocities from the Maxwell-Boltzmann distribition
-C at the given temperature)
-      ti_default = 300.
-        tempinit = fdf_physical('MD.InitialTemperature',ti_default,'K')
-
-      if (idyn.ne.0) then
-        write(6,'(a,i5)') 
-     .  'read: Initial MD time step             = ',istart
-        write(6,'(a,i5)') 
-     .  'read: Final MD time step               = ',ifinal
-        write(6,'(a,f10.4,a)') 
-     .  'read: Length of MD time step           = ',dt,'  fs'
-        write(6,'(a,f10.4,a)') 
-     .  'read: Initial Temperature of MD run    = ',tempinit,'  K'
-      endif
-
-C Target Temperature
-      tt_default = 300.d0
-        tt = fdf_physical('MD.TargetTemperature',tt_default,'K')
-
-C Mass of Nose variable
-      mn_default = 1.d2
-        mn = fdf_physical('MD.NoseMass',mn_default,'eV*fs**2')
-
-      if (idyn.eq.2) then
-        write(6,'(a,f10.4,a)') 
-     .  'read: Nose mass                        = ',mn,'  eV/fs**2'
-      endif
-
-C Annealing option
-      if (idyn .eq. 3) then
-          ianneal = 1
-            write(6,'(a,a)') 
-     .       'read: Annealing Option                 = ',
-     .       'Temperature'
-      endif
-
-        if (idyn .eq. 2 .or. idyn .eq. 3 .or. idyn .eq. 4) then
-          write(6,'(a,f10.4,a)') 
-     .    'read: Target Temperature               = ',tt,'  Kelvin'
-        endif
-
-C Relaxation Time for Annealing
-      taurelax_default = 1.d2
-      taurelax = taurelax_default
-      if (idyn .eq. 3) then          
-      taurelax = fdf_physical('MD.TauRelax',taurelax_default,'fs')
-        write(6,'(a,f10.4,a)') 
-     .  'read: Annealing Relaxation Time        = ',
-     .   taurelax,'  fs'
-      endif
-        
-C Berensen coupling constant
-      tauber_default = dt
-      tauber = tauber_default
-      if (idyn .eq. 4) then       
-      tauber = fdf_physical('MD.TauRelax',tauber_default,'fs')
-        write(6,'(a,f10.4,a)')
-     .  'read: Berendsen Coupling Constant      = ',
-     .   tauber,'  fs'
-      endif
 
 C Sets dt for a CG run
       if(idyn.eq.0) dt = 20./1000.
-
-C Atomic displacement for force constant calculation
-      dx_default = 0.04d0
-        dx = fdf_physical('MD.FCDispl',dx_default,'Bohr')
-
-C First and last atoms to displace for calculation of force constants
-      ia1_default = 1
-      ia2_default = na
-        ia1 = fdf_integer('MD.FCfirst',ia1_default)
-        ia2 = fdf_integer('MD.FClast', ia2_default)
-
-      if (idyn .eq. 5) then
-        write(6,'(a,f10.4,a)')
-     .  'read: Atomic displ for force constans  = ',dx,'  Bohr'
-        write(6,'(a,i5)')
-     .  'read: First atom to move               = ',ia1
-        write(6,'(a,i5)')
-     .  'read: Last atom to move                = ',ia2
-      endif
 
 C Write coordinate variable 
         wricoord = fdf_integer('WriteCoordinates',1)
         write(6,'(a,i5,a)')
      .  'read: Write coordinates each           = ',wricoord, '  steps'
 
-C mulliken population analysis
-        mullipop = fdf_integer('WriteMullikenPop',0)
-        write(6,'(a,i5)')
-     .  'read: Mulliken population analysis     = ',mullipop
-        
 C MMxQM steps
         mmsteps = fdf_integer('MD.MMxQMsteps',1)
         write(6,'(a,i5)')

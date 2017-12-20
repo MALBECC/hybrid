@@ -1,87 +1,106 @@
       Program HYBRID 
-C****************************************************************************
-C Program for QM-MM calculations. 
-C Original version used the SIESTA code 
-C (https://departments.icmab.es/leem/siesta/CodeAccess/index.html) to treat
-C at DFT level the QM subsystem. 
-C This version(2017) has been modified for use Lio code to treat at DFT level
-C the QM-MM subsystem.
-C It uses an own implementation of Amber99 force field parametrization to treat
-C the MM subsystem. 
-C Original idea by D. Scherlis, D. Estrin and P. Ordejon. 2001.
-C Original QM-MM interfase with Siesta by D. Scherlis and P. Ordejon. 2001.
-C Original subroutines by D. Scherlis. 2001/2002.
-C Solvent implementation using the Amber99 force field parametrization
-C by A. Crespo and M. Marti. 2002/2003.
-C LinkAtom subrouitnes by M. Marti. 2003.
-C Further modifications of QM-MM Siesta by A. Crespo and P. Ordejon. 2004.
-C Developing of HYBRID: program for QM-MM calculations using the SIESTA
-C as SUBROUTINE by A. Crespo and P. Ordejon. 2004.
-C This code uses several subroutines of SIESTA  as well as the 
-C SiestaAsSubroutine and FDF packages. Crespo, May 2005. 
-C Modified vestion for use Lio as QM-MM level and many dubugs, N. Foglia 2017
-C*****************************************************************************
+!****************************************************************************
+! Program for QM-MM calculations. 
+! Original version used the SIESTA code 
+! (https://departments.icmab.es/leem/siesta/CodeAccess/index.html) to treat
+! at DFT level the QM subsystem. 
+! This version(2017) has been modified for use Lio code to treat at DFT level
+! the QM-MM subsystem.
+! It uses an own implementation of Amber99 force field parametrization to treat
+! the MM subsystem. 
+! Original idea by D. Scherlis, D. Estrin and P. Ordejon. 2001.
+! Original QM-MM interfase with Siesta by D. Scherlis and P. Ordejon. 2001.
+! Original subroutines by D. Scherlis. 2001/2002.
+! Solvent implementation using the Amber99 force field parametrization
+! by A. Crespo and M. Marti. 2002/2003.
+! LinkAtom subrouitnes by M. Marti. 2003.
+! Further modifications of QM-MM Siesta by A. Crespo and P. Ordejon. 2004.
+! Developing of HYBRID: program for QM-MM calculations using the SIESTA
+! as SUBROUTINE by A. Crespo and P. Ordejon. 2004.
+! This code uses several subroutines of SIESTA  as well as the 
+! SiestaAsSubroutine and FDF packages. Crespo, May 2005. 
+! Modified vesion for use Lio as QM-MM level and debugs, N. Foglia 2017
+!*****************************************************************************
 
-C Modules
-      use fsiesta
-      use precision
-c creo q no usa presition, Nick
-      use sys
+! Modules
+      use precision, only: dp
+      use sys, only: die
       use fdf
-      use neutralatom
       use ionew, only: io_setup, IOnode    
 
-C General Variables
       implicit none
+! General Variables
+      integer :: istep, inicoor,fincoor !actual, initial and final number of move step for each restrain
+      integer :: idyn !kind of movent, idyn=0 (minimization) only avalable at this moment
+      integer :: istp !number of move step for each restrain starting on 1
+      integer :: nmove !max number of move step for each restrain
+      integer :: na_u !number of QM atoms
+      integer :: nesp !number of QM species
+      integer :: step !total number of steps in a MMxQM movement (not tested in this version)
+      integer :: ifmax(2) !number of atom with max force on each cicle
+      real(dp) :: fmax !max force on each cicle 
+      integer :: icfmax(2) !number of atom with max force on each cicle after constrain
+      real(dp) :: cfmax !max force on each cicle after constrain
+      real(dp) :: cstress(3,3) !Stress tensor, may be included in CG minimizations 
+      real(dp) :: strtol !Maximum stress tolerance
+      real(dp) :: Etot ! QM + QM-MM interaction energy
+      real(dp) :: fres !sqrt( Sum f_i^2 / 3N )
+      real(dp) :: ftol !MAx force tol criteria (in Ry/Bohr)
+      real(dp) :: ftot(3) ! Total force in system
+      real(dp) :: dxmax !Maximum atomic displacement in one CG step (Bohr)
+      real(dp) :: tp !Target pressure
+      real(dp) :: volume !Cell volume
+      real(dp), dimension(:,:), allocatable :: xa, fa !position and forces of QM atoms
+      integer, dimension(:), allocatable :: isa,iza !Chemical Specie Label, and atomic charge
+      character, dimension(:), allocatable :: atsym*2 !atomic symbol
+      logical :: usesavexv, foundxv !control for coordinates restart
+      logical :: usesavecg !control for restart CG
+      logical :: varcel !true if variable cell optimization
+      logical :: relaxd ! True when CG converged
+      logical :: qm, mm ! True when system have a subsystem QM,MM
+      character :: slabel*20 ! system label, name of outputs
+      character :: sname*150 !name of system
+      character :: paste*25
+      external :: paste
+! Solvent (MM) General variables
+      integer :: nac !number of MM atoms
+      character*4,  dimension(:), allocatable, save :: atname,aaname,attype,qmattype
 
-      integer
-     .  fincoor, i, ia, ianneal, idyn, ifinal, inicoor, iquench, Nodes, 
-     .  istp, istart, istep, iunit, ix, j, k, nmove, ntm(3), 
-     .  ntcon, na_u, nesp, ntpl, nsm,  mullipop, step, 
-     .  ia1, ia2, iadispl, ixdispl, ifmax(2), icfmax(2)
 
-      real(dp)
-     .  Ang, cfmax, cftem, cstress(3,3), dt, Ekinion, Etot, eV, 
-     .  fmax, fmean, fres, ftem, ftol, ftot(3), mn, Pint, strtol, 
-     .  bulkm, dxmax, dx
+! atom, j, atname(i), aaname(i), ch, resnum(i), rclas(1:3,na_u+i)
+! ATOM     12  CE  MET H   1       7.246  15.955   0.940
 
-      real(dp)
-     .  tauber, taurelax, tempinit, tempion, tp, tt, ucell(3,3), kn,  
-     .  vcell(3,3), vn, volcel, volume, dvol, vna, grvna(3)
 
-      real(dp), dimension(:,:), allocatable :: 
-     .  xa, fa
-
-      real, dimension(:), allocatable ::
-     .  Vqm, Rho
-
-      integer, dimension(:), allocatable ::
-     .  isa,iza
-
-      character, dimension(:), allocatable ::
-     .  atsym*2
-
-      logical
-     .  found, foundxv, usesavecg,  usesavexv, varcel, relaxd, qm , mm
-
-      character
-     .  slabel*20, sname*150, siestaslabel*20, 
-     .  filerho*30, filevqm*30, paste*25 
-
-c.xyz file name
+! Outputs names
       character :: xyzlabel*20
 
-      parameter ( nsm = 2 )
+! Conversion factors
+      real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
+      real(dp) :: eV !E_in_Hartree=E_in_eV * eV
+      real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
+! Auxeliars
+      integer :: i, ia, iunit, ix, j, k
+!comentando variables, arriba
 
+
+! Others that need check
+!!!! General Variables
+      real(dp) :: dt
+      real(dp) :: ucell(3,3)
+      real(dp) :: volcel
+      external :: volcel
+!!!! Solvent General variables
+
+
+
+C General Variables
       external
      .  chkdim, cgvc,  ioxv, fixed1, assign, 
-     .  iofa, ofc, paste, reinit, read_qm, 
-     .  read_md, volcel, fixed2
+     .  iofa, ofc, reinit, read_qm, 
+     .  read_md, fixed2
 
 C Solvent General variables
 
-      character*4,  dimension(:), allocatable, save ::
-     .   atname,aaname,attype,qmattype
 
       character*5, dimension(:), allocatable, save::
      .  bondtype
@@ -107,12 +126,12 @@ C Solvent General variables
      .  dihexat,dihmxat,angmxat,impxat,
      .  scalexat,nonbondedxat,izs, qmstep
 
-      integer nac,natot,nfree,nparm,nfce, mmsteps, imm, 
+      integer natot,nfree,nparm,nfce, mmsteps, imm, 
      .  nroaa, nbond, nangle, ndihe, nimp , wricoord,
      .  atxres(20000), totcoor
 
       double precision  Etot_amber,sfc,timestep,
-     .  Etots,kcal,rcorteqm,rcortemm,Elj,Eelec
+     .  Etots,rcorteqm,rcortemm,Elj,Eelec
 
       double precision, dimension(:,:), allocatable, save::
      .  fce_amber, qmpc, fdummy, cfdummy, rclas, vat
@@ -203,15 +222,9 @@ C--------------------------------------------------------------------
 C Initialise some variables
         relaxd=.false.
         varcel=.false.
-        tempion=0.0
         tp=0.0
-        vcell=0.0
         cstress=0.0
         strtol=0.0
-        Pint=0.0
-        bulkm=0.0
-        ntm=0
-        ntpl=1
         qm=.true.
         mm=.true.
 C added init, Nick
@@ -237,8 +250,6 @@ C Factors of conversion to internal units
 C Initialise read 
       call reinit(slabel, sname)
 
-C set processor number for the QM siesta calculation
-      Nodes=fdf_integer('NumberMPInodes',1)
 C Read the number of QM atoms
       na_u=fdf_integer('NumberOfAtoms',0)
       if (na_u.eq.0) then
@@ -389,10 +400,10 @@ c cambio cutoff a unidades atomicas, Nick
        rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
 C Read simulation data 
-       call read_md( ianneal, idyn, ifinal, iquench, istart, nmove,
-     .               dt, dxmax, ftol, mn, tauber, taurelax, tempinit,
-     .               tt, usesavecg, usesavexv , na_u, dx, ia1, ia2,
-     .               natot, nfce, wricoord, mullipop, mmsteps )
+       call read_md( idyn, nmove,
+     .               dt, dxmax, ftol, 
+     .               usesavecg, usesavexv , na_u,  
+     .               natot, nfce, wricoord, mmsteps )
 
 C assignation of masses and species 
        call assign(na_u,nac,atname,iza,izs,masst)
@@ -479,25 +490,15 @@ c Initialize .xyz
 
 C Initialize siestaslabel, filerho and filevqm 
       if(qm) then
-        siestaslabel = paste( slabel, '.siesta' )
-        filerho = paste( siestaslabel, '.DRHO' )
-        filevqm = paste( siestaslabel, '.VEXT' ) 
-
 ! First call to siesta_forces to initialise grid
         Etot=0.d0
         fa=0.d0
 
-c init lio, Nick
+! initialize lio 
         call init_lio_hybrid(na_u, nac, charge, iza, spin)
 
-
-C Read the spin polarized variable and find the number of diagonal spin values
-        allocate(Vqm(ntpl))
-        allocate(Rho(ntpl))
-
-C calculate cell volume
+! calculate cell volume
         volume = volcel( ucell )
-        dvol=volume/ntpl
 
 C writes cell
         write(6,'(/,a,3(/,a,3f12.6))')
@@ -589,8 +590,6 @@ C Start loop over coordinate changes
 
 ! Calculate Energy and Forces using Lio as Subroutine
       if(qm) then
-c	write(*,*) "cuidado desactive lio para de3bug MM, Nick"
-c	write(*,*) "fdummy pre-lio", fdummy
 
 c cutofff QM-MM
 c	if (.true.) then !activa el cutoff
@@ -654,9 +653,6 @@ c		MM_freeze_list=.false.
 	  F_cut_QMMM=0.d0
 	  Iz_cut_QMMM=0
 
-c        write(*,*) "QM at, MM at", na_u, at_MM_cut_QMMM
-c        write(*,*) "r_cut_list_QMMM", r_cut_list_QMMM
-c        write(*,*) "Iz_cut_QMMM",Iz_cut_QMMM
 c	end if! fin lista solo paso 1
 
 
@@ -673,7 +669,6 @@ c	if (optimization_lvl.gt.1) then !acivo para esquema de optimizacion
                 r_cut_QMMM(1:3,i)= rclas(1:3,i)
 c               Iz_cut_QMMM(i)= pc(i)
               else if (r_cut_list_QMMM(i-na_u) .ne. 0) then !MM atoms inside cutoff
-c               write(*,*) "copio", i,r_cut_list_QMMM(i-na_u)
 		r_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u) = rclas(1:3,i)
                 Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
               end if
@@ -711,16 +706,8 @@ c atomos totales, atomos MM, posiciones, enerfia, fuerza, carga nuclear
 	  end if
 c	end if
 
-c	write(*,*) "fdummy lio", fdummy
           qmstep(istepconstr) = qmstep(istepconstr) + 1
         endif !qm
-
-
-c	write(779,*) "F1", fdummy
-
-
-
-
 
 C Start MMxQM loop
       do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
@@ -737,9 +724,7 @@ C Calculation of last QM-MM interaction: LJ Energy and Forces only
       if((qm.and.mm)) then
         call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
       endif !qm & mm
-c	write(*,*) "fdummy ljef", fdummy 
 
-c	write(779,*) "F2", fdummy
 
 C LinkAtom: set again linkmm atoms parameters
       if(qm.and.mm) then
@@ -767,9 +752,6 @@ C Calculate pure Solvent energy and forces
      .    atname,aaname,sfc,dt,
      .    water,masst,radblommbond)
       endif !mm
-c	write(*,*) "fdummy solv_ene_fce", fdummy 
-
-c	write(779,*) "F3", fdummy
 
 C converts fdummy to Kcal/mol/Ang  
       fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
@@ -779,10 +761,6 @@ C add famber to fdummy
       fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
      .       +fce_amber(1:3,1:nac)
       endif !mm
-
-c	write(779,*) "F3.1", fdummy
-
-c	write(*,*) "fdummy + fce_amber", fdummy
 
 C Calculation of LinkAtom Energy and Forces
       if(qm.and.mm ) then
@@ -802,12 +780,8 @@ C Set again link atmos parameters to zero for next step
         enddo
         endif ! LA
       endif !qm & mm
-c        write(*,*) "fdummy link2", fdummy
-
-c	write(779,*) "F3.2", fdummy
 
 	if (.true.) then
-c	  write(969,*) rclas(1:3,1:natot),fdummy(1:3,1:natot)
 	   do itest=1, natot
 	   write(969,423) itest, rclas(1,itest),rclas(2,itest),
      .   rclas(3,itest),fdummy(1,itest)*0.5d0,fdummy(2,itest)*0.5d0,
@@ -929,9 +903,6 @@ C Write atomic forces
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
-C Write Force Constant matrix if FC calculation
-c        if (idyn .eq. 5) call ofc(na_u,ia1,ia2,dx,cfdummy(1:3,1:na_u))
-
 
 	write(123,*) "fuerzas antes de CG"
 	write(123,*) "paso y nivel de optim", istep, optimization_lvl
@@ -968,19 +939,16 @@ c centro traj respecto al cm, solo en el caso de sistema solo qm
       end if
 c #################################################################################
 
-      Ekinion  = 0.0_dp
-      vn       = 0.0_dp
-      kn       = 0.0_dp
-      iunit = 2
-      ntcon = 0
-      if(imm.ne.1) ntcon = na_u
+C      iunit = 2
+c      ntcon = 0
+c      if(imm.ne.1) ntcon = na_u
 
 c       if(idyn .ne. 0 .and. idyn .ne. 5) then
 c      if(qm) call centerdyn(na_u,rclas,ucell,natot)
 c       endif
 
 C Write Energy in file
-      call wriene(step,slabel,idyn,Etots,cfmax,Ekinion,tempion)
+      call wriene(step,slabel,idyn,Etots,cfmax)
 
 c sets variables for next siesta cycle
       fa = 0.d0

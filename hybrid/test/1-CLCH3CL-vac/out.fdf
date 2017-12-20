@@ -1,10 +1,9 @@
 
-#FDF: Opened INPUT_TMP.1179807248 for input. Unit: 11
+#FDF: Opened INPUT_TMP.513735828  for input. Unit: 11
 
 fdf-debug              0     # Default value
 SystemName     cut5                                                                                                                                
 SystemLabel     cut5                                                                                                                                
-NumberMPInodes              1     # Default value
 NumberOfAtoms                        6
 NumberOfSolventAtoms                        0
 NumberOfSpecies                        3
@@ -37,18 +36,9 @@ MD.NumCGsteps                        0
 MD.MaxCGDispl         0.2000000000     Bohr     # Default value
 MD.MaxForceTol         0.1555739508E-02    Ry/Bohr
 # Above item originally: MD.MaxForceTol         0.4000000000E-01 eV/Ang    
-MD.InitialTimeStep              1     # Default value
-MD.FinalTimeStep              1     # Default value
 MD.LengthTimeStep         0.1000000015     fs     # Default value
 MD.Quench              F     # Default value
-MD.InitialTemperature          300.0000000     K     # Default value
-MD.TargetTemperature          300.0000000     K     # Default value
-MD.NoseMass          100.0000000     eV*fs**2     # Default value
-MD.FCDispl         0.4000000000E-01 Bohr     # Default value
-MD.FCfirst              1     # Default value
-MD.FClast              6     # Default value
 WriteCoordinates              1     # Default value
-WriteMullikenPop                        0
 MD.MMxQMsteps              1     # Default value
 WriteForcesQMMM              1     # Default value
 SystemLabel     cut5                                                                                                                                
