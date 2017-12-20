@@ -179,8 +179,8 @@ end subroutine ehren_in
 ! Performs SCF & forces calculation calls from hybrid                          !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 
-subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_forces)
-    use garcha_mod, only : r,rqm,pc, Iz, natom, nsol, ntatom, v, Em, rm
+subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_forces, do_properties)
+    use garcha_mod, only : r,rqm,pc, Iz, natom, nsol, ntatom, v, Em, rm, calc_propM
     implicit none
     integer, intent(in) :: hyb_natom, mm_natom !number of QM and MM atoms
     double precision, intent(in) :: hyb_r(3,hyb_natom+mm_natom), Iz_cl(mm_natom) !positions and charge of MM atoms
@@ -190,7 +190,10 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
     integer :: dummy !auxiliar variable
     REAL*8 :: dipxyz(3) !dipole
     integer :: i,j !auxiliar
-    logical :: do_SCF, do_QM_forces !SCF & forces control variable
+    logical, intent(in) :: do_SCF, do_QM_forces !SCF & forces control variable
+    logical, intent(in) :: do_properties !properties control
+
+    calc_propM = do_properties
 
     nsol = mm_natom
     ntatom = nsol + natom 
