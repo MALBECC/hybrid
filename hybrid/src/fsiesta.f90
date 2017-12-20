@@ -61,20 +61,20 @@ module fsiesta
 PRIVATE ! Nothing is declared public beyond this point
 
 ! Holds data on siesta processes and their communication pipes
-  type proc
-    private
-    character(len=80) :: label     ! Name of process
-    integer           :: iuc, iuf  ! I/O units for coords/forces commun.
-  end type proc
+!  type proc
+!    private
+!    character(len=80) :: label     ! Name of process
+!    integer           :: iuc, iuf  ! I/O units for coords/forces commun.
+!  end type proc
 
 ! Global module variables
-  integer, parameter :: max_procs = 100
-  integer, parameter :: dp = kind(1.d0)
-  type(proc),   save :: p(max_procs)
-  integer,      save :: np=0
-  character(len=32), save :: xunit = 'Ang'
-  character(len=32), save :: eunit = 'eV'
-  character(len=32), save :: funit = 'eV/Ang'
-  character(len=32), save :: sunit = 'eV/Ang**3'
+!  integer, parameter :: max_procs = 100
+!  integer, parameter :: dp = kind(1.d0)
+!  type(proc),   save :: p(max_procs)
+!  integer,      save :: np=0
+!  character(len=32), save :: xunit = 'Ang'
+!  character(len=32), save :: eunit = 'eV'
+!  character(len=32), save :: funit = 'eV/Ang'
+!  character(len=32), save :: sunit = 'eV/Ang**3'
 
 end module fsiesta

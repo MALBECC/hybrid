@@ -449,10 +449,10 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, charge, iza, spin)
     integer, intent(in) :: mm_natom  !number of MM atoms
     integer             :: dummy
     character(len=20)   :: inputFile
-    integer, intent(in) :: charge   !total charge of QM system
+    integer, intent(in) :: charge   !total charge of QM sub-system
     integer, dimension(hyb_natom), intent(in) :: iza  !array of charges of all QM/MM atoms
     double precision, intent(in) :: spin !number of unpaired electrons
-    integer :: Nunp_aux
+    integer :: Nunp_aux !auxiliar
 
     ! Gives default values to runtime variables.
     call lio_defaults()

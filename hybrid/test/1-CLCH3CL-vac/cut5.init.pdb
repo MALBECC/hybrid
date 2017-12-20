@@ -1,8 +1,8 @@
-ATOM      1  C   STO A   1       0.521  -0.320   0.624
-ATOM      2  H   STO A   2       0.747  -0.775  -0.404
-ATOM      3  H   STO A   3       0.834   0.802   0.770
-ATOM      4  H   STO A   4      -0.514  -0.442   0.992
-ATOM      5  Cl  STO A   5      -1.733   1.318  -2.003
-ATOM      6  Cl  STO A   6       1.526  -1.198   1.753
+ATOM      1  C   STO A   1       0.491  -0.278   0.602
+ATOM      2  H   STO A   2       0.649  -0.655  -0.414
+ATOM      3  H   STO A   3       0.773   0.779   0.645
+ATOM      4  H   STO A   4      -0.560  -0.409   0.878
+ATOM      5  Cl  STO A   5      -1.732   1.316  -2.002
+ATOM      6  Cl  STO A   6       1.541  -1.214   1.766
 
 END

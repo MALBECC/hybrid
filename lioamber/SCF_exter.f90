@@ -214,10 +214,10 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
     do i=1, ntatom
       do j=1, 3
         r(i,j)=hyb_r(j,i)
-        if (i .le. hyb_natom) rqm(i,j)=hyb_r(j,i) !posiciones qm
+        if (i .le. hyb_natom) rqm(i,j)=hyb_r(j,i) !positions on QM subsystem
       enddo
-        if (i .le. hyb_natom) pc(i)= Iz(i)
-        if (i .gt. hyb_natom) pc(i) = Iz_cl(i-hyb_natom) !cargas clasicas
+        if (i .le. hyb_natom) pc(i)= Iz(i) !nuclear charge
+        if (i .gt. hyb_natom) pc(i) = Iz_cl(i-hyb_natom) ! MM force-field charge
     end do
 
 ! Calls main procedures.
@@ -227,7 +227,6 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
     write(*,*) "Lio  E(eV)", E*27.211396132d0
     fa=0.d0
     fmm=0.d0
-
 
     if (do_QM_forces) then
       call  dft_get_qm_forces(fa)
