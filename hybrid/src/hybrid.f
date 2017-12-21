@@ -19,7 +19,7 @@
 ! as SUBROUTINE by A. Crespo and P. Ordejon. 2004.
 ! This code uses several subroutines of SIESTA  as well as the 
 ! SiestaAsSubroutine and FDF packages. Crespo, May 2005. 
-! Modified vesion for use Lio as QM-MM level and debugs, N. Foglia 2017
+! Modified version for use Lio as QM-MM level and debugs, N. Foglia 2017
 !*****************************************************************************
 
 ! Modules
@@ -64,22 +64,155 @@
       external :: paste
 ! Solvent (MM) General variables
       integer :: nac !number of MM atoms
-      character*4,  dimension(:), allocatable, save :: atname,aaname,attype,qmattype
+      integer :: natot !total number of atoms
+      character*4,  dimension(:), allocatable, save :: atname,aaname !atom and residue name
+!in *.fdf
+!%block SolventInput
+!ATOM      1  O   WAT H   2      53.559  34.043  71.033
+!             ^    ^
+!             |    |
+!         atname  aaname
+
+      character*4,  dimension(:), allocatable, save :: attype !atom type
+!in amber.parm
+!residues
+!101
+!PRE 24
+! "O1" "oh" 0 1 131072 1 8 -0.627601
+!  ^    ^
+!  |    |
+!atname attype -> qmattype=O
 
 
-! atom, j, atname(i), aaname(i), ch, resnum(i), rclas(1:3,na_u+i)
-! ATOM     12  CE  MET H   1       7.246  15.955   0.940
+      character*4,  dimension(:), allocatable, save :: qmattype !QM atom type
+!in *.fdf
+!%block SoluteAtomTypes
+!  o   O5    PRE
+!  ^    
+!  |    
+! qmattype
 
 
-! Outputs names
-      character :: xyzlabel*20
+      integer, dimension(:), allocatable, save :: aanum !aanum(i) = numero de residuo al cual pertenece el atomo i
+      integer, dimension(:,:), allocatable, save :: ng1 !ng1(i,j) j-esimo atomo al que esta unido el atomo i-esimo
+
+!!!! bond parameters
+      character*5, dimension(:), allocatable, save:: bondtype !bond type name
+      real(dp), dimension(:), allocatable, save :: kbond,bondeq ! force constant and equil distance
+      integer, dimension(:), allocatable, save :: bondxat !bondxat(i) number of bonds of atom i
+!in amber.parm
+!bonds
+!164
+!OW-HW  553.0    0.9572    ! TIP3P water
+!  ^        ^     ^
+!  |        |     |
+!bondtype kbond bondeq
+
+
+!!!! angle parameters
+      character*8, dimension(:), allocatable, save:: angletype !angle type name
+      real(dp), dimension(:), allocatable, save ::  kangle,angleeq ! force constant and equil angle
+      integer, dimension(:), allocatable, save :: angexat !angexat(i) number of angles of atom i with i in an extreme
+      integer, dimension(:), allocatable, save :: angmxat !angmxat(i) number of angles of atom i with i in middle
+
+!in amber.parm
+!angles
+!375
+!HW-OW-HW    100.      104.52    TIP3P water
+!    ^        ^           ^
+!    |        |           |
+!angletype  kangle     angleeq
+
+
+!!!! dihedral parameters
+      character*11, dimension(:), allocatable, save:: dihetype !diedral type
+      real(dp), dimension(:), allocatable, save :: kdihe,diheeq, perdihe !
+      integer, dimension(:), allocatable, save :: multidihe
+      integer, dimension(:), allocatable, save :: dihexat !dihexat(i) number of dihedral of atom i with i in extreme
+      integer, dimension(:), allocatable, save :: dihmxat !dihmxat(i) number of dihedral of atom i with i in middle
+
+! in this case E=kdihe/multidihe * (1+ cos (perdihe*dihedral-diheeq))
+
+!in amber.parm
+!dihes
+!215
+!X -CA-CA-X    4   14.50        180.0             2.         
+!    ^         ^      ^           ^               ^
+!    |         |      |           |               |
+! dihetype multidihe kdihe     diheeq          perdihe
+
+
+!!!! impropers 
+      character*11, dimension(:), allocatable, save:: imptype
+      real(dp), dimension(:), allocatable, save ::  kimp,impeq,perimp
+      integer, dimension(:), allocatable, save :: multiimp
+      integer, dimension(:), allocatable, save :: impxat !impxat(i) number of impropers of atom i
+
+! E= kimp/multiimp*(1+COS(perimp*dihedral-impeq))
+!in amber.parm
+!imps
+!53
+!X -X -CB-X    1    1.0         180.              2.
+!    ^         ^      ^           ^               ^
+!    |         |      |           |               |
+!imptype  multiimp  kimp        impeq          perimp
+
+!!!! LJ & coulomb
+      integer, dimension(:), allocatable, save :: scalexat !scalexat(i) number of scaled-LJ&coul atoms for atom i
+      integer, dimension(:,:), allocatable, save:: scale !scale(i,j) j-esimo atomo de interaccion LJ&coul escalada con el atomo i-esimo
+
+      integer, dimension(:), allocatable, save :: nonbondedxat !cantidad de elementos j en nonbonded(i,j) para i
+      integer, dimension(:,:), allocatable, save:: nonbonded !nonbonded(i,j) atomo jesimo unido de alguna forma al atomo i-esimo, por lo que NO se debe calcular LJ & coulomb
+
+      double precision, dimension(:), allocatable, save:: Em, Rm !LJ parameters, in hybrid units
+      double precision, dimension(:), allocatable, save:: pc !charge of MM atoms
+!in amber.parm
+!ljs
+!65
+!  H           0.6000  0.0157            !Ferguson base pair geom.
+!  ^              ^       ^
+!  |              |       |
+!ljtype         ∝Rm     ∝Em
+
+
+      integer, dimension(:), allocatable, save :: izs !atomic number of a MM atom
+
+!!!!
+      integer :: nfree !number of atoms with out a contrain of movement
+      integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
+      integer :: mmsteps !number of MM steps for each QM step, not tested
+      integer :: nroaa !number of residues
+      integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
+      integer :: atxres(20000) !number ot atoms in residue i, no deberia estar fija la dimension
+      double precision :: Etot_amber !total MM energy
+      double precision :: Elj !LJ interaction (only QMMM)
+      double precision :: Etots !QM+QMMM+MM energy
+
+
+      double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
+      double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
+
+      double precision, dimension(:,:), allocatable, save:: fce_amber !Total MM force
+      double precision, dimension(:,:), allocatable, save:: fdummy !QM+MM+QMMM force 
+      double precision, dimension(:,:), allocatable, save:: cfdummy !QM+MM+QMMM force ater constrain
+
+      double precision :: rcorteqm !not used
+      double precision :: rcortemm !distance for LJ & Coulomb MM interaction
+
+      double precision, dimension(:), allocatable, save:: masst !atomic mass
+
+
+! Outputs variables
+      character :: xyzlabel*20 !*.xyz name
+      integer  :: nfce !number of atoms for whom the forces will be writen, wrifces=0,1,2 => nfce = 0, na, nat
+      integer ::  wricoord !number of steps for write coordinates
 
 ! Conversion factors
       real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
       real(dp) :: eV !E_in_Hartree=E_in_eV * eV
       real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
 ! Auxeliars
-      integer :: i, ia, iunit, ix, j, k
+      integer :: i, ia, imm, iunit, ix, j, k
 !comentando variables, arriba
 
 
@@ -90,9 +223,16 @@
       real(dp) :: volcel
       external :: volcel
 !!!! Solvent General variables
+      integer, dimension(:,:,:), allocatable, save ::  atange, atangm,
+     . atdihe,atdihm,atimp
+      double precision  :: sfc
 
 
 
+
+
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C General Variables
       external
      .  chkdim, cgvc,  ioxv, fixed1, assign, 
@@ -101,49 +241,10 @@ C General Variables
 
 C Solvent General variables
 
-
-      character*5, dimension(:), allocatable, save::
-     .  bondtype
-
-      character*8, dimension(:), allocatable, save::
-     .  angletype
-
-      character*11, dimension(:), allocatable, save::
-     .  dihetype,imptype
-
-      real(dp), dimension(:), allocatable, save ::
-     .  kbond,bondeq,kangle,angleeq,kdihe,diheeq,
-     .  perdihe,kimp,impeq,perimp,desplaz
-
-      integer, dimension(:,:,:), allocatable, save ::
-     .  atange,atangm,atdihe,atdihm,atimp
-
-      integer, dimension(:,:), allocatable, save ::
-     .  ng1
-
-      integer, dimension(:), allocatable, save ::
-     .  aanum,multidihe,multiimp, bondxat,angexat,
-     .  dihexat,dihmxat,angmxat,impxat,
-     .  scalexat,nonbondedxat,izs, qmstep
-
-      integer natot,nfree,nparm,nfce, mmsteps, imm, 
-     .  nroaa, nbond, nangle, ndihe, nimp , wricoord,
-     .  atxres(20000), totcoor
-
-      double precision  Etot_amber,sfc,timestep,
-     .  Etots,rcorteqm,rcortemm,Elj,Eelec
-
-      double precision, dimension(:,:), allocatable, save::
-     .  fce_amber, qmpc, fdummy, cfdummy, rclas, vat
-
-      double precision, dimension(:), allocatable, save::
-     .  qmpcf, Em, Rm, pc, masst
-
       integer, dimension(:,:,:), allocatable, save::
      .  evaldihe,evaldihm
       integer, dimension(:,:), allocatable, save::
-     .  ng1type,angetype,angmtype,dihety,dihmty,impty,
-     .  nonbonded,scale
+     .  ng1type,angetype,angmtype,dihety,dihmty,impty
       logical, dimension(:,:), allocatable, save::
      .  evaldihelog,evaldihmlog
 
@@ -325,9 +426,6 @@ ccambiado, Nick
       allocate(scale(nac,100))
       allocate(evaldihelog(nac,100))
       allocate(evaldihmlog(nac,100))
-      allocate(qmpc(na_u,2))
-      allocate(qmpcf(na_u))
-      allocate(desplaz(nac))
       allocate(scalexat(nac))
       allocate(nonbondedxat(nac))
       allocate(kbond(nparm),bondeq(nparm),
@@ -362,7 +460,6 @@ C Some definitions
       Elink=0.d0
       Etot=0.d0
       Etots=0.d0
-      Eelec=0.d0
       nfree=natot
       blocklist = 0
       blockqmmm = 0
@@ -389,7 +486,7 @@ C Read and assign Solvent variables
      .  ndihe,kdihe,diheeq,dihetype,multidihe,perdihe,
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
-     .  rcorteqmmm,rcorteqm,rcortemm,sfc,timestep,
+     .  rcorteqmmm,rcorteqm,rcortemm,sfc,
      .  radbloqmmm,atxres,radblommbond)
        endif !mm
 c cambio cutoff a unidades atomicas, Nick
@@ -533,8 +630,6 @@ C Start loop over constrained optimization steps
          call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
      .   rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
         endif
-        allocate(qmstep(nstepconstr+1))
-        qmstep=0
 
         do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN
 c istepconstr marcA LA POSICION DEL RESTRAIN, NICK
@@ -560,7 +655,6 @@ C Begin of coordinate relaxation iteration ============================
         inicoor = 0
         fincoor = nmove
       endif
-        totcoor = fincoor - inicoor + 1
 
 
 
@@ -706,7 +800,6 @@ c atomos totales, atomos MM, posiciones, enerfia, fuerza, carga nuclear
 	  end if
 c	end if
 
-          qmstep(istepconstr) = qmstep(istepconstr) + 1
         endif !qm
 
 C Start MMxQM loop
@@ -807,7 +900,7 @@ C Converts fdummy to Ry/Bohr
       fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 
 C Writes final energy decomposition
-       Etots=2.d0*Etot+Elj+((Etot_amber+Elink+Eelec)/kcal*eV)
+       Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
 C estan duplicados los pesos de algunas energias
        Etots=0.5d0*Etots
 
@@ -818,7 +911,6 @@ C estan duplicados los pesos de algunas energias
        if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Elj:    ',Elj/eV       ! da la mitad si 1 atomo en QM y otro MM q si los 2 son MM
        if(mm) write(6,'(a,2x,F16.6)')      'Esolv:  ',Etot_amber/kcal   !esta esta bien comparada con Amber
        if(Elink.ne.0.0) write(6,'(a,2x,F16.6)') 'Elink:  ',Elink/kcal
-       if(Eelec.ne.0.0) write(6,'(a,2x,F16.6)') 'Eefield:',Eelec/kcal
        if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Etots:  ',Etots/eV
        call flush(6)
 
@@ -1003,7 +1095,7 @@ C End of coordinate-relaxation loop ==================================
 C End of constrain optimization loop
 
 	write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal, 
-     .  Elink/kcal, Eelec/kcal, Etots/eV
+     .  Elink/kcal, Etots/eV
 
       if(constropt) then
        call subconstr3(ro(1),rt(1),dr,Etots)

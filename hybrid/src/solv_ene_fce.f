@@ -143,19 +143,7 @@ c  calcula la energia total de amber
      .    Elj_amber+Eelec_amber+Elj_amber14+Eelec_amber14+ewat
 
 c  calcula la fuerza total de amber
-
-
-c	write(*,*) "contribuciones AMBER"
-c	write(*,*) "i, fcebond_amber(1:3,i), fceangle_amber(1:3,i), 
-c     .  fcedihe_amber(1:3,i), fceimp_amber(1:3,i), fcelj_amber(1:3,i), 
-c     .  fceelec_amber(1:3,i), fwat(1:3,i)"
-
 	do i=1,nac
-c	write(*,*) i, fcebond_amber(1:3,i), fceangle_amber(1:3,i), 
-c     .  fcedihe_amber(1:3,i), fceimp_amber(1:3,i), fcelj_amber(1:3,i),
-c     .  fceelec_amber(1:3,i), fwat(1:3,i)
-
-
 
 	fcetot_amber(1:3,i)=fcebond_amber(1:3,i)+fceangle_amber(1:3,i)
      .  +fcedihe_amber(1:3,i)+fceimp_amber(1:3,i)+
@@ -930,10 +918,6 @@ c	if(dimvec.gt.100000000) stop
 c     .  'Solvent Energy and Forces: "dimvec" too large!'
 
 
-c	do i=1,nac
-c		write(*,*) "conectiv", i, ng1(i,1:6)
-c	end do
-
 c asigna los atomos nonbonded y su tipo
          if(first) then       
            do i=1,nac 
@@ -944,12 +928,6 @@ c asigna los atomos nonbonded y su tipo
                  m=m+1
 	       endif
              enddo
-c                if ( (i.eq.1180) .or. (i.eq.1183).or.(i.eq.1184)
-c     .  .or.(i.eq.1185).or.(i.eq.1186).or.(i.eq.1187).or.
-c     .  (i.eq.1194).or.(i.eq.1197).or.(i.eq.1199)) then
-c                   write(*,*) "check1 bonds ", i, m
-c                end if
-
 
              do j=1,angexat(i)
 	       if(i.lt.atange(i,j,2)) then
@@ -958,13 +936,6 @@ c                end if
                endif
 	     enddo
 	     nonbondedxat(i)=m-1
-
-
-c		if ( (i.eq.1180) .or. (i.eq.1183).or.(i.eq.1184)
-c     .  .or.(i.eq.1185).or.(i.eq.1186).or.(i.eq.1187).or.
-c     .  (i.eq.1194).or.(i.eq.1197).or.(i.eq.1199)) then
-c		   write(*,*) "check1 ang ", i, m
-c		end if
 
 c se fija los que estan 1-4(scaled)
              m=1
@@ -1072,7 +1043,11 @@ c        do i=1,nac
 c                write(*,*) i, scalexat(i)
 c        end do
 c	STOP
-
+c test Nick
+!	WRITE(*,*) "SCALE, FLAG"
+!	do i=1,nac
+!	  write(*,*) i, scalexat(i), scale(i,1:scalexat(i))
+!	end do
 
 	do i=1,nac
 	 do k=1,scalexat(i)
@@ -1118,10 +1093,6 @@ c		write(*,*) "E2 callc", i,j,pc(i),pc(j)
 	enddo
 
 
-c	write(*,*) "flag 1 non-bonded"
-c	write(*,*) "flj",flj
-c	write(*,*) "flelc",felec
-
 c fin scaled nonbonden
 c loop nonscaled nonbonded
         n_pointer=1      
@@ -1133,6 +1104,11 @@ c loop nonscaled nonbonded
 	cd=cc-1.d0/x0
 	rinn=x0**2d0
 	rout=x1**2d0
+
+!	write(*,*) "nonbonded flag"
+!	do i=1,nac
+!	  write(*,*) i, veclistxat(i), veclist(1:veclistxat(i))
+!	end do
 
         do i=1,nac
 	 do k=n_pointer,veclistxat(i)

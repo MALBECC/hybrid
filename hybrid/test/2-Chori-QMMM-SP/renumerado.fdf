@@ -96,10 +96,11 @@ MD.TypeOfRun    CG
 MD.NumCGsteps   0
  
 %block CutOffRadius       
-QM  0.2                   
+QM  2000.2                   
 QMMM 1000.0                 
 MM 800.0                    
-BLO 8.0                   
+BLO 80.0                   
+MMBLO 80.0
 %endblock CutOffRadius    
  
  
