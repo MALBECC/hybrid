@@ -9,7 +9,7 @@ c assignation of solvent atoms
      .  ndihe,kdihe,diheeq,dihetype,multidihe,perdihe,
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
-     .  rcorteqmmm,rcorteqm,rcortemm,sfc,timestep,
+     .  rcorteqmmm,rcorteqm,rcortemm,sfc,
      .  radbloqmmm,atsinres, radblommbond)
 
 	use precision
@@ -45,7 +45,7 @@ cagregue 0 apc
         character*4 aanamea(200)
         integer atomsxaa(200)
         integer aanum(nac),resnum(nac)
-        double precision rcorteqm,rcortemm,sfc,timestep,rcorteqmmm
+        double precision rcorteqm,rcortemm,sfc,rcorteqmmm
         character*4 atname(nac),aaname(nac),attype(nac),qmattype(na_u)
         character*5 bondtype(nparm)
         character*8 angletype(nparm)
@@ -65,7 +65,6 @@ c parche para q no ponga bonds entre extremos terminales
 	ivalue=0
 
 
-	write(*,*) "entre a solv_assign, Nick"
 C nullify some solvent vbles
       rclas = 0.d0
       aanum = 0
@@ -80,7 +79,6 @@ C nullify some solvent vbles
       rcorteqm = 1.d-06
       rcorteqmmm = 100.d0
       sfc=2.d0
-      timestep=0.1d0
       radbloqmmm=100.d0
       foundamber=.false.
 
@@ -166,7 +164,6 @@ c read cutoff radious
       read(iunit,*,err=30,end=30) exp, radbloqmmm
       read(iunit,*,err=30,end=30) exp, radblommbond
 C      read(iunit,*,err=30,end=30) exp, sfc
-C      read(iunit,*,err=30,end=30) exp, timestep
       else
       write(6,'(/a)') 'solvent: Cut-off radius will be the standard'
       endif
@@ -425,8 +422,6 @@ c si funciona como subrutina asigna las cargas y attypeas seguna amber
           enddo
         enddo
  
-
-	write(*,*) "flag 123456"
 
         k=1
         do i=1,nroaa
@@ -715,6 +710,7 @@ c asigna los 1eros vecinos de cada atomo
          enddo
 
 c calcula los vecinos entre 2 aa seguidos
+c esto es lo q hay q modificar parta omitir bonds entre residuos que no correspondan, Nick
          do i=2,nroaa
          c4=resname(i)
          c1=c4(1:1)
