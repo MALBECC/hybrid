@@ -15,9 +15,9 @@ implicit none
 
 ! After it is done, this file should be commited.
 
-integer, dimension(3), save  :: num_version = (/1,1,17/)
+integer, dimension(3), save  :: num_version = (/2,0,0/)
 character(len=80), parameter :: version_str =  &
-"HYBRID 1.1.17 -- [ MMxQM w/ LA ] (31 Ago 2005)" 
+"HYBRID 2.0 -- [ Lio-hybrid ] (22 Dec 2017)" 
 
 end module version_info
 !================================================================
@@ -29,29 +29,29 @@ subroutine prversion
 
 ! Use free format in file to make more room for long option strings...
 
-use version_info
+use version_info, only: version_str
 implicit none
 
 write(6,'(a)') trim(version_str)
-write(6,'(2a)') 'Architecture  : ', &
-"SIESTA_ARCH"
+!write(6,'(2a)') 'Architecture  : ', &
+!"SIESTA_ARCH"
 write(6,'(2a)') 'Compiler flags: ', &
 "FFLAGS"
-#ifdef MPI
-write(6,'(a)') 'PARALLEL version'
-#else
+!#ifdef MPI
+!write(6,'(a)') 'PARALLEL version'
+!#else
 write(6,'(a)') 'SERIAL version'
-#endif
+!#endif
 
-#ifdef CDF
-write(6,'(a)') 'NetCDF-capable'
-#endif
+!#ifdef CDF
+!write(6,'(a)') 'NetCDF-capable'
+!#endif
 
 end subroutine prversion
 !----------------------------------------------------------
 
 subroutine get_version(v)
-  use version_info
+  use version_info, only: num_version
   implicit none
   integer, intent(out)  :: v(3)
   v = num_version

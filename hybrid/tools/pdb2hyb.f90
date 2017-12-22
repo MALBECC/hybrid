@@ -571,6 +571,7 @@
 	write (2,'(a26)')'MD.UseSaveCG   T          '  
         write (2,'(a26)')'LongOutput    F           '
         write (2,*)''
+        write (2,*)'OptimizationScheme 1'
         write (2,'(a26)')'MD.TypeOfRun    CG        '
         write (2,'(a26)')'MD.NumCGsteps   500       '
         write (2,*)''

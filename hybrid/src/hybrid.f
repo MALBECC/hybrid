@@ -65,9 +65,6 @@
       logical :: actualiz!MM interaction list control
 
 
-
-
-
 ! Solvent (MM) General variables
       integer :: nac !number of MM atoms
       integer :: natot !total number of atoms
@@ -321,153 +318,115 @@ C ConstrOpt variables
       logical :: water
 
 ! Solvent external variables
-        external
-     .  solv_assign, solv_ene_fce, qmmm_lst_blk, wrtcrd,
-     .  centermol, centerdyn, link1, link2, link3, ljef,
-     .  mmForce, readcrd,  prversion, ioxvconstr,  
-     .  wripdb, wriene, wrirtc, subconstr1, subconstr2, subconstr3
+       external
+     . solv_assign, solv_ene_fce, qmmm_lst_blk, wrtcrd,
+     . centermol, centerdyn, link1, link2, link3, ljef,
+     . mmForce, readcrd,  prversion, ioxvconstr,  
+     . wripdb, wriene, wrirtc, subconstr1, subconstr2, subconstr3
 
 
-C--------------------------------------------------------------------
+!--------------------------------------------------------------------
 
-	opt_scheme=1
-	do_SCF=.true.
-	do_QM_forces=.true.
-	rcorteqmmm=0.d0
-	radbloqmmm=0.d0
-	do_properties=.false.
+! Initialise some variables
+      relaxd=.false.
+      varcel=.false.
+      tp=0.0
+      cstress=0.0
+      strtol=0.0
+      qm=.true.
+      mm=.true.
+      Etot_amber=0.d0
+      charge=0
+      spin=0.d0
+      do_SCF=.true.
+      do_QM_forces=.true.
+      rcorteqmmm=0.d0
+      radbloqmmm=0.d0
+      do_properties=.false.
 
-C Initialise some variables
-        relaxd=.false.
-        varcel=.false.
-        tp=0.0
-        cstress=0.0
-        strtol=0.0
-        qm=.true.
-        mm=.true.
-C added init, Nick
-	Etot_amber=0.d0
-	charge=0
-	spin=0.d0
-
-C Initialize IOnode
+! Initialize IOnode
       call io_setup   
 
-C Print version information
+! Print version information
       call prversion
-      write(6,'(/,a,i4,a)') 'hybrid: Running in serial mode' 
 
-C Start time counter 
+! Start time counter 
       call timestamp('Start of run')      
 
-C Factors of conversion to internal units 
+! Factors of conversion to internal units 
       Ang    = 1._dp / 0.529177_dp
       eV     = 1._dp / 27.211396132_dp
       kcal   = 1.602177E-19_dp * 6.02214E23_dp / 4184.0_dp
 
-C Initialise read 
+! Initialise read 
       call reinit(slabel, sname)
 
-C Read the number of QM atoms
+! Read the number of QM atoms
       na_u=fdf_integer('NumberOfAtoms',0)
       if (na_u.eq.0) then
         write(6,'(/a)') 'hybrid: Running with no QM atoms'
         qm=.false.
       endif
-C Read the number of MM atoms
+
+! Read the number of MM atoms
       nac = fdf_integer('NumberOfSolventAtoms',0)
       if (nac.eq.0) then
         write(6,'(/a)') 'hybrid: Running with no MM atoms'
         mm=.false.
       endif
-C Read the number of species
+
+      if (nac.eq.0 .and. na_u.eq.0) then
+        call die("no atoms in system")
+      end if
+
+! Read the number of species
       nesp = fdf_integer('NumberOfSpecies',0)
-      if(qm.and.nesp.eq.0) then
-      call die("hybrid: You must specify the number of species")
+      if(qm.and.(nesp.eq.0)) then
+        call die("hybrid: You must specify the number of species")
       endif
 
-      allocate(xa(3,na_u))
-      allocate(fa(3,na_u))
-      allocate(isa(na_u))
-      allocate(iza(na_u))
-      allocate(atsym(nesp))
+! allocate some varibles
+      allocate(xa(3,na_u), fa(3,na_u), isa(na_u), iza(na_u), 
+     . atsym(nesp))
  
-C Read QM coordinates and labels
+! Read QM coordinates and labels
       write(6,*)
       write(6,"('read:',71(1h*))")
       if(qm) then
         call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
       endif !qm
 
-C Allocation of solvent variables
+! Allocation of solvent variables
       natot = nac + na_u
 
-	allocate(r_cut_list_QMMM(nac))
-c referencia posiciones de atomos MM con los vectores cortados
+      allocate(r_cut_list_QMMM(nac)) ! referencia posiciones de atomos MM con los vectores cortados
 
-      nparm = 500
-c nparm en el numero de tipos de bonds q tiene definido el amber.parm. NO DEBERIA ESTAR fijo, Nick
+      nparm = 500 ! numero de tipos de bonds q tiene definido el amber.parm. NO DEBERIA ESTAR fijo, Nick
 
-      allocate(izs(natot))
-      allocate(Em(natot))
-      allocate(Rm(natot))
-      allocate(pc(0:nac))
-ccambiado, Nick
-      allocate(rclas(3,natot))
-
-      allocate(MM_freeze_list(natot))
-
-      allocate(masst(natot))
-      allocate(vat(3,natot))
-      allocate(cfdummy(3,natot))
-      allocate(fdummy(3,natot))
-      allocate(qmattype(na_u))
-      allocate(attype(nac))
-      allocate(atname(nac))
-      allocate(aaname(nac))
-      allocate(aanum(nac))
-      allocate(ng1(nac,6))
-      allocate(blocklist(natot))
-      allocate(blockqmmm(nac))
-      allocate(listqmmm(nac))
-      allocate(fce_amber(3,nac))
-      allocate(ng1type(nac,6))
-      allocate(angetype(nac,25))
-      allocate(angmtype(nac,25))
-      allocate(evaldihe(nac,100,5))
-      allocate(evaldihm(nac,100,5))
-      allocate(dihety(nac,100))
-      allocate(dihmty(nac,100))
-      allocate(impty(nac,25))
-      allocate(nonbonded(nac,100))
-      allocate(scale(nac,100))
-      allocate(evaldihelog(nac,100))
-      allocate(evaldihmlog(nac,100))
-      allocate(scalexat(nac))
+      allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
+      allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
+      allocate(vat(3,natot), cfdummy(3,natot), fdummy(3,natot))
+      allocate(qmattype(na_u), attype(nac), atname(nac))
+      allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
+      allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
+      allocate(ng1type(nac,6), angetype(nac,25), angmtype(nac,25))
+      allocate(evaldihe(nac,100,5), evaldihm(nac,100,5))
+      allocate(dihety(nac,100), dihmty(nac,100), impty(nac,25))
+      allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
+      allocate(evaldihmlog(nac,100), scalexat(nac))
       allocate(nonbondedxat(nac))
-      allocate(kbond(nparm),bondeq(nparm),
-     .           bondtype(nparm))
-      allocate(kangle(nparm),angleeq(nparm),
-     .           angletype(nparm))
-      allocate(kdihe(nparm),diheeq(nparm),
-     .           dihetype(nparm),multidihe(nparm),
-     .            perdihe(nparm))
-      allocate(kimp(nparm),impeq(nparm),
-     .           imptype(nparm),multiimp(nparm),
-     .            perimp(nparm))
-      allocate(atange(nac,25,2))
-      allocate(atangm(nac,25,2))
-      allocate(atdihe(nac,100,3))
-      allocate(atdihm(nac,100,3))
-      allocate(bondxat(nac))
-      allocate(angexat(nac))
-      allocate(dihexat(nac))
-      allocate(dihmxat(nac))
-      allocate(angmxat(nac))
-      allocate(impxat(nac))
-      allocate(atimp(nac,25,4))
+      allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
+      allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
+      allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm),
+     . multidihe(nparm), perdihe(nparm))
+      allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm),
+     . perimp(nparm))
+      allocate(atange(nac,25,2), atangm(nac,25,2), atdihe(nac,100,3))
+      allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
+      allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
+      allocate(impxat(nac), atimp(nac,25,4))
 
-C Some definitions 
+! Some definitions 
       ucell=0.d0
       fa=0.d0
       fdummy = 0.d0
@@ -485,13 +444,19 @@ C Some definitions
       nstepconstr = 0
       numlink = fdf_integer('LinkAtoms',0)
       linkatom = .false.
+
       if(numlink.ne.0) linkatom = .true.
+
+      opt_scheme=0
+      opt_scheme = fdf_integer('OptimizationScheme',0)
+      write(*,*) "opt_scheme vale", opt_scheme
+
       constropt = .false.
       constropt = fdf_block('ConstrainedOpt',iunit)
       foundvat = .false.
       writeipl = fdf_boolean('WriIniParLas',.false.)
 
-C Read and assign Solvent variables 
+! Read and assign Solvent variables 
        if(mm) then
        call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
@@ -504,72 +469,72 @@ C Read and assign Solvent variables
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
      .  radbloqmmm,atxres,radblommbond)
        endif !mm
-c cambio cutoff a unidades atomicas, Nick
+
+! changing cutoff to atomic units
       rcorteqmmm=rcorteqmmm*Ang
       radbloqmmm=radbloqmmm*Ang
 
+      rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
-       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
+! Read simulation data 
+      call read_md( idyn, nmove, dt, dxmax, ftol, 
+     .              usesavecg, usesavexv , na_u,  
+     .              natot, nfce, wricoord, mmsteps )
 
-C Read simulation data 
-       call read_md( idyn, nmove,
-     .               dt, dxmax, ftol, 
-     .               usesavecg, usesavexv , na_u,  
-     .               natot, nfce, wricoord, mmsteps )
+! Assignation of masses and species 
+      call assign(na_u,nac,atname,iza,izs,masst)
 
-C assignation of masses and species 
-       call assign(na_u,nac,atname,iza,izs,masst)
+! Read cell shape and atomic positions from a former run
+      call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat ) 
+      if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 
-C Read cell shape and atomic positions from a former run
-       call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat ) 
-       if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-
-C Reading LinkAtom variables
+! Reading LinkAtom variables
       if(qm.and.mm) then
         if (linkatom) then
-        call link1(numlink,linkat,linkqm,linkmm,linkqmtype,
-     .            linkmm2,ng1,nac,na_u,qmattype,rclas)
-c sets to zero Em for HL and CQM
-        do i=1,numlink
-          Em(linkat(i))=0.d0
-          Em(linkqm(i,1:1))=0.d0
-        enddo
+          call link1(numlink,linkat,linkqm,linkmm,linkqmtype,
+     .               linkmm2,ng1,nac,na_u,qmattype,rclas)
+! sets to zero Em for HL and CQM
+          do i=1,numlink
+            Em(linkat(i))=0.d0
+            Em(linkqm(i,1:1))=0.d0
+          enddo
         endif !LA
       endif !qm & mm
 
-C Read a crd file from a former run
+! Read a crd file from a former run
       call readcrd(na_u,nac,masst,linkatom,linkat,numlink,
      .             rclas,vat,foundcrd,foundvat)
       if(foundcrd) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 
 
 
-C Sets LinkAtoms' positions
+! Sets LinkAtoms' positions
       if(qm.and.mm) then
         if (linkatom) then
-        call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .    natot,na_u,nac,distl)
-        xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-C Sets to zero pc and Em for MMLink 
+          call link3(numlink,linkat,linkqm,linkmm,rclas,
+     .               natot,na_u,nac,distl)
+          xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+! Sets to zero pc and Em for MMLink 
           do i=1,numlink
             pclinkmm(i,1:4)=pc(linkmm(i,1:4))
             pc(linkmm(i,1:1))=0.d0
             pc(linkmm(i,2:4))=pc(linkmm(i,2:4))+pclinkmm(i,1)/3.d0
-C two options: Em(linkmm(i,1:1))=0.0 or Em(linkmm(i,1:4))=0.0
+! two options: Em(linkmm(i,1:1))=0.0 or Em(linkmm(i,1:4))=0.0
             Emlink(i,1:1)=Em(na_u+linkmm(i,1:1))
             Em(na_u+linkmm(i,1:1))=0.d0
           enddo
         endif !LA
       endif !qm & mm
 
-C Dump initial coordinates to output 
+! Dump initial coordinates to output 
       if (writeipl) then
         if(qm) then
           write(6,'(/a)') 'hybrid: Atomic coordinates (Ang) and species'
           write(6,"(i6,2x,3f10.5,2x,i3)")
      .         (ia, (xa(ix,ia)/Ang, ix=1,3), isa(ia), ia=1,na_u)
         endif !qm
-C Dump initial Solvent coordinates to output
+
+! Dump initial Solvent coordinates to output
         if(mm) then      
           write(6,*)
           write(6,"('hybrid: Number of solvent atoms:',i6)") nac
@@ -583,7 +548,7 @@ C Dump initial Solvent coordinates to output
 
         if(qm.and.mm) then
           write(6,"(i6,2x,A4,2x,f12.7,2x,f12.7)")
-     .     (i,qmattype(i),Em(i),Rm(i),i=1,na_u)
+     .         (i,qmattype(i),Em(i),Rm(i),i=1,na_u)
         endif !qm & mm
 
         if(mm) then
@@ -593,33 +558,30 @@ C Dump initial Solvent coordinates to output
       endif !writeipl
       call flush(6)
 
-c Initialize .xyz
-	xyzlabel = paste( slabel, '.xyz' )
-	open(unit=34, file=xyzlabel)
 
+! Initialize .xyz
+      xyzlabel = paste( slabel, '.xyz' )
+      open(unit=34, file=xyzlabel)
 
-
-
-C Initialize siestaslabel, filerho and filevqm 
+! Initialize Lio 
       if(qm) then
-! First call to siesta_forces to initialise grid
         Etot=0.d0
         fa=0.d0
-
-! initialize lio 
         call init_lio_hybrid(na_u, nac, charge, iza, spin)
 
 ! calculate cell volume
         volume = volcel( ucell )
-
-C writes cell
+! writes cell
         write(6,'(/,a,3(/,a,3f12.6))')
      .       'hybrid: unit cell vectors (Ang) from siesta run:',
      .       ('    ' , (ucell(ix,ia)/Ang,ix=1,3), ia =1,3)
-
-C Center system 
+! Center system 
         if (.not.foundxv) call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
+
+
+!<<<<<<<<<<<<<<<================================================================================== Por aca Nick
+
 
 C Calculate Rcut & block list QM-MM 
       if(qm.and.mm) then
@@ -635,27 +597,25 @@ C Read fixed atom constraints
 
 
 
-c########################################################################################
-c########################################################################################
-c########################################################################################
+!########################################################################################
+!#####################################  MAIN LOOPS  #####################################
+!########################################################################################
 
 
-C Start loop over constrained optimization steps
-        if(constropt) then
-         call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
-     .   rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
-        endif
+! Start loop over constrained optimization steps
+      if(constropt) then
+        call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
+     .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
+      endif
 
-        do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN
-c istepconstr marcA LA POSICION DEL RESTRAIN, NICK
-
-	optimization_lvl=3
-
-	if (opt_scheme .eq. 1 .and. .false.) then
-	  optimization_lvl=1
-c	  do_SCF=.false.
-c	  do_QM_forces=.false.
-	end if
+      do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN
+! istepconstr marca la posicion del restrain
+        optimization_lvl=3
+        if (opt_scheme .eq. 1) then
+          optimization_lvl=1
+!	  do_SCF=.false.
+!	  do_QM_forces=.false.
+        end if
 
         if(constropt) then
           write(6,*)
@@ -665,40 +625,30 @@ c	  do_QM_forces=.false.
 	  write(666,*) "paso ", istepconstr
         endif
 
-C Begin of coordinate relaxation iteration ============================
-      if (idyn .eq. 0) then
-        inicoor = 0
-        fincoor = nmove
-      endif
+! Begin of coordinate relaxation iteration ============================
+        if (idyn .eq. 0) then
+          inicoor = 0
+          fincoor = nmove
+        endif
+        at_MM_cut_QMMM=nac
 
 
-
-
-
-	at_MM_cut_QMMM=nac
-
-C Aca empieza a mover para 1 valor de constrain, Nick
-
-C Start loop over coordinate changes
-      istp = 0
-      do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Paso opt
-      istp = istp + 1
+! Start loop over coordinate changes
+        istp = 0
+        do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
+          istp = istp + 1
  
-        write(6,'(/2a)') 'hybrid:                 ',
+          write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-        if (idyn .ne. 0 ) STOP 'only minimization avalable'
-
-        write(6,'(28(" "),a,i6)') 'Begin CG move = ',istep
-        write(6,'(2a)') '                        ',
+          if (idyn .ne. 0 ) STOP 'only CG minimization avalable'
+          write(6,'(28(" "),a,i6)') 'Begin CG move = ',istep
+          write(6,'(2a)') '                        ',
      .                    '=============================='
-
-
-	write(*,*) "nivel de optimizacion: ", optimization_lvl
-
+          write(6,*) "Optimization level: ", optimization_lvl
 
 ! Calculate Energy and Forces using Lio as Subroutine
-      if(qm) then
+          if(qm) then !arreglar todo este bloque, Nick
 
 c cutofff QM-MM
 c	if (.true.) then !activa el cutoff
@@ -815,37 +765,36 @@ c atomos totales, atomos MM, posiciones, enerfia, fuerza, carga nuclear
 	  end if
 c	end if
 
-        endif !qm
-
-C Start MMxQM loop
-      do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
-      step = step +1
-      if(mmsteps.ne.1) then
-        write(6,*)
-        write(6,'(A)')    '*******************************'
-        write(6,'(A,i5)') '   MM x QM Step : ', imm 
-        write(6,'(A)')    '*******************************'
-      endif
+          endif !qm
 
 
-C Calculation of last QM-MM interaction: LJ Energy and Forces only 
-      if((qm.and.mm)) then
-        call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
-      endif !qm & mm
+! Start MMxQM loop
+          do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
+            step = step +1
+            if(mmsteps.ne.1) then
+              write(6,*)
+              write(6,'(A)')    '*******************************'
+              write(6,'(A,i5)') '   MM x QM Step : ', imm 
+              write(6,'(A)')    '*******************************'
+            endif
 
+! Calculation of last QM-MM interaction: LJ Energy and Forces only 
+            if((qm.and.mm)) then
+              call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
+            endif !qm & mm
 
-C LinkAtom: set again linkmm atoms parameters
-      if(qm.and.mm) then
-        if(linkatom) then
-          do i=1,numlink
-            pc(linkmm(i,1:4))=pclinkmm(i,1:4)
-            Em(na_u+linkmm(i,1:1))=Emlink(i,1:1)
-          enddo
-        endif !LA
-      endif !qm & mm
+! LinkAtom: set again linkmm atoms parameters
+            if(qm.and.mm) then
+              if(linkatom) then
+                do i=1,numlink
+                  pc(linkmm(i,1:4))=pclinkmm(i,1:4)
+                  Em(na_u+linkmm(i,1:1))=Emlink(i,1:1)
+                enddo
+              endif !LA
+            endif !qm & mm
 
-C Calculate pure Solvent energy and forces 
-      if(mm) then
+! Calculate pure Solvent energy and forces 
+            if(mm) then
       call solv_ene_fce(natot,na_u,nac,ng1,rclas,Em,Rm,pc(1:nac),
      .    Etot_amber,fce_amber,attype,
      .    nbond,nangle,ndihe,nimp,multidihe, multiimp,kbond,bondeq,
@@ -859,35 +808,36 @@ C Calculate pure Solvent energy and forces
      .    actualiz,rcortemm,
      .    atname,aaname,sfc,dt,
      .    water,masst,radblommbond)
-      endif !mm
+            endif !mm
 
-C converts fdummy to Kcal/mol/Ang  
-      fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
+! converts fdummy to Kcal/mol/Ang  
+            fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
  
-C add famber to fdummy  
-      if(mm) then
-      fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
-     .       +fce_amber(1:3,1:nac)
-      endif !mm
+! add famber to fdummy  
+            if(mm) then
+              fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
+     .        +fce_amber(1:3,1:nac)
+            endif !mm
 
-C Calculation of LinkAtom Energy and Forces
-      if(qm.and.mm ) then
-        if(linkatom) then
+! Calculation of LinkAtom Energy and Forces
+            if(qm.and.mm ) then
+              if(linkatom) then
         call link2(numlink,linkat,linkqm,linkmm,linkmm2,rclas,
      .  natot,na_u,nac,fdummy,ng1,attype,nparm,
      .  nbond,nangle,ndihe,nimp,multidihe,multiimp,kbond,bondeq,
      .  kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
      .  bondtype,angletype,dihetype,imptype,linkqmtype,
      .  bondxat,Elink,parametro,step)
-C Set again link atmos parameters to zero for next step  
-        do i=1,numlink
+! Set again link atmos parameters to zero for next step  
+                do i=1,numlink
         pclinkmm(i,1:4)=pc(linkmm(i,1:4))
         pc(linkmm(i,1:1))=0.d0
         pc(linkmm(i,2:4))=pc(linkmm(i,2:4))+pclinkmm(i,1)/3.d0
         Em(na_u+linkmm(i,1:1))=0.d0
-        enddo
-        endif ! LA
-      endif !qm & mm
+                enddo
+              endif ! LA
+            endif !qm & mm
+
 
 	if (.true.) then
 	   do itest=1, natot
@@ -899,37 +849,34 @@ C Set again link atmos parameters to zero for next step
 
 
 
-        if(optimization_lvl.eq.1) fdummy=0.d0 !slo mueve por restrain
+            if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
-
-C Calculation of Constrained Optimization Energy and Forces 
-      if(imm.eq.1) then
-        if(constropt) then
+! Calculation of Constrained Optimization Energy and Forces 
+            if(imm.eq.1) then
+              if(constropt) then
         call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr,
      .  ndists,coef)
-        endif 
-      endif !imm
+              endif 
+            endif !imm
 
-C Converts fdummy to Ry/Bohr 
-      fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
+! Converts fdummy to Ry/Bohr 
+            fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 
-C Writes final energy decomposition
-       Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
-C estan duplicados los pesos de algunas energias
-       Etots=0.5d0*Etots
+! Writes final energy decomposition
+            Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
+            Etots=0.5d0*Etots
 
        write(6,*)
        write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
        if(qm) write(6,'(a,2x,F16.6)')           'Esiesta:',Etot/eV      !esta bien comparada con G
-
        if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Elj:    ',Elj/eV       ! da la mitad si 1 atomo en QM y otro MM q si los 2 son MM
        if(mm) write(6,'(a,2x,F16.6)')      'Esolv:  ',Etot_amber/kcal   !esta esta bien comparada con Amber
        if(Elink.ne.0.0) write(6,'(a,2x,F16.6)') 'Elink:  ',Elink/kcal
        if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Etots:  ',Etots/eV
        call flush(6)
 
-C Sets fdummy to zero inside mmxqm step
+! Sets fdummy to zero inside mmxqm step
        if(qm.and.mm) then
          if(imm.ne.1) then
            fdummy(1:3,1:na_u) = 0.d0
@@ -943,20 +890,19 @@ C Sets fdummy to zero inside mmxqm step
          endif !imm
        endif !qm & mm
 
-C Impose constraints to atomic movements by changing forces
+! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat)
 
-C Accumulate coordinates in PDB/CRD file for animation
+! Accumulate coordinates in PDB/CRD file for animation
       call wripdb(na_u,slabel,rclas,natot,step,wricoord,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
 
-c freeza QM atom
-        if (optimization_lvl .eq. 2)  then !congela QM, luego ponerle una variable
-        write(*,*) "cuidado congelo QM"
-        do inick=1, na_u
+! freeze QM atom
+        if (optimization_lvl .eq. 2)  then
+          do inick=1, na_u
             cfdummy(1:3,inick) = 0.d0
-        end do
+          end do
         end if
 
 c freeza MM atom
@@ -1046,10 +992,6 @@ c centro traj respecto al cm, solo en el caso de sistema solo qm
       end if
 c #################################################################################
 
-C      iunit = 2
-c      ntcon = 0
-c      if(imm.ne.1) ntcon = na_u
-
 c       if(idyn .ne. 0 .and. idyn .ne. 5) then
 c      if(qm) call centerdyn(na_u,rclas,ucell,natot)
 c       endif
@@ -1081,6 +1023,7 @@ C write atomic constraints each step
 
 C Exit MMxQM loop
       enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
+
       if((mmsteps.ne.1).and.(imm.ne.1)) relaxd = .false.
 
 C Exit coordinate relaxation loop
@@ -1142,6 +1085,7 @@ C Dump last coordinates to output
       write(6,"(i6,2x,3f10.5,2x,i3)")
      .         (ia, (xa(ix,ia)/Ang, ix=1,3), isa(ia), ia=1,na_u)
       endif !qm
+
 C Dump last Solvent coordinates to output
       if(mm) then
       write(6,'(/a)')'hybrid: Last solvent coordinates (Ang)'
@@ -1154,6 +1098,7 @@ C Dump last Solvent coordinates to output
 
 C Print final date and time
       call timestamp('End of run')
+
  345  format(2x, I2,    2x, 3(f10.6,2x))
  346  format(2x, f10.6, 2x, 3(f10.6,2x))
  956  format(2x, "Econtribution", 7(f18.6,2x))
