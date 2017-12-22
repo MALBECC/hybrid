@@ -62,6 +62,12 @@
       character :: sname*150 !name of system
       character :: paste*25
       external :: paste
+      logical :: actualiz!MM interaction list control
+
+
+
+
+
 ! Solvent (MM) General variables
       integer :: nac !number of MM atoms
       integer :: natot !total number of atoms
@@ -196,24 +202,102 @@
       double precision, dimension(:,:), allocatable, save:: fdummy !QM+MM+QMMM force 
       double precision, dimension(:,:), allocatable, save:: cfdummy !QM+MM+QMMM force ater constrain
 
-      double precision :: rcorteqm !not used
-      double precision :: rcortemm !distance for LJ & Coulomb MM interaction
 
       double precision, dimension(:), allocatable, save:: masst !atomic mass
 
+
+      integer, dimension(:,:), allocatable, save:: ng1type !ng1type(i,j) number of bond type defined in amber.parm for atom i, bond j
+      integer, dimension(:,:), allocatable, save:: angetype !angetype(i,j) number of angle type defined in amber.parm for atom i, bond j, with i in extreme
+      integer, dimension(:,:), allocatable, save::  angmtype !angmtype(i,j) number of angle type defined in amber.parm for atom i, bond j, with i in middle
+      integer, dimension(:,:), allocatable, save:: dihety,dihmty,impty !same with dihedrals and impropers
+      logical, dimension(:,:), allocatable, save:: evaldihelog !control for evaluate diedral i, j on energy/force
+      logical, dimension(:,:), allocatable, save:: evaldihmlog !control for evaluate diedral i, j on energy/force
+
+C Link Atom variables
+      logical :: linkatom !control for link atoms subroutines
+      integer :: numlink !number of link atoms
+
+      integer :: linkat(15) !linkat(i) numero  de atomo QM del i-esimo link atom
+      integer :: linkqm(15,4),linkmm(15,4) !linkXm(i,*) lista de atomos QM/MM vecinos al link atom i
+      integer :: linkmm2(15,4,3) !lista de segundos vecinos
+      integer :: parametro(15,22,4) !parametro(i,*,*) posiciones en los arrays de constantes de enlace, angulos y diedros correspondientes a las interacciones del link atom i
+      character :: linkqmtype(15,4)*4 ! tipo de atomo en linkqm(i,j)
+      double precision :: Elink !Energy of link atoms
+      double precision :: distl(15) !distancia del link atom i al atomo QM mas cercano
+      double precision :: pclinkmm(15,15),Emlink(15,4)
+
+
+C ConstrOpt variables
+      logical :: constropt !activate restrain optimizaion
+      integer :: nconstr !number of constrains
+      integer :: nstepconstr !numero de pasos en los que barrera la coordenada de reaccion (limitado a 1-100 hay q cambiar esto, Nick)
+      integer :: typeconstr(20) !type of cosntrain (1 to 8)
+      double precision :: kforce(20) !force constant of constrain i
+      double precision :: rini,rfin  !initial and end value of reaction coordinate
+      double precision :: ro(20) ! fixed value of constrain in case nconstr > 1 for contrains 2+
+      double precision :: rt(20) ! value of reaction coordinate in constrain i
+      double precision :: dr !change of reaction coordinate in each optimization dr=(rfin-rini)/nstepconstr
+      double precision :: coef(20,10) !coeficients for typeconstr=8
+      integer :: atmsconstr(20,20), ndists(20) !atomos incluidos en la coordenada de reaccion
+      integer :: istepconstr !auxiliar
+
+! Cut Off QM-MM variables
+      double precision :: rcorteqm ! not used
+      double precision :: rcorteqmmm ! distance for QM-MM interaction
+      double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
+      double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
+      double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
+
+      integer, dimension(:), allocatable, save:: blocklist,blockqmmm, 
+     . listqmmm !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
+
+! Lio
+      logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
+      logical :: do_properties !control for lio properties calculation
+      double precision :: spin !number of unpaired electrons
+      integer :: charge !charge of QM sub-system
+
+! Optimization scheme
+      integer :: opt_scheme ! turn on optimization scheme
+      integer :: optimization_lvl ! level of movement in optimization scheme:
+! 1- only QM atoms with restrain
+! 2- only MM atoms
+! 3- all
+
+!variables para centrado del sistema, mejorar esto agregando el tensor de inircia, Nick
+       double precision, dimension(3) :: Rcm
+       double precision :: Tmass
+
+
+!variables para cuts, hay q mejorar esta parte de la implementacion, Nick
+      double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
+     .  F_cut_QMMM
+      double precision, allocatable, dimension(:) :: Iz_cut_QMMM
+      integer :: at_MM_cut_QMMM, r_cut_pos
+      integer, allocatable, dimension(:) :: r_cut_list_QMMM
+      logical, allocatable, dimension(:) :: MM_freeze_list
+      double precision :: r12 !auxiliar
+      integer :: i_qm, i_mm ! auxiliars
+      logical :: done, done_freeze, done_QMMM !control variables
+
+! restarts
+      logical :: foundcrd
+      logical :: foundvat !found velocities in restart
 
 ! Outputs variables
       character :: xyzlabel*20 !*.xyz name
       integer  :: nfce !number of atoms for whom the forces will be writen, wrifces=0,1,2 => nfce = 0, na, nat
       integer ::  wricoord !number of steps for write coordinates
+      logical :: writeipl
+
 
 ! Conversion factors
       real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
       real(dp) :: eV !E_in_Hartree=E_in_eV * eV
       real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
 ! Auxeliars
-      integer :: i, ia, imm, iunit, ix, j, k
-!comentando variables, arriba
+      integer :: i, ia, imm, iunit, ix, j, k, inick, jnick, itest
+
 
 
 ! Others that need check
@@ -222,94 +306,27 @@
       real(dp) :: ucell(3,3)
       real(dp) :: volcel
       external :: volcel
+
+      external
+     .  chkdim, cgvc,  ioxv, fixed1, assign,
+     .  iofa, ofc, reinit, read_qm,
+     .  read_md, fixed2
+
 !!!! Solvent General variables
       integer, dimension(:,:,:), allocatable, save ::  atange, atangm,
      . atdihe,atdihm,atimp
       double precision  :: sfc
-
-
-
-
-
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-C General Variables
-      external
-     .  chkdim, cgvc,  ioxv, fixed1, assign, 
-     .  iofa, ofc, reinit, read_qm, 
-     .  read_md, fixed2
-
-C Solvent General variables
-
       integer, dimension(:,:,:), allocatable, save::
      .  evaldihe,evaldihm
-      integer, dimension(:,:), allocatable, save::
-     .  ng1type,angetype,angmtype,dihety,dihmty,impty
-      logical, dimension(:,:), allocatable, save::
-     .  evaldihelog,evaldihmlog
+      logical :: water
 
-      logical firstpc,constropt,actualiz, free, deuter 
-
-C Link Atom variables
-        logical   linkatom
-        integer numlink,linkqm(15,4),linkmm(15,4),linkat(15),
-     .  linkmm2(15,4,3),parametro(15,22,4)
-        double precision pclinkmm(15,15),Emlink(15,4),
-     .  Elink,distl(15),kch(15),rch(15)
-        character linkqmtype(15,4)*4
-
-C ConstrOpt variables
-        integer nconstr,typeconstr(20),atmsconstr(20,20)
-        integer nstepconstr,istepconstr, ndists(20)
-        double precision kforce(20),ro(20),rt(20),rini,rfin,dr,
-     .                   coef(20,10)
- 
-C Cut Off QM-MM variables
-        double precision rcorteqmmm, radbloqmmm
-        integer, dimension(:), allocatable, save::
-     .  blocklist,blockqmmm,listqmmm
-c nuevas, Nick
-	double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
-     .  F_cut_QMMM
-	double precision, allocatable, dimension(:) :: Iz_cut_QMMM
-	double precision :: r12
-	integer :: at_MM_cut_QMMM, r_cut_pos
-	integer, allocatable, dimension(:) :: r_cut_list_QMMM
-	integer :: i_qm, i_mm
-        logical :: done, done_freeze, done_QMMM
-        logical :: do_SCF, do_QM_forces
-	logical, allocatable, dimension(:) :: MM_freeze_list
-c cantidad de e desapareados
-	double precision :: spin 
-C variables para esquema de optimizacion
-        integer :: opt_scheme
-        integer :: optimization_lvl
-C 1- solo considera restrain
-C 2- solo opimiza atomos MM
-C 3- optimiza todo
-	integer ::  itest, atot_block
-
-C activa-desactiva calculo de propiedades en lio
-	logical :: do_properties
-
-C more variables
-        logical water,foundcrd,foundvat,writeipl 
-
-C Solvent external variables
+! Solvent external variables
         external
      .  solv_assign, solv_ene_fce, qmmm_lst_blk, wrtcrd,
      .  centermol, centerdyn, link1, link2, link3, ljef,
      .  mmForce, readcrd,  prversion, ioxvconstr,  
      .  wripdb, wriene, wrirtc, subconstr1, subconstr2, subconstr3
 
-C agragados Nick para Lio
-	integer :: charge, inick, jnick
-
-C para centrado
-	double precision, dimension(3) :: Rcm
-	double precision :: Tmass
-C parche para omitir bonds en extremos terminales
-        double precision :: radblommbond
 
 C--------------------------------------------------------------------
 
@@ -471,8 +488,6 @@ C Some definitions
       if(numlink.ne.0) linkatom = .true.
       constropt = .false.
       constropt = fdf_block('ConstrainedOpt',iunit)
-      free = .false.
-      free = fdf_block('FreeEnergy',iunit)
       foundvat = .false.
       writeipl = fdf_boolean('WriIniParLas',.false.)
 
@@ -863,7 +878,7 @@ C Calculation of LinkAtom Energy and Forces
      .  nbond,nangle,ndihe,nimp,multidihe,multiimp,kbond,bondeq,
      .  kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
      .  bondtype,angletype,dihetype,imptype,linkqmtype,
-     .  bondxat,Elink,parametro,step,kch,rch)
+     .  bondxat,Elink,parametro,step)
 C Set again link atmos parameters to zero for next step  
         do i=1,numlink
         pclinkmm(i,1:4)=pc(linkmm(i,1:4))
