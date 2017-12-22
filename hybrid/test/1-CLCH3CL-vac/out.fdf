@@ -1,5 +1,5 @@
 
-#FDF: Opened INPUT_TMP.2122421428 for input. Unit: 11
+#FDF: Opened INPUT_TMP.37798620   for input. Unit: 11
 
 fdf-debug              0     # Default value
 SystemName     cut5                                                                                                                                
@@ -28,6 +28,7 @@ AtomicCoordinatesFormat     Ang
 NetCharge         -1.000000000    
 TotalSpin          0.000000000    
 LinkAtoms              0     # Default value
+OptimizationScheme                        1
 WriIniParLas              F     # Default value
 MD.TypeOfRun     CG                                                                                                                                  
 MD.UseSaveCG              T

@@ -55,6 +55,7 @@ DM.UseSaveDM   T
 MD.USeSaveXV   T          
 MD.UseSaveCG   T          
 LongOutput    F           
+OptimizationScheme 1
  
 MD.TypeOfRun    CG        
 MD.NumCGsteps   0       

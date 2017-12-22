@@ -64,9 +64,9 @@ C
            open(lun,file='INPUT_DEBUG',form='formatted',status='old')
            rewind(lun)
         else
-c
-c          Read from standard input
-c
+
+!          Read from standard input
+
            write(6,'(/a)') 'reinit: Reading from standard input'
            lun = 5
            call io_assign(lun_tmp)
@@ -84,7 +84,7 @@ c
 
         write(6,'(a,23(1h*),a,28(1h*))')
      .    '***', ' Dump of input data file '
-c
+!
  10     continue
         read(lun,err=20,end=20,fmt='(a)') line
         call chrlen(line,0,length)
@@ -94,38 +94,38 @@ c
         endif
         goto 10
  20     continue
-c
+!
         write(6,'(a,23(1h*),a,29(1h*))')
      .    '***', ' End of input data file '
-c
-c       Choose proper file for fdf processing
-c
+!
+!       Choose proper file for fdf processing
+!
         if (debug_input) then
            call io_close(lun)
         else
            call io_close(lun_tmp)
         endif
 
-C Set up fdf ...
+! Set up fdf ...
         fileout = 'out.fdf'
         call fdf_init(filein,fileout)
 
-C Defile Name of the system ...
+! Defile Name of the system ...
         sname_default = ' '
         sname = fdf_string('SystemName',sname_default)
         write(6,'(/a,71(1h-))') 'reinit: '
         write(6,'(a,a)') 
      .   'reinit: System Name: ',sname
         write(6,'(a,71(1h-))') 'reinit: '
-C ...
+! ...
 
-C Defile System Label (short name to label files) ...
+! Defile System Label (short name to label files) ...
         slabel_default  = 'Scarlett'
         slabel = fdf_string('SystemLabel',slabel_default)
         write(6,'(a,a)') 
      .   'reinit: System Label: ',slabel
         write(6,'(a,71(1h-))') 'reinit: '
-C ...
+! ...
       endif
 
       return
