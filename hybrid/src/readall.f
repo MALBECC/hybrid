@@ -295,7 +295,10 @@ C Subroutine to read a crd file from an Amber run
 	read(iu,*,err=1,end=1) natoms,time
 	
 	nat=na_u+nac-numlink
-	if(nat.ne.natoms)  stop 'Wrong number of atoms!!!' 
+	if(nat.ne.natoms) then
+	  write(*,*) 'Wrong number of atoms in ', fname
+	  STOP
+	end if
 	
         if(.not.linkatom) then
 	read(iu,err=1,end=1,fmt='(6f12.7)')

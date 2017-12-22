@@ -19,12 +19,13 @@ c na atomos cuanticos
 
 c check number of linkatoms
 	if(numlink.gt.15) then
-	call die('linkatom: number of link atoms must not exeed 15')
+	  call die('linkatom: number of link atoms must not exeed 15')
+!no se por que pusieron este limite, pero hayq  hacerlo mas flexible en el futuro, Nick
 	endif
 
 c assignation of linkatoms
 	do i=1,numlink
-	linkat(i)=na-numlink+i
+	  linkat(i)=na-numlink+i
 	enddo
 
 c assignation of CQM and CMM 
@@ -41,14 +42,13 @@ c assignation of CQM and CMM
 	enddo
 
 	do i=1,na
-	ch4=qmtype(i)
-	ch1=ch4(1:1)
-	if(ch1.ne.'C'.and.ch1.ne.'N') rmin(i)=20
-c	write(6,*) i,min(i),rmin(i)
+	  ch4=qmtype(i)
+	  ch1=ch4(1:1)
+	  if(ch1.ne.'C'.and.ch1.ne.'N') rmin(i)=20
+!solo pone link atoms a C y N cuanticos
 	enddo
 
 
-c	write(*,*) "num links", numlink, "Nick"
 	do k=1,numlink
 	  linkqm(k,1)=1
 	  do i=2,na
@@ -58,8 +58,9 @@ c	write(*,*) "num links", numlink, "Nick"
 	  enddo
 	  if(rmin(linkqm(k,1)).gt.4) then
 	    write(6,*) k,linkqm(k,1),rmin(linkqm(k,1))
-	    write(6,*) 'Wrong LA CQM atom....Check geometry'
+	    write(6,*) 'Wrong Link Atom CQM atom....Check geometry'
 	    STOP
+!el atomo QM esta muy lejos de un atomo MM
 	  endif
 	  rmin(linkqm(k,1))=20
 	  linkmm(k,1)=min(linkqm(k,1))-na
@@ -161,7 +162,7 @@ c assignation of MM 2nd neighbors
  10     enddo
         enddo	
 
-c write LA params in file
+c write Link Atoms params in file
         write(6,'(/,a)') 'hybrid: Link atom parameters:'
 	do i=1,numlink
         write(6,'(a,2x,1I6)') 'linkatom:',linkat(i)
@@ -181,7 +182,7 @@ c ramber=rclas
      .    nbond,nangle,ndihe,nimp,multidihe,multiimp,kbond,bondeq,
      .    kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
      .    bondtype,angletype,dihetype,imptype,linkqmtype,
-     .    bondxat,Ener,parametro,istp,kch,rch)
+     .    bondxat,Ener,parametro,istp)
 	
 	implicit none
 	integer numlink,linkat(15),linkqm(15,4),linkmm(15,4),
@@ -203,7 +204,7 @@ c ramber=rclas
        double precision  rij,dist,dx,dy,dz,pi,angle,
      . scal,scalar,dscalar,r12,r32,dr12r32,angulo,
      . dihedro,dihedral,fpar(3),fpp(3),fmod,
-     . dversor(3),rhq,rqm,Ener,kch(15),rch(15),distl(15)
+     . dversor(3),rhq,rqm,Ener,distl(15)
 	logical wriok
 
 

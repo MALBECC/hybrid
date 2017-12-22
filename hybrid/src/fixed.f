@@ -275,16 +275,16 @@ c nullify fce and vel
 
 c set total number of free atoms
 	if(frstme) then
-	k=0
-	do i=1,na_u
-	if((blocklist(i).eq.0)) k=k+1
-	enddo
-	do i=1,nac
-	if((blocklist(i+na_u).eq.0).and.(blockqmmm(i).eq.0)) k=k+1
-	enddo
-	nfree=k
-	write(6,'(/a,2x,i5)') 'hybrid: Total Free Atoms:', nfree 
-	frstme=.false.
+	  k=0
+	  do i=1,na_u
+	    if((blocklist(i).eq.0)) k=k+1
+	  enddo
+	  do i=1,nac
+ 	    if((blocklist(i+na_u).eq.0).and.(blockqmmm(i).eq.0)) k=k+1
+	  enddo
+	  nfree=k
+	  write(6,'(/a,2x,i5)') 'hybrid: Total Free Atoms:', nfree 
+	  frstme=.false.
 	endif
 
 	end

@@ -232,3 +232,236 @@ XC energy: -62.6636
 XC energy: -62.6636
 <====== Deinitializing G2G ======>
 >> End of run:  20-DEC-2017  19:47:10
+HYBRID 1.1.17 -- [ MMxQM w/ LA ] (31 Ago 2005)
+Architecture  : 
+Compiler flags: ifort -w -O2 -mp
+SERIAL version
+
+hybrid: Running in serial mode
+>> Start of run:  22-DEC-2017  16:28:14
+
+                           ***********************       
+                           *  WELCOME TO HYBRID  *       
+                           ***********************       
+
+reinit: Reading from standard input
+************************** Dump of input data file ****************************
+SystemName     cut5
+SystemLabel    cut5
+CenterMolecule T
+NumberOfAtoms         6
+NumberOfSpecies      3
+NetCharge -1.0
+FixSpin  T
+TotalSpin 0.0
+MD.MaxForceTol    0.04 eV/Ang
+NumberOfSolventAtoms      0
+%block ChemicalSpeciesLabel
+       1   6  C
+       2   1  H
+       3  17  Cl
+%endblock ChemicalSpeciesLabel
+AtomicCoordinatesFormat  Ang
+%block AtomicCoordinatesAndAtomicSpecies
+  35.68700  34.50600  35.99000         1
+  35.98000  34.12000  35.08700         2
+  36.08900  35.73700  36.24600         2
+  34.74800  34.44800  36.44800         2
+  33.49600  36.20600  33.44400         3
+  36.78400  33.67400  37.23300         3
+%endblock AtomicCoordinatesAndAtomicSpecies
+%block SoluteAtomTypes
+  CT  C1    CHC
+  HC  H1    CHC
+  HC  H2    CHC
+  HC  H3    CHC
+  Cl  CL    CHC
+  Cl  CL    CLO
+%endblock SoluteAtomTypes
+PAO.BasisType split
+PAO.BasisSize       DZP
+PAO.EnergyShift      25 meV
+PAO.SplitNorm       0.15
+WriteMDXmol F
+WriteMullikenPop 0
+XC.functional       GGA
+XC.authors          PBE
+MeshCutoff         150.0 Ry
+SpinPolarized        T
+MaxSCFIterations    80
+DM.MixingWeight      0.1
+DM.NumberPulay       3
+DM.UseSaveDM   T
+MD.USeSaveXV   T
+MD.UseSaveCG   T
+LongOutput    F
+MD.TypeOfRun    CG
+MD.NumCGsteps   0
+%block CutOffRadius
+QM  0.2
+QMMM 100.0
+MM 80.0
+BLO 80.0
+%endblock CutOffRadius
+%block SolventInput
+%endblock SolventInput
+************************** End of input data file *****************************
+
+reinit: -----------------------------------------------------------------------
+reinit: System Name: cut5                                                       
+reinit: -----------------------------------------------------------------------
+reinit: System Label: cut5                
+reinit: -----------------------------------------------------------------------
+
+hybrid: Running with no MM atoms
+ 
+read:***********************************************************************
+read: Atomic-coordinates input format  =     Cartesian coordinates (in Ang)
+read: Total number of electrons        =    44
+read: Dynamics option                  =     CG coord. optimization
+read: Use continuation files for CG    =     T
+read: Use continuation files for XV    =     T
+read: Maximum number of CG moves       =     0
+read: Max atomic displ per move        =     0.2000  Bohr
+read: Force tolerance                  =     0.0016  Ry/Bohr
+read: Write coordinates each           =     1  steps
+read: MM x QM steps                    =     1
+read: Write forces QM-MM               =     1
+read: ***********************************************************************
+ buscando cut5.XV                          
+
+ioxv: Reading coordinates and velocities from file
+ File lio.in               not found. Using defaults.
+<====== Initializing G2G ======>
+GPU Device used: GeForce GTX 580
+Kernels: gpu
+Kernels: cpu
+Using 3 CPU Threads and 1 GPU Threads
+ JOB STARTED NOW
+vie dic 22 16:28:14 -03 2017
+basis set corresponding to Z   7 was not used
+basis set corresponding to Z  26 was not used
+basis set corresponding to Z  16 was not used
+basis set corresponding to Z   8 was not used
+<======= GPU Code Initialization ========>
+atoms: 6
+max atoms: 6
+number of gaussians: 59
+do_forces: false
+s: 17 p: 8 d: 3
+m: 59 nco: 22
+ nco: 22
+density basis: s: 37 p: 11 d: 11
+density basis: m: 136
+Using device 0 for analytic integral calculations
+
+hybrid: unit cell vectors (Ang) from siesta run:
+        0.000000    0.000000    0.000000
+        0.000000    0.000000    0.000000
+        0.000000    0.000000    0.000000
+
+hybrid:                 ==============================
+                            Begin CG move =      0
+                        ==============================
+ nivel de optimizacion:            3
+ defino cuts 
+ doing SCF_in
+ atoms QM, MM, totals           6           0           6
+ doing SCF? T
+ doing forces? T
+Weights: 209472us.
+Particion 0: 5550170
+Particion 1: 5554300
+Particion 2: 5545870
+Relacion max / min = 1.001520
+--> Thread OMP: 4
+--> Thread CPU: 3
+--> Thread GPU: 1
+--> Correccion de cubos chicos: 250000
+--> Puntos de separacion: 200
+Timer functions: 2097us.
+MM point charges: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+XC energy: 0
+ CONVERGED AT          14 ITERATIONS
+XC energy: -62.6712
+ 
+    ╔════════════════════════════════════════════╗
+    ║        ENERGY CONTRIBUTIONS IN A.U.        ║
+    ╠══════════════════╦═════════════════════════╣
+    ║   ONE ELECTRON   ║     -1531.9675719       ║
+    ╠══════════════════╬═════════════════════════╣
+    ║   COULOMB        ║       534.5902342       ║
+    ╠══════════════════╬═════════════════════════╣
+    ║   NUCLEAR        ║       100.1838486       ║
+    ╠══════════════════╬═════════════════════════╣
+    ║   EXC. - CORR.   ║       -62.6711665       ║
+    ╠══════════════════╬═════════════════════════╣
+    ║   TOTAL          ║      -959.8646556       ║
+    ╚══════════════════╩═════════════════════════╝
+ 
+ Lio  E(H)  -959.864655566897     
+ Lio  E(eV)  -26119.2573757366     
+XC energy: -62.6712
+ 
+
+hybrid: Energy Decomposition (eV):
+Esiesta:     -26119.257376
+
+hybrid: Total Free Atoms:      6
+
+hybrid: Atomic forces (eV/Ang):
+     1   -0.632590    0.769578    0.234383
+     2    0.164863   -0.482187   -1.026909
+     3   -0.163397    0.148626    0.101346
+     4   -0.015310    0.155228    0.027358
+     5    0.244174   -0.179468    0.278636
+     6    0.384247   -0.375891    0.383806
+-------------------------------------------
+ Tot   -0.018013    0.035886   -0.001380
+-------------------------------------------
+ Max    1.026909  free, atom      2
+ Res    0.411733  sqrt( Sum f_i^2 / 3N )
+-------------------------------------------
+ Max    1.026909  cons, atom      2
+
+iocg: Reading CG continuation file
+ centrando sistema
+  Econtribution          0.000000       -26119.257376            0.000000            0.000000            0.000000       -26119.257376
+ doing SCF_in
+ atoms QM, MM, totals           6           0           6
+ doing SCF? T
+ doing forces? T
+Weights: 7727us.
+Particion 0: 5550170
+Particion 1: 5554300
+Particion 2: 5545870
+Relacion max / min = 1.001520
+--> Thread OMP: 4
+--> Thread CPU: 3
+--> Thread GPU: 1
+--> Correccion de cubos chicos: 250000
+--> Puntos de separacion: 200
+Timer functions: 1735us.
+MM point charges: 0
+XC energy: 0
+XC energy: 0
+ CONVERGED AT           2 ITERATIONS
+XC energy: -62.6712
+ Lio  E(H)  -959.864655533186     
+ Lio  E(eV)  -26119.2573748193     
+XC energy: -62.6712
+<====== Deinitializing G2G ======>
+>> End of run:  22-DEC-2017  16:28:15
