@@ -44,9 +44,6 @@ c Choose between read or write
 c       Check if input file exists
         fxv = .false.
 
-
-		write(*,*) "buscando ", fname
-
           inquire( file=fname, exist=fxv )
           if (fxv) then
 

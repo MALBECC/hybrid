@@ -198,7 +198,6 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
     nsol = mm_natom
     ntatom = nsol + natom 
 
-    write(*,*) "doing SCF_in"
     write(*,*) "atoms QM, MM, totals", natom, nsol, ntatom
     write(*,*) "doing SCF?", do_SCF
     write(*,*) "doing forces?", do_QM_forces

@@ -1,1 +1,1 @@
-../../bin/hybrid  < renumerado.fdf >> renumerado.out
+../../bin/hybrid  < optim10steps.fdf >> optim10steps.out
