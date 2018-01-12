@@ -1,5 +1,6 @@
 	subroutine center_rotation(atoms, mass, r, firstcet, In0vec)
 !center system and keeps direction of autovectors of inercia tensor
+!need more test
 !2017 N. foglia
 	implicit none
         integer, intent(in):: atoms

@@ -1,1 +1,1 @@
-../../bin/hybrid  < renumerado.fdf >> renumerado.out
+../../bin/hybrid  < chorismateM.fdf >> chorismateM.out

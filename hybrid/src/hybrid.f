@@ -261,13 +261,16 @@
 ! 2- only MM atoms
 ! 3- all
 
-!variables para centrado del sistema, mejorar esto agregando el tensor de inircia, Nick <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< aca laburando
+! force integration
+      logical : write_r&F
+
+!variables para centrado del sistema, mejorar esto agregando el tensor de inercia, Nick
       logical :: Nick_cent !activa centrado y conservacion de los ejes de inercia
       integer :: firstcent ! marca el 1er paso
       double precision, dimension(9) :: Inivec !inertia tensor autovectors
 
 
-!variables para cuts, hay q mejorar esta parte de la implementacion, Nick
+!variables para cuts
       double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
      .  F_cut_QMMM
       double precision, allocatable, dimension(:) :: Iz_cut_QMMM
@@ -345,6 +348,7 @@
       radbloqmmm=0.d0
       do_properties=.false.
       Nick_cent=.false.
+      write_r&F=.true.
 
 ! Initialize IOnode
       call io_setup   
@@ -576,10 +580,7 @@
 
 ! calculate cell volume
         volume = volcel( ucell )
-! writes cell
-        write(6,'(/,a,3(/,a,3f12.6))')
-     .       'hybrid: unit cell vectors (Ang) from siesta run:',
-     .       ('    ' , (ucell(ix,ia)/Ang,ix=1,3), ia =1,3)
+
 ! Center system 
         if (.not.foundxv) call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
@@ -643,14 +644,19 @@ C Read fixed atom constraints
           if(qm) then 
 
 	  if (istep.eq.inicoor) then ! define lista de interacciones en el primer paso de cada valor del restrain
-	    write(*,*) "defining cuts "
 	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
 	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
 	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
 	    r_cut_list_QMMM=0
 	    r_cut_pos=0
 	    at_MM_cut_QMMM=0
-	    if (istepconstr.eq.1) MM_freeze_list=.false.
+
+	    if (istepconstr.eq.1) then
+		MM_freeze_list=.true.
+		do i_qm=1,na_u
+		  MM_freeze_list(i_qm)=.false.
+		end do
+	    end if
 
 	    do i_mm=1, nac !MM atoms
 	      i_qm=0
@@ -670,12 +676,17 @@ C Read fixed atom constraints
 	          r_cut_list_QMMM(i_mm)=r_cut_pos
 	        end if
 
+
+
 		if (istepconstr.eq.1) then !define lista de movimiento para la 1er foto
-	          if(r12 .gt. radbloqmmm .and. .not. done_freeze) then
-	             MM_freeze_list(i_mm+na_u)=.true.
+	          if(r12 .lt. radbloqmmm .and. .not. done_freeze) then
+	             MM_freeze_list(i_mm+na_u)=.false.
 	             done_freeze=.true.
 	          end if
 		end if
+
+
+
 		done=done_QMMM .and. done_freeze
 	      end do
 	    end do
@@ -701,7 +712,7 @@ C Read fixed atom constraints
             end if
           end do
 
-	   call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
+	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
      .     F_cut_QMMM,
      .           Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
 
@@ -788,7 +799,7 @@ c return forces to fullatom arrays
             endif !qm & mm
 
 
-	if (.true.) then !falta un control aca
+	if (write_r&F) then !falta un control aca
 	   do itest=1, natot
 	   write(969,423) itest, rclas(1,itest),rclas(2,itest),
      .   rclas(3,itest),fdummy(1,itest)*0.5d0,fdummy(2,itest)*0.5d0,
@@ -896,18 +907,20 @@ C Write atomic forces
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
-
-	write(123,*) "fuerzas antes de CG"
-	write(123,*) "paso y nivel de optim", istep, optimization_lvl
-        do inick=1, natot
-            write(123,*) inick, cfdummy(1:3,inick)
-        end do
-
 ! Move atoms 
       if (idyn .eq. 0 ) then 
           call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
       endif
+
+!nick center
+          if (qm .and. .not. mm .and. Nick_cent) then
+            write(*,*) "Centrando Nick"
+            firstcent=0
+            if (istepconstr.eq.1 .and. istep.eq.inicoor ) firstcent=1
+            call center_rotation(natot, masst, rclas, firstcent, Inivec)
+          end if
+
 
 ! Write Energy in file
       call wriene(step,slabel,idyn,Etots,cfmax)
@@ -941,12 +954,6 @@ C Write atomic forces
 
 ! Exit coordinate relaxation loop
 	if (relaxd) then
-
-          if (qm .and. .not. mm .and. Nick_cent) then
-            firstcent=0
-            if (istepconstr.eq.1 ) firstcent=1
-!            call center_rotation(natot, masst, rclas, firstcent, Inivec)
-          end if
 
 	  if (opt_scheme.eq.1) then
 	    if (optimization_lvl.eq.1) then

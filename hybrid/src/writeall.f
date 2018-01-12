@@ -175,7 +175,6 @@ c -------------------------------------------------------------------
       if ( frstme ) then
         Ang  = 1.d0 / 0.529177d0
         eV  = 1.d0 / 27.211396132d0
-c        eV  = 1.d0 / 13.60580d0
       fnamec = paste(slabel,'.rcg')
       fnamee = paste(slabel,'.rce')
       frstme = .false.
