@@ -1,6 +1,7 @@
       Program HYBRID 
 !****************************************************************************
 ! Program for QM-MM calculations. 
+!
 ! Original version used the SIESTA code 
 ! (https://departments.icmab.es/leem/siesta/CodeAccess/index.html) to treat
 ! at DFT level the QM subsystem. 
@@ -202,7 +203,6 @@
 
       double precision, dimension(:), allocatable, save:: masst !atomic mass
 
-
       integer, dimension(:,:), allocatable, save:: ng1type !ng1type(i,j) number of bond type defined in amber.parm for atom i, bond j
       integer, dimension(:,:), allocatable, save:: angetype !angetype(i,j) number of angle type defined in amber.parm for atom i, bond j, with i in extreme
       integer, dimension(:,:), allocatable, save::  angmtype !angmtype(i,j) number of angle type defined in amber.parm for atom i, bond j, with i in middle
@@ -210,7 +210,7 @@
       logical, dimension(:,:), allocatable, save:: evaldihelog !control for evaluate diedral i, j on energy/force
       logical, dimension(:,:), allocatable, save:: evaldihmlog !control for evaluate diedral i, j on energy/force
 
-C Link Atom variables
+! Link Atom variables
       logical :: linkatom !control for link atoms subroutines
       integer :: numlink !number of link atoms
 
@@ -224,7 +224,7 @@ C Link Atom variables
       double precision :: pclinkmm(15,15),Emlink(15,4)
 
 
-C ConstrOpt variables
+! ConstrOpt variables
       logical :: constropt !activate restrain optimizaion
       integer :: nconstr !number of constrains
       integer :: nstepconstr !numero de pasos en los que barrera la coordenada de reaccion (limitado a 1-100 hay q cambiar esto, Nick)
@@ -261,9 +261,10 @@ C ConstrOpt variables
 ! 2- only MM atoms
 ! 3- all
 
-!variables para centrado del sistema, mejorar esto agregando el tensor de inircia, Nick
-       double precision, dimension(3) :: Rcm
-       double precision :: Tmass
+!variables para centrado del sistema, mejorar esto agregando el tensor de inircia, Nick <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< aca laburando
+      logical :: Nick_cent !activa centrado y conservacion de los ejes de inercia
+      integer :: firstcent ! marca el 1er paso
+      double precision, dimension(9) :: Inivec !inertia tensor autovectors
 
 
 !variables para cuts, hay q mejorar esta parte de la implementacion, Nick
@@ -292,7 +293,7 @@ C ConstrOpt variables
       real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
       real(dp) :: eV !E_in_Hartree=E_in_eV * eV
       real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
-! Auxeliars
+! Auxiliars
       integer :: i, ia, imm, iunit, ix, j, k, inick, jnick, itest
 
 
@@ -343,6 +344,7 @@ C ConstrOpt variables
       rcorteqmmm=0.d0
       radbloqmmm=0.d0
       do_properties=.false.
+      Nick_cent=.false.
 
 ! Initialize IOnode
       call io_setup   
@@ -457,8 +459,8 @@ C ConstrOpt variables
       writeipl = fdf_boolean('WriIniParLas',.false.)
 
 ! Read and assign Solvent variables 
-       if(mm) then
-       call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
+      if(mm) then
+        call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
      .  dihmxat,atdihm,impxat,atimp,
      .  nbond,kbond,bondeq,bondtype,
@@ -468,17 +470,20 @@ C ConstrOpt variables
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
      .  radbloqmmm,atxres,radblommbond)
-       endif !mm
+      endif !mm
 
 ! changing cutoff to atomic units
       rcorteqmmm=rcorteqmmm*Ang
+      rcorteqmmm=rcorteqmmm**2 !para comparar cuadrados
+
       radbloqmmm=radbloqmmm*Ang
+      radbloqmmm=radbloqmmm**2
 
       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
 ! Read simulation data 
       call read_md( idyn, nmove, dt, dxmax, ftol, 
-     .              usesavecg, usesavexv , na_u,  
+     .              usesavecg, usesavexv , Nick_cent, na_u,  
      .              natot, nfce, wricoord, mmsteps )
 
 ! Assignation of masses and species 
@@ -580,22 +585,9 @@ C ConstrOpt variables
       endif !qm
 
 
-!<<<<<<<<<<<<<<<================================================================================== Por aca Nick
-
-
-C Calculate Rcut & block list QM-MM 
-      if(qm.and.mm) then
-c esto hay q volarlo y hacer otra lista de cuts, Nick
-c        call qmmm_lst_blk(na_u,nac,natot,nroaa,atxres,rclas,
-c     .  rcorteqmmm,radbloqmmm,blockqmmm,listqmmm,rcorteqm,slabel)
-      endif !qm & mm
-
 C Read fixed atom constraints
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
      .            atname,aaname,aanum,water)
-
-
-
 
 !########################################################################################
 !#####################################  MAIN LOOPS  #####################################
@@ -608,13 +600,11 @@ C Read fixed atom constraints
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
       endif
 
-      do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN
+      do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
         optimization_lvl=3
         if (opt_scheme .eq. 1) then
           optimization_lvl=1
-!	  do_SCF=.false.
-!	  do_QM_forces=.false.
         end if
 
         if(constropt) then
@@ -635,7 +625,7 @@ C Read fixed atom constraints
 
 ! Start loop over coordinate changes
         istp = 0
-        do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
+        do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
           istp = istp + 1
  
           write(6,'(/2a)') 'hybrid:                 ',
@@ -647,22 +637,13 @@ C Read fixed atom constraints
      .                    '=============================='
           write(6,*) "Optimization level: ", optimization_lvl
 
+
+
 ! Calculate Energy and Forces using Lio as Subroutine
-          if(qm) then !arreglar todo este bloque, Nick
+          if(qm) then 
 
-c cutofff QM-MM
-c	if (.true.) then !activa el cutoff
-
-	  if (istep.eq.inicoor) then ! define lista de interacciones en el primer paso
-!falta una condicion q se acive si pido cuts
-
-!mod(istep,10).eq.1) then !actualiza cuts cada 10 pasos
-
-ca.true.) then !activa el cutoff
-cistep
-cif (mod(i,10).eq.1) write(*,*) "i, mod ", i, mod(i,10)
-
-	   write(*,*) "defino cuts "
+	  if (istep.eq.inicoor) then ! define lista de interacciones en el primer paso de cada valor del restrain
+	    write(*,*) "defining cuts "
 	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
 	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
 	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
@@ -671,29 +652,25 @@ cif (mod(i,10).eq.1) write(*,*) "i, mod ", i, mod(i,10)
 	    at_MM_cut_QMMM=0
 	    if (istepconstr.eq.1) MM_freeze_list=.false.
 
-	    do i_mm=1, nac
+	    do i_mm=1, nac !MM atoms
 	      i_qm=0
 	      done=.false.
               done_freeze=.false.
-             done_QMMM=.false.
-	      do while (i_qm .lt. na_u .and. .not. done)
+              done_QMMM=.false.
+	      do while (i_qm .lt. na_u .and. .not. done) !QM atoms
 	        i_qm=i_qm+1
                 r12=(rclas(1,i_qm)-rclas(1,i_mm+na_u))**2.d0 +
      .              (rclas(2,i_qm)-rclas(2,i_mm+na_u))**2.d0 +
      .              (rclas(3,i_qm)-rclas(3,i_mm+na_u))**2.d0
 
-	        r12=sqrt(r12) !distancia atomo MM a aqomo QM
-c		write(*,*) "dist r12", i_mm, r12
-	        if(r12 .lt. rcorteqmmm .and. .not. done_QMMM) then !luego cambiar cut, cut esta en bohrs, Cuidado Nick
+	        if(r12 .lt. rcorteqmmm .and. .not. done_QMMM) then
 	          done_QMMM=.true.
 	          at_MM_cut_QMMM=at_MM_cut_QMMM+1
 	          r_cut_pos=r_cut_pos+1
 	          r_cut_list_QMMM(i_mm)=r_cut_pos
 	        end if
-c aca agregar freeze list
 
-		if (istepconstr.eq.1) then !define lista de movimiento para la 1er fotoa
-c		MM_freeze_list=.false.
+		if (istepconstr.eq.1) then !define lista de movimiento para la 1er foto
 	          if(r12 .gt. radbloqmmm .and. .not. done_freeze) then
 	             MM_freeze_list(i_mm+na_u)=.true.
 	             done_freeze=.true.
@@ -711,65 +688,37 @@ c		MM_freeze_list=.false.
 	  r_cut_QMMM=0.d0
 	  F_cut_QMMM=0.d0
 	  Iz_cut_QMMM=0
-
-c	end if! fin lista solo paso 1
-
-
-c		write(*,*) "pc", pc
 	  end if
 
 
-c	if (optimization_lvl.gt.1) then !acivo para esquema de optimizacion
-	  if (.true.) then !activo solo si quiero cutoff
-
 !copy position and nuclear charges to cut-off arrays
-            do i=1,natot !barre todos los atomos
-              if (i.le.na_u) then !QM atoms
-                r_cut_QMMM(1:3,i)= rclas(1:3,i)
-c               Iz_cut_QMMM(i)= pc(i)
-              else if (r_cut_list_QMMM(i-na_u) .ne. 0) then !MM atoms inside cutoff
-		r_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u) = rclas(1:3,i)
-                Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
-              end if
-            end do
+          do i=1,natot !barre todos los atomos
+            if (i.le.na_u) then !QM atoms
+              r_cut_QMMM(1:3,i)= rclas(1:3,i)
+            else if (r_cut_list_QMMM(i-na_u) .ne. 0) then !MM atoms inside cutoff
+	      r_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u) = rclas(1:3,i)
+              Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
+            end if
+          end do
 
-
- 
 	   call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
      .     F_cut_QMMM,
      .           Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
 
 
 c return forces to fullatom arrays
-            do i=1, natot
-	      if (i.le.na_u) then !QM atoms
-	         fdummy(1:3,i)=F_cut_QMMM(1:3,i)
-	      else if (r_cut_list_QMMM(i-na_u).ne.0) then !MM atoms in cut-off
-                 fdummy(1:3,i)=
-     .           F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
-	      end if
-            end do
-
-c	stop "chekeo de cutoff"
-
-	  else   !sin cut de movimiento
-  	    if (nac .gt. 0) then
-c luego cambiar con el cut de sdistancia
-             call SCF_hyb(na_u, nac, rclas, Etot, fdummy, pc(1:nac),
-     .            do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
-c atomos totales, atomos MM, posiciones, enerfia, fuerza, carga nuclear
-	    else
-	      call SCF_hyb(na_u, nac, rclas, Etot, fdummy, pc(nac),do_SCF,
-     .             do_QM_forces, do_properties)
+          do i=1, natot
+	    if (i.le.na_u) then !QM atoms
+	      fdummy(1:3,i)=F_cut_QMMM(1:3,i)
+	    else if (r_cut_list_QMMM(i-na_u).ne.0) then !MM atoms in cut-off
+              fdummy(1:3,i)=
+     .        F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
 	    end if
-	  end if
-c	end if
-
-          endif !qm
-
+          end do
+        endif !qm
 
 ! Start MMxQM loop
-          do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
+          do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
             step = step +1
             if(mmsteps.ne.1) then
               write(6,*)
@@ -839,7 +788,7 @@ c	end if
             endif !qm & mm
 
 
-	if (.true.) then
+	if (.true.) then !falta un control aca
 	   do itest=1, natot
 	   write(969,423) itest, rclas(1,itest),rclas(2,itest),
      .   rclas(3,itest),fdummy(1,itest)*0.5d0,fdummy(2,itest)*0.5d0,
@@ -849,29 +798,29 @@ c	end if
 
 
 
-            if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
+        if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
 ! Calculation of Constrained Optimization Energy and Forces 
-            if(imm.eq.1) then
-              if(constropt) then
+        if(imm.eq.1) then
+          if(constropt) then
         call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr,
      .  ndists,coef)
-              endif 
-            endif !imm
+          endif 
+        endif !imm
 
 ! Converts fdummy to Ry/Bohr 
-            fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
+        fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 
 ! Writes final energy decomposition
-            Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
-            Etots=0.5d0*Etots
+        Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
+        Etots=0.5d0*Etots
 
        write(6,*)
        write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
-       if(qm) write(6,'(a,2x,F16.6)')           'Esiesta:',Etot/eV      !esta bien comparada con G
-       if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Elj:    ',Elj/eV       ! da la mitad si 1 atomo en QM y otro MM q si los 2 son MM
-       if(mm) write(6,'(a,2x,F16.6)')      'Esolv:  ',Etot_amber/kcal   !esta esta bien comparada con Amber
+       if(qm) write(6,'(a,2x,F16.6)')           'Elio :',Etot/eV      
+       if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Elj:    ',Elj/eV       
+       if(mm) write(6,'(a,2x,F16.6)')      'Esolv:  ',Etot_amber/kcal   
        if(Elink.ne.0.0) write(6,'(a,2x,F16.6)') 'Elink:  ',Elink/kcal
        if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Etots:  ',Etots/eV
        call flush(6)
@@ -905,25 +854,15 @@ c	end if
           end do
         end if
 
-c freeza MM atom
-c falta un if q active el freezado
+! freeze MM atom
         do inick=1, natot
           if(MM_freeze_list(inick)) then
             cfdummy(1:3,inick) = 0.d0
           end if
         end do
 
-
-c escribo xyz
-          write(34,*) natot
-          write(34,*)
-          do inick=1,natot
-              if (inick.le.na_u) then
-                  write(34,345) iza(inick), rclas(1:3,inick)/Ang
-              else
-                  write(34,346) pc(inick-na_u), rclas(1:3,inick)/Ang
-              end if
-          enddo
+! write xyz, hay q ponerle un if para escribir solo cuando se necesita
+	call write_xyz(natot, na_u, iza, pc, rclas)
 
 C Write atomic forces 
       fmax = 0.0_dp
@@ -944,6 +883,7 @@ C Write atomic forces
       cfmax=maxval(dabs(cfdummy))
       icfmax=maxloc(dabs(cfdummy))
 
+
       write(6,'(/,a)') 'hybrid: Atomic forces (eV/Ang):'
       write(6,'(i6,3f12.6)') (ia,(cfdummy(ix,ia)*Ang/eV,ix=1,3),
      .                        ia=1,nfce)
@@ -963,50 +903,23 @@ C Write atomic forces
             write(123,*) inick, cfdummy(1:3,inick)
         end do
 
-C Move atoms 
+! Move atoms 
       if (idyn .eq. 0 ) then 
           call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
       endif
 
-
-c #################################################################################
-c centro traj respecto al cm, solo en el caso de sistema solo qm
-      if (qm .and. .not. mm) then
-	write(*,*) "centrando sistema"
-        Rcm=0.d0
-        Tmass=0.d0
-        do i=1, natot
-        do j=1,3
-           Rcm(j)=Rcm(j)+rclas(j,i)*masst(i)
-         end do
-           Tmass=Tmass+masst(i)
-        end do
-        Rcm=Rcm/Tmass
-
-        do i=1, natot
-          do j=1,3
-            rclas(j,i)=rclas(j,i)-Rcm(j)
-          end do
-        end do
-      end if
-c #################################################################################
-
-c       if(idyn .ne. 0 .and. idyn .ne. 5) then
-c      if(qm) call centerdyn(na_u,rclas,ucell,natot)
-c       endif
-
-C Write Energy in file
+! Write Energy in file
       call wriene(step,slabel,idyn,Etots,cfmax)
 
-c sets variables for next siesta cycle
+! sets variables for next cycle
       fa = 0.d0
       fdummy = 0.d0 
       cfdummy = 0.d0
       xa(1:3,1:na_u)=rclas(1:3,1:na_u)
       call flush(6)
 
-C Calculation Hlink's New positions 
+! Calculation Hlink's New positions 
       if(qm.and.mm) then
         if(linkatom) then
         call link3(numlink,linkat,linkqm,linkmm,rclas,
@@ -1015,94 +928,94 @@ C Calculation Hlink's New positions
         endif !LA
       endif !qm & mm
 
-C Save last atomic positions and velocities
+! Save last atomic positions and velocities
       call ioxv( 'write', natot, ucell, rclas, vat, foundxv, foundvat )
 
-C write atomic constraints each step
+! write atomic constraints each step
       call wrtcrd(natot,rclas)
 
-C Exit MMxQM loop
-      enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
+! Exit MMxQM loop
+      enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
 
       if((mmsteps.ne.1).and.(imm.ne.1)) relaxd = .false.
 
-C Exit coordinate relaxation loop
+! Exit coordinate relaxation loop
 	if (relaxd) then
+
+          if (qm .and. .not. mm .and. Nick_cent) then
+            firstcent=0
+            if (istepconstr.eq.1 ) firstcent=1
+!            call center_rotation(natot, masst, rclas, firstcent, Inivec)
+          end if
+
 	  if (opt_scheme.eq.1) then
-	  if (optimization_lvl.eq.1) then
+	    if (optimization_lvl.eq.1) then
 	      optimization_lvl=2
-c              do_SCF=.true.
-c              do_QM_forces=.true.
-	  elseif (optimization_lvl.eq.2) then
+	    elseif (optimization_lvl.eq.2) then
               optimization_lvl=3
-c	      do_SCF=.true.
-          else
+            else
 	      optimization_lvl=1
 	      goto 10
+	    end if
+	  else
+	    goto 10
 	  end if
-	  end if
-c	else
-c	  if (optimization_lvl.eq.2) do_SCF=.false.
 	end if
-!      if (relaxd) goto 10 
-
-       enddo                              !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Paso opt
+      enddo                              !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
  10   continue
-C End of coordinate-relaxation loop ==================================
-
-C End of constrain optimization loop
 
 	write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal, 
      .  Elink/kcal, Etots/eV
 
       if(constropt) then
        call subconstr3(ro(1),rt(1),dr,Etots)
-c aca escribe el rce
+! write .rce 
        call wrirtc(slabel,Etots,rt(1),istepconstr,na_u,nac,natot,
      .             rclas,atname,aaname,aanum,nesp,atsym,isa)
        call ioxvconstr( natot, ucell, rclas, vat, istepconstr )
       endif
 
 
-C calculo de propiedades en lio
+! properties calculation in lio for optimized geometry
       do_properties=.true.
       call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
      .     F_cut_QMMM,
-     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
+     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties)
       do_properties=.false.
 
-      enddo !istepconstr                  !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN
+      enddo !istepconstr                 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 
 
 
-	close(34)
+      close(34)
 
       if(qm) call lio_finalize()
-C Dump last coordinates to output
+
+! Dump last coordinates to output
       if (writeipl) then
-      if(qm) then
+        if(qm) then
       write(6,'(/a)')'hybrid: Last atomic coordinates (Ang) and species'
       write(6,"(i6,2x,3f10.5,2x,i3)")
      .         (ia, (xa(ix,ia)/Ang, ix=1,3), isa(ia), ia=1,na_u)
-      endif !qm
+        endif !qm
 
-C Dump last Solvent coordinates to output
-      if(mm) then
+! Dump last Solvent coordinates to output
+        if(mm) then
       write(6,'(/a)')'hybrid: Last solvent coordinates (Ang)'
       write(6,'(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      . ('ATOM',i,atname(i),aaname(i),'A',aanum(i),
      . (rclas(ia,na_u+i)/Ang,ia=1,3), i=1,nac)
-      endif !mm
+        endif !mm
       endif !writeipl
       call flush(6)
 
-C Print final date and time
+! Print final date and time
       call timestamp('End of run')
 
  345  format(2x, I2,    2x, 3(f10.6,2x))
  346  format(2x, f10.6, 2x, 3(f10.6,2x))
  956  format(2x, "Econtribution", 7(f18.6,2x))
  423  format(2x, I6,2x, 6(f20.10,2x))
-      end program
+      end program HYBRID
 
 

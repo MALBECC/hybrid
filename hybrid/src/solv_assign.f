@@ -84,12 +84,10 @@ C nullify some solvent vbles
 
 C read solvent coordinates by atom
       if ( fdf_block('SolventInput',iunit) ) then
-!	write(*,*) "nac vale ", nac
 	do i=1,nac
          read(iunit,err=10,end=10,fmt='(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      .      atom, j, atname(i), aaname(i),
      .      ch, resnum(i), rclas(1:3,na_u+i)
-c ATOM     12  CE  MET H   1       7.246  15.955   0.940
 
 	 ivalue(j)=i
          enddo
@@ -97,12 +95,6 @@ c ATOM     12  CE  MET H   1       7.246  15.955   0.940
         call die("solvent: You must specify the solvent coordinates")      
       endif
 
-c	write(*,*) "ivalue"
-c	do j=1,natot
-c	   write(*,*) j, ivalue(j)
-c	end do
-
-c	write(*,*) "flag 1, Nick"
 
 c change coordinates to Siesta format
 	rclas(1:3,1:natot) = rclas(1:3,1:natot) / 0.529177d0   
@@ -142,8 +134,6 @@ c	  write(*,*) "ch4 vale ", ch1, " Nick"
 	    endif
 	  endif
 	  if(ch1.eq.'%') then
-c	  write(*,*) "na_u vale", na_u, "Nick"
-c	  write(*,*) "lei ", ch1, " Nick"
 	  call die('solvent: solute atom types are lower than na_u') 
 	  endif
 	qmattype(i)=ch4
@@ -152,8 +142,6 @@ c	  write(*,*) "lei ", ch1, " Nick"
        call die('solvent: You must specify solute atom types')
       endif
 	endif
-
-c	write(*,*) "flag 2, Nick"
 
 c read cutoff radious
       if ( fdf_block('CutOffRadius',iunit) )
@@ -231,9 +219,6 @@ c aca empieza la verdadera asignacion: segun atomo xa c/aa
 
 c subrutina que lee el nro de atomos por aa
         call atxaa(n,aanamea,atomsxaa)
-
-c	write(*,*) "nroaa, Nick",nroaa
-c	write(*,*) "atxres, Nick",atxres
 
 c cambia vbles
 	atxres=0
@@ -1170,6 +1155,6 @@ c impropers
      .  'solvent: Problem reading imps block in amber.parm file',i
         stop
         end
-c**********************************************************************
+!**********************************************************************
 
 
