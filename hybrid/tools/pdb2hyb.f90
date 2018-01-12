@@ -230,6 +230,7 @@
           write(10,*) 'number of atoms: ',natpdb
 
 	  allocate(rname(natpdb+1), atname(natpdb+1), atnu(natpdb), resnu(natpdb+1), r(natpdb,3))
+	  resnu=0
 
 	  open(unit=1,file=coordfile)
           j=1
@@ -251,6 +252,7 @@
                   cresnum2=cresnum
                 end if
               end if
+
               if(atom.eq.'END ') endpaso=.false.
               if(atom.eq.'TER ') j=j-1
 
@@ -509,6 +511,7 @@
         write (2,'(a15,a16)') 'SystemName     ',core 
         write (2,'(a15,a16)') 'SystemLabel    ',core    
 	write (2,'(a20)')    'CenterMolecule T    '
+        write (2,'(a20)')    'CG.Nick_center F    '
 	write (2,'(a20,i3)') 'NumberOfAtoms       ',nlink+natom
 	write (2,'(a20,i2)') 'NumberOfSpecies     ',nspec
 	write (2,'(a20)')    'NetCharge 0.0       ' 	
@@ -645,11 +648,11 @@
         integer, intent(out) :: Z
 	logical :: found, finish
 
-        vecCAP=(/'H  ','He ','LI ','BE ','B  ','C  ','N  ','O  ','F  ','Ne ','NA ','MG ','AL ','SI ','P  ','S  ','CL ','AR ','K  ',  &
+        vecCAP=(/'H  ','He ','LI ','BE ','B  ','C  ','N  ','O  ','F  ','Ne ','Na ','MG ','AL ','SI ','P  ','S  ','CL ','AR ','K  ',  &
         'Ca ','SC ','TI ','V  ','CR ','MN ','FE ','CO ','NI ','CU ','ZN ','GA ','GE ','AS ','SE ','BR ','KR ','RB ','SR ','Y  ',  &
-        'ZR ','NB ','MO ','TC ','RU ','RH ','PD ','AG ','Cd ','IN ','SN ','SB ','TE ','I  ','XE ','CS ','BA ','LA ','CE ','PR ',  &
-        'ND ','PM ','SM ','EU ','GD ','TB ','DY ','HO ','ER ','TM ','YB ','LU ','HF ','TA ','W  ','RE ','OS ','IR ','PT ','AU ',  &
-        'Hg ','TL ','PB ','BI ','PO ','AT ','RN ','FR ','RA ','AC ','TH ','PA ','U  ','NP ','PU ','AM ','CM ','BK ','CF ','ES ',  &
+        'ZR ','Nb ','MO ','TC ','RU ','RH ','PD ','AG ','Cd ','IN ','SN ','SB ','TE ','I  ','XE ','CS ','BA ','LA ','Ce ','PR ',  &
+        'Nd ','PM ','SM ','EU ','GD ','TB ','DY ','HO ','ER ','TM ','YB ','LU ','HF ','TA ','W  ','RE ','OS ','IR ','PT ','AU ',  &
+        'Hg ','TL ','PB ','BI ','PO ','AT ','RN ','FR ','RA ','AC ','TH ','PA ','U  ','NP ','PU ','AM ','Cm ','BK ','CF ','ES ',  &
         'FM ','MD ','NO ','LR ','RF ','DB ','Sg ','BH ','HS ','MT ','DS ','UUU','UUB','UUT','UUQ','UUP','UUH','UUS','UUO'/)
 
         vec=(/'H  ','He ','Li ','Be ','B  ','C  ','N  ','O  ','F  ','Ne ','Na ','Mg ','Al ','Si ','P  ','S  ','Cl ','Ar ','K  ',  &

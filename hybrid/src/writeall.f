@@ -427,3 +427,25 @@ c change units
 c************************************************************************************************
 
 
+        subroutine write_xyz(natot, na_u, iza, pc, rclas)
+        use precision, only: dp
+        implicit none
+        integer, intent(in) :: natot, na_u
+        integer, intent(in), dimension(na_u) :: iza
+        double precision, intent(in), dimension(natot-na_u) :: pc
+        double precision, intent(in), dimension(3,natot) :: rclas
+        integer :: inick
+        real(dp) :: Ang
+        Ang    = 1._dp / 0.529177_dp
+        write(34,*) natot
+        write(34,*)
+        do inick=1,natot
+          if (inick.le.na_u) then
+            write(34,345) iza(inick), rclas(1:3,inick)/Ang
+          else
+            write(34,346) pc(inick-na_u), rclas(1:3,inick)/Ang
+          end if
+        enddo
+ 345  format(2x, I2,    2x, 3(f10.6,2x))
+ 346  format(2x, f10.6, 2x, 3(f10.6,2x))
+        end subroutine write_xyz

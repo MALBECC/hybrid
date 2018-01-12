@@ -89,11 +89,6 @@ c Calculates the total number of electrons
       nelec=0
       do i=1,na_u
 	nelec=nelec+iza(i)
-c  no more ECP used, Nick
-c        if(iza(i).eq.1)                   nelec=nelec+iza(i)
-c        if(iza(i).gt.2.and.iza(i).lt.10)  nelec=nelec+iza(i)-2
-c        if(iza(i).gt.10.and.iza(i).lt.18) nelec=nelec+iza(i)-10
-c        if(iza(i).gt.18.and.iza(i).lt.36) nelec=nelec+iza(i)-18
       enddo
       nelec=nelec-charge
         write(6,'(a,i5)')
@@ -119,7 +114,7 @@ C Read the Dynamics Options
 
       subroutine read_md(idyn, nmove,
      .                   dt, dxmax, ftol,  
-     .                   usesavecg, usesavexv , 
+     .                   usesavecg, usesavexv , Nick_cent,
      .                   na, 
      .                   nat, nfce, wricoord, mmsteps )
 
@@ -140,7 +135,7 @@ C  Modules
      .  dt, dxmax, ftol
 
       logical
-     .    usesavecg, usesavexv
+     .    usesavecg, usesavexv, Nick_cent
 
 C  Internal variables .................................................
       character
@@ -202,6 +197,9 @@ C Maximum atomic displacement in one CG step
 C Tolerance in the maximum atomic force (def 0.04 eV/Ang)
       ftol_default = 0.00155574d0
         ftol = fdf_physical('MD.MaxForceTol',ftol_default,'Ry/Bohr')
+
+C re-Center system
+      Nick_cent = fdf_boolean('CG.Nick_center', .false.)
 
       if (idyn .eq. 0) then
         write(6,'(a,i5)') 

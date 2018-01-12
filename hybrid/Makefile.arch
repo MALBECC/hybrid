@@ -20,7 +20,7 @@ ifeq ($(intel),0)
 #  FFLAGS += -cpp -I$(OBJPATH) -J$(OBJPATH)
   DEBUG01 = -g -Wtabs -fcheck=all
   DEBUG02 = -g -Wall -Wextra -fcheck=all -fbacktrace -pedantic
-  $(error gfortan not tested yet mofify Makefile.arch and test))
+  $(error gfortan not tested yet mofify Makefile.arch and test it))
 else ifeq ($(intel),1)
   FC      = ifort
   FFLAGS=  -w -O2 -mp
