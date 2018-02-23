@@ -6,7 +6,7 @@
 ################################################################################
 # Defaults
 #
-intel     ?= 2
+intel     ?= 0
 analytics ?= 0
 LFLAGS =
 LIBS =
@@ -17,10 +17,11 @@ LIBS =
 
 ifeq ($(intel),0)
   FC      = gfortran
-#  FFLAGS += -cpp -I$(OBJPATH) -J$(OBJPATH)
+  FFLAGS += -cpp
+  LFLAGS += -L/usr/lib
+  LIBS   += -llapack -lblas -lg2g
   DEBUG01 = -g -Wtabs -fcheck=all
   DEBUG02 = -g -Wall -Wextra -fcheck=all -fbacktrace -pedantic
-  $(error gfortan not tested yet mofify Makefile.arch and test it))
 else ifeq ($(intel),1)
   FC      = ifort
   FFLAGS=  -w -O2 -mp
