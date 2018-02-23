@@ -56,7 +56,7 @@ subroutine liomain(E, dipxyz)
     endif
 
     calc_prop=.false.
-    if (MOD(npas, energy_freq)) calc_prop=.true.
+    if (MOD(npas, energy_freq).eq.1) calc_prop=.true.
     if (calc_propM) calc_prop=.true.
 
     ! Perform Mulliken and Lowdin analysis, get fukui functions and dipole.
