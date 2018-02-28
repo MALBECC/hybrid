@@ -33,6 +33,8 @@
 ! General Variables
       integer :: istep, inicoor,fincoor !actual, initial and final number of move step for each restrain
       integer :: idyn !kind of movent, idyn=0 (minimization) only avalable at this moment
+      integer :: replicas !number of replicas in band methods
+      integer :: replica_number !auxiliar
       integer :: istp !number of move step for each restrain starting on 1
       integer :: nmove !max number of move step for each restrain
       integer :: na_u !number of QM atoms
@@ -64,7 +66,10 @@
       character :: paste*25
       external :: paste
       logical :: actualiz!MM interaction list control
-
+! band method
+      real(dp) :: BAND_slope(3), BAND_const(3)
+      integer :: unitnumber
+      character*13 :: fname
 
 ! Solvent (MM) General variables
       integer :: nac !number of MM atoms
@@ -192,8 +197,12 @@
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
 
-
+!band optimization variables
       double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
+      double precision, dimension(:,:,:), allocatable, save:: rclas_BAND!Position of all atoms in BAND method
+      double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
+      double precision, dimension(:), allocatable :: Energy_band
+
       double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
 
       double precision, dimension(:,:), allocatable, save:: fce_amber !Total MM force
@@ -488,14 +497,74 @@
 ! Read simulation data 
       call read_md( idyn, nmove, dt, dxmax, ftol, 
      .              usesavecg, usesavexv , Nick_cent, na_u,  
-     .              natot, nfce, wricoord, mmsteps )
+     .              natot, nfce, wricoord, mmsteps, replicas)
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
 
+
+
+	write(*,*) "flag 6666666"
 ! Read cell shape and atomic positions from a former run
-      call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat ) 
-      if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+      if (idyn .ne. 1) then
+        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'') 
+        if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+      else
+
+	write(*,*) "flag 6666666 1"
+
+	allocate(rclas_BAND(3,natot,replicas), fclas_BAND(3,natot,replicas))
+	allocate(Energy_band(replicas))
+
+	rclas_BAND=0.d0
+	fclas_BAND=0.d0
+
+        !read reactive coordinates
+	call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat,'R')
+	if (foundxv) then
+	  xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+	else
+	  STOP ".XVR not found"
+	end if
+
+	        write(*,*) "flag 6666666 1.5"
+        rclas_BAND(1:3,1:na_u,1)=xa(1:3,1:na_u)
+
+        write(*,*) "flag 6666666 2"
+
+        !read products coordinates
+        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'P')
+        if (foundxv) then
+          xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+        else
+          STOP ".XVP not fund"
+        end if
+        rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
+
+        write(*,*) "flag 6666666 3"
+
+        !generate initial middleimages
+	do i=1,na_u
+	  BAND_slope(1:3)= rclas_BAND(1:3,i,replicas)-rclas_BAND(1:3,i,1)
+	  BAND_slope=BAND_slope/(dble(replicas) - 1.d0)
+	  BAND_const=rclas_BAND(1:3,i,1)-BAND_slope(1:3)
+	  do k=1, replicas
+	    rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
+	  end do
+	end do
+
+      end if
+
+
+	write(*,*) "test Nick"
+	do j=1,replicas
+	    write(975,*) na_u
+	    write(975,*)
+	  do i=1, na_u
+	    write(975,444) i,rclas_BAND(1:3,i,j)
+	  end do
+	end do
+
 
 ! Reading LinkAtom variables
       if(qm.and.mm) then
@@ -617,7 +686,7 @@ C Read fixed atom constraints
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .eq. 0) then
+        if (idyn .eq. 0 .or. idyn .eq. 1) then
           inicoor = 0
           fincoor = nmove
         endif
@@ -632,12 +701,19 @@ C Read fixed atom constraints
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ne. 0 ) STOP 'only CG minimization avalable'
+          if (idyn .ne. 0 .and. idyn .ne. 1)
+     .    STOP 'only CG or BAND minimization avalable'
+
           write(6,'(28(" "),a,i6)') 'Begin CG move = ',istep
           write(6,'(2a)') '                        ',
      .                    '=============================='
           write(6,*) "Optimization level: ", optimization_lvl
 
+!start loot over replicas
+	do replica_number = 1, replicas       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
+	  if (idyn .eq.1) then
+	    rclas(1:3,1:na_u)=rclas_BAND(1:3,1:na_u,replica_number)
+	  end if
 
 
 ! Calculate Energy and Forces using Lio as Subroutine
@@ -728,6 +804,9 @@ c return forces to fullatom arrays
           end do
         endif !qm
 
+
+	write(*,*) "Fuerzas 13", fdummy(1:3,1:natot)
+
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
             step = step +1
@@ -808,8 +887,12 @@ c return forces to fullatom arrays
 	end if
 
 
+        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
+
 
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
+
+        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
 
 ! Calculation of Constrained Optimization Energy and Forces 
         if(imm.eq.1) then
@@ -907,6 +990,17 @@ C Write atomic forces
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
+
+	write(*,*) "Fuerzas 23", cfdummy(1:3,1:na_u)
+
+
+	if (idyn.eq.1) then
+	  fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
+	end if
+
+	if (idyn .eq. 1 ) Energy_band(replica_number)=Etots/eV
+!      end do!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
+
 ! Move atoms 
       if (idyn .eq. 0 ) then 
           call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
@@ -942,13 +1036,58 @@ C Write atomic forces
       endif !qm & mm
 
 ! Save last atomic positions and velocities
-      call ioxv( 'write', natot, ucell, rclas, vat, foundxv, foundvat )
+      call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'')
 
 ! write atomic constraints each step
       call wrtcrd(natot,rclas)
 
 ! Exit MMxQM loop
       enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
+
+      end do!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
+
+      if (idyn .eq. 1 ) then
+          write(*,*) "entre a band move"
+
+          do replica_number = 1, replicas
+	write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
+          end do
+	write(*,*)"Energy-band"
+
+!trayectorias, mejorar luego esto
+          do replica_number = 1, replicas
+            unitnumber=replica_number+500
+	    if (replica_number.lt. 10)
+     .      write(fname,"(A7,I1,A4)") "Replica",replica_number,".xyz"
+
+            if (replica_number.ge. 10)
+     .      write(fname,"(A7,I2,A4)") "Replica",replica_number,".xyz"
+
+            open(unit=unitnumber,file=fname, access='APPEND')
+          end do
+
+          do replica_number = 1, replicas
+            unitnumber=replica_number+500
+             write(unitnumber,*) na_u
+	     write(unitnumber,*)
+
+	     do i=1, natot
+	       write(unitnumber,444) i, rclas_BAND(1:3,i,replica_number)
+	     end do
+
+           end do
+
+          do replica_number = 1, replicas
+            unitnumber=replica_number+500
+            close(unitnumber)
+          end do
+
+
+
+	call bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND,
+     .  Energy_band, relaxd)
+      end if
+
 
       if((mmsteps.ne.1).and.(imm.ne.1)) relaxd = .false.
 
@@ -984,12 +1123,13 @@ C Write atomic forces
 
 
 ! properties calculation in lio for optimized geometry
+      if (idyn .ne. 1) then
       do_properties=.true.
       call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
      .     F_cut_QMMM,
      .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties)
       do_properties=.false.
-
+      end if
       enddo !istepconstr                 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 
 
@@ -1023,6 +1163,7 @@ C Write atomic forces
  346  format(2x, f10.6, 2x, 3(f10.6,2x))
  956  format(2x, "Econtribution", 7(f18.6,2x))
  423  format(2x, I6,2x, 6(f20.10,2x))
+ 444  format(2x, I6,2x, 3(f20.10,2x))
       end program HYBRID
 
 

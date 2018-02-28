@@ -1,4 +1,4 @@
-      subroutine ioxv( task, n, u, r, v, fxv ,fv)
+      subroutine ioxv( task, n, u, r, v, fxv ,fv, Band)
 c notas, Nick
 c task read or write
 c n = natot
@@ -17,7 +17,7 @@ C
       use ionew
       use fdf
       implicit          none
-
+      character         Band
       character         task*(*), paste*33
       logical           fxv,fv
       integer           n
@@ -37,6 +37,22 @@ c Find name of file
           fname = paste( sname, '.XV' )
           frstme = .false.
         endif
+
+	write(*,*) "flag aa1"
+
+	if (task.eq.'read' .or. task.eq.'READ') then
+	if (Band.eq.'R') then
+	  write(*,*) "flag aa1.1"
+	  fname = paste( sname, '.XVR')
+	  write(*,*) "flag aa1.2"
+	elseif (Band.eq.'P') then
+	  write(*,*) "flag aa1.3"
+	  fname = paste( sname, '.XVP')
+	  write(*,*) "flag aa1.4"
+	end if  
+	end if
+	        write(*,*) "flag aa2"
+
 
 c Choose between read or write
         if (task.eq.'read' .or. task.eq.'READ') then
