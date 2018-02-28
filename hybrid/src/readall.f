@@ -116,7 +116,7 @@ C Read the Dynamics Options
      .                   dt, dxmax, ftol,  
      .                   usesavecg, usesavexv , Nick_cent,
      .                   na, 
-     .                   nat, nfce, wricoord, mmsteps )
+     .                   nat, nfce, wricoord, mmsteps, replicas)
 
 C  Modules
       use precision
@@ -129,7 +129,8 @@ C  Modules
      .  idyn,  
      .  nmove, 
      .  na, nfce, mmsteps,
-     .  wricoord, nat
+     .  wricoord, nat,
+     .  replicas
 
       double precision
      .  dt, dxmax, ftol
@@ -146,7 +147,8 @@ C  Internal variables .................................................
 
       integer 
      .  nmove_default,
-     .  iunit, wrifces
+     .  iunit, wrifces,
+     .  replicas_default 
 
       double precision
      .  dt_default, dxmax_default,
@@ -169,13 +171,22 @@ C Kind of dynamics
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
      .     usesavecg
+      elseif (leqi(dyntype,'band')) then
+        idyn = 1
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    BAND coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
       else
         write(6,100) 
         write(6,101) 
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:      - CG                             '
+        write(6,'(a)') 'read:      - CG - BAND                      '
         write(6,102)
         call die
       endif 
@@ -189,6 +200,9 @@ C Read if use saved XV data
 C Maximum number of steps in CG coordinate optimization
       nmove_default = 0
         nmove = fdf_integer('MD.NumCGsteps',nmove_default)
+C BAND replicas
+      replicas_default = 1
+        replicas = fdf_integer('MD.NumReplicas',replicas_default)
 
 C Maximum atomic displacement in one CG step
       dxmax_default = 0.2d0
