@@ -530,7 +530,7 @@
 	        write(*,*) "flag 6666666 1.5"
         rclas_BAND(1:3,1:na_u,1)=xa(1:3,1:na_u)
 
-        write(*,*) "flag 6666666 2"
+!        write(*,*) "flag 6666666 2"
 
         !read products coordinates
         call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'P')
@@ -541,7 +541,7 @@
         end if
         rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
 
-        write(*,*) "flag 6666666 3"
+!        write(*,*) "flag 6666666 3"
 
         !generate initial middleimages
 	do i=1,na_u
@@ -556,14 +556,14 @@
       end if
 
 
-	write(*,*) "test Nick"
-	do j=1,replicas
-	    write(975,*) na_u
-	    write(975,*)
-	  do i=1, na_u
-	    write(975,444) i,rclas_BAND(1:3,i,j)
-	  end do
-	end do
+!	write(*,*) "test Nick"
+!	do j=1,replicas
+!	    write(975,*) na_u
+!	    write(975,*)
+!	  do i=1, na_u
+!	    write(975,444) i,rclas_BAND(1:3,i,j)
+!	  end do
+!	end do
 
 
 ! Reading LinkAtom variables
@@ -805,7 +805,7 @@ c return forces to fullatom arrays
         endif !qm
 
 
-	write(*,*) "Fuerzas 13", fdummy(1:3,1:natot)
+!	write(*,*) "Fuerzas 13", fdummy(1:3,1:natot)
 
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
@@ -887,12 +887,12 @@ c return forces to fullatom arrays
 	end if
 
 
-        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
+!        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
 
 
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
-        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
+!        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
 
 ! Calculation of Constrained Optimization Energy and Forces 
         if(imm.eq.1) then
@@ -991,7 +991,7 @@ C Write atomic forces
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
 
-	write(*,*) "Fuerzas 23", cfdummy(1:3,1:na_u)
+!	write(*,*) "Fuerzas 23", cfdummy(1:3,1:na_u)
 
 
 	if (idyn.eq.1) then
@@ -1072,7 +1072,7 @@ C Write atomic forces
 	     write(unitnumber,*)
 
 	     do i=1, natot
-	       write(unitnumber,444) i, rclas_BAND(1:3,i,replica_number)
+	       write(unitnumber,444) i, rclas_BAND(1:3,i,replica_number)*0.52
 	     end do
 
            end do
@@ -1085,7 +1085,7 @@ C Write atomic forces
 
 
 	call bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND,
-     .  Energy_band, relaxd)
+     .  Energy_band, relaxd, ftol)
       end if
 
 
@@ -1112,6 +1112,26 @@ C Write atomic forces
 
 	write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal, 
      .  Elink/kcal, Etots/eV
+
+
+	if (idyn.eq.1) then
+	   open(unit=988,file="bandEnergies.dat")
+	   open(unit=989,file="bandtraj.xyz")
+	   do replica_number = 1, replicas
+	     write(988, *) replica_number, Energy_band(replica_number)
+	     write(989,*) natot
+	     write(989,*)
+	     do i=1, natot
+	       write(989,444) i, rclas_BAND(1:3,i,replica_number)*0.52
+	     end do
+           end do
+	   close(988)
+	   close(989)
+	end if
+
+
+
+
 
       if(constropt) then
        call subconstr3(ro(1),rt(1),dr,Etots)
