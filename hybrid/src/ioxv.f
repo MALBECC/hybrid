@@ -1,4 +1,4 @@
-      subroutine ioxv( task, n, u, r, v, fxv ,fv, Band)
+      subroutine ioxv( task, n, u, r, v, fxv ,fv, Band, rest_number)
 c notas, Nick
 c task read or write
 c n = natot
@@ -23,6 +23,7 @@ C
       integer           n
       double precision  r(3,n), v(3,n), u(3,3) 
       external          paste
+      integer rest_number
 
 c Internal variables and arrays
       character  sname*30, fname*33
@@ -30,6 +31,10 @@ c Internal variables and arrays
       logical    frstme
       save       frstme, fname
       data       frstme /.true./
+      character*3 numb
+
+
+
 
 c Find name of file
         if (frstme) then
@@ -38,21 +43,26 @@ c Find name of file
           frstme = .false.
         endif
 
-	write(*,*) "flag aa1"
 
 	if (task.eq.'read' .or. task.eq.'READ') then
-	if (Band.eq.'R') then
-	  write(*,*) "flag aa1.1"
-	  fname = paste( sname, '.XVR')
-	  write(*,*) "flag aa1.2"
-	elseif (Band.eq.'P') then
-	  write(*,*) "flag aa1.3"
-	  fname = paste( sname, '.XVP')
-	  write(*,*) "flag aa1.4"
-	end if  
-	end if
-	        write(*,*) "flag aa2"
+	  if (Band.eq.'R') then
+	    fname = paste( sname, '.XVR')
+	  elseif (Band.eq.'P') then
+	    fname = paste( sname, '.XVP')
+	  elseif (rest_number .gt. 0) then
+            fname = paste( sname, '.XV.' )
+	    if (rest_number .lt. 10) then
+	      write(numb,"(I1)") rest_number
+	    else if (rest_number .lt. 100) then
+	      write(numb,"(I2)") rest_number
+	    else if (rest_number .lt. 1000) then
+	      write(numb,"(I3)") rest_number
+	    end if
 
+            fname = paste( fname, numb )
+	  end if
+	end if
+	  write(*,*) fname
 
 c Choose between read or write
         if (task.eq.'read' .or. task.eq.'READ') then

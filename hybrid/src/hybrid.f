@@ -202,6 +202,8 @@
       double precision, dimension(:,:,:), allocatable, save:: rclas_BAND!Position of all atoms in BAND method
       double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
       double precision, dimension(:), allocatable :: Energy_band
+      logical :: band_xv_found
+
 
       double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
 
@@ -504,14 +506,12 @@
 
 
 
-	write(*,*) "flag 6666666"
 ! Read cell shape and atomic positions from a former run
       if (idyn .ne. 1) then
-        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'') 
+        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1) 
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
       else
 
-	write(*,*) "flag 6666666 1"
 
 	allocate(rclas_BAND(3,natot,replicas), fclas_BAND(3,natot,replicas))
 	allocate(Energy_band(replicas))
@@ -519,40 +519,55 @@
 	rclas_BAND=0.d0
 	fclas_BAND=0.d0
 
-        !read reactive coordinates
-	call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat,'R')
-	if (foundxv) then
-	  xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-	else
-	  STOP ".XVR not found"
-	end if
-
-	        write(*,*) "flag 6666666 1.5"
-        rclas_BAND(1:3,1:na_u,1)=xa(1:3,1:na_u)
-
-!        write(*,*) "flag 6666666 2"
-
-        !read products coordinates
-        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'P')
-        if (foundxv) then
-          xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-        else
-          STOP ".XVP not fund"
-        end if
-        rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
-
-!        write(*,*) "flag 6666666 3"
-
-        !generate initial middleimages
-	do i=1,na_u
-	  BAND_slope(1:3)= rclas_BAND(1:3,i,replicas)-rclas_BAND(1:3,i,1)
-	  BAND_slope=BAND_slope/(dble(replicas) - 1.d0)
-	  BAND_const=rclas_BAND(1:3,i,1)-BAND_slope(1:3)
-	  do k=1, replicas
-	    rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
-	  end do
+	band_xv_found=.true.
+	do replica_number = 1, replicas
+	  call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat,'X',
+     .         replica_number)
+	  band_xv_found=band_xv_found .and. foundxv
+	  if (foundxv) then
+	    rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
+	  end if
 	end do
 
+
+
+
+	if (band_xv_found) then
+	  write(*,*) "used .XV. restart"
+	else
+
+	  write(*,*) "didnt found all necesary restarts .XV.i"
+	  write(*,*) "with i between 1 and ", replicas
+	  write(*,*) "using .XV.R and .XV.P for generate initial states"
+	 
+        !read reactive coordinates
+	  call ioxv('read',natot,ucell,rclas,vat, foundxv, foundvat,'R',-1)
+	  if (foundxv) then
+	    xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+	  else
+	    STOP ".XVR not found"
+	  end if
+          rclas_BAND(1:3,1:na_u,1)=xa(1:3,1:na_u)
+
+        !read products coordinates
+	  call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'P',-1)
+          if (foundxv) then
+            xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+          else
+            STOP ".XVP not fund"
+          end if
+          rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
+
+        !generate initial middleimages
+	  do i=1,na_u
+	    BAND_slope(1:3)= rclas_BAND(1:3,i,replicas)-rclas_BAND(1:3,i,1)
+	    BAND_slope=BAND_slope/(dble(replicas) - 1.d0)
+	    BAND_const=rclas_BAND(1:3,i,1)-BAND_slope(1:3)
+	    do k=1, replicas
+	      rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
+	    end do
+	  end do
+	end if
       end if
 
 
@@ -996,10 +1011,9 @@ C Write atomic forces
 
 	if (idyn.eq.1) then
 	  fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
+	  Energy_band(replica_number)=Etots/eV
 	end if
 
-	if (idyn .eq. 1 ) Energy_band(replica_number)=Etots/eV
-!      end do!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
 
 ! Move atoms 
       if (idyn .eq. 0 ) then 
@@ -1036,7 +1050,7 @@ C Write atomic forces
       endif !qm & mm
 
 ! Save last atomic positions and velocities
-      call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'')
+      call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
 
 ! write atomic constraints each step
       call wrtcrd(natot,rclas)
@@ -1072,7 +1086,12 @@ C Write atomic forces
 	     write(unitnumber,*)
 
 	     do i=1, natot
-	       write(unitnumber,444) i, rclas_BAND(1:3,i,replica_number)*0.52
+		if (i.le.na_u) then
+		  write(unitnumber,345) iza(i), rclas_BAND(1:3,i,replica_number)*0.52
+               else
+		  write(unitnumber,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
+               end if
+!	       write(unitnumber,444) i, rclas_BAND(1:3,i,replica_number)*0.52
 	     end do
 
            end do
@@ -1110,9 +1129,6 @@ C Write atomic forces
       enddo                              !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
  10   continue
 
-	write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal, 
-     .  Elink/kcal, Etots/eV
-
 
 	if (idyn.eq.1) then
 	   open(unit=988,file="bandEnergies.dat")
@@ -1121,25 +1137,43 @@ C Write atomic forces
 	     write(988, *) replica_number, Energy_band(replica_number)
 	     write(989,*) natot
 	     write(989,*)
+
 	     do i=1, natot
-	       write(989,444) i, rclas_BAND(1:3,i,replica_number)*0.52
+	       if (i.le.na_u) then
+		write(989,345) iza(inick), rclas_BAND(1:3,i,replica_number)*0.52
+               else
+		write(989,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
+               end if
 	     end do
+
+		Etots=Energy_band(replica_number)-Energy_band(1)
+		rclas=rclas_BAND(1:3,1:natot,replica_number)
+
+!guardo en rce y rcg. Hay q probarlo
+           call wrirtc(slabel,Etots,dble(replica_number),replica_number,
+     .             na_u,nac,
+     .             natot,
+     .             rclas,atname,aaname,aanum,nesp,atsym,isa)
+           call ioxvconstr(natot,ucell,rclas,vat,replica_number)
+
            end do
 	   close(988)
 	   close(989)
+
+	else
+	  write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal,
+     .  Elink/kcal, Etots/eV
+
+          if(constropt) then
+           call subconstr3(ro(1),rt(1),dr,Etots)
+! write .rce 
+           call wrirtc(slabel,Etots,rt(1),istepconstr,na_u,nac,natot,
+     .             rclas,atname,aaname,aanum,nesp,atsym,isa)
+           call ioxvconstr( natot, ucell, rclas, vat, istepconstr )
+          endif
 	end if
 
 
-
-
-
-      if(constropt) then
-       call subconstr3(ro(1),rt(1),dr,Etots)
-! write .rce 
-       call wrirtc(slabel,Etots,rt(1),istepconstr,na_u,nac,natot,
-     .             rclas,atname,aaname,aanum,nesp,atsym,isa)
-       call ioxvconstr( natot, ucell, rclas, vat, istepconstr )
-      endif
 
 
 ! properties calculation in lio for optimized geometry
