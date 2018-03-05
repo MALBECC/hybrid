@@ -37,6 +37,13 @@
 !	  end do
 !	  Energy_band_old=Energy_band
 !	end if
+!check forces, sacar luego Nick
+	do replica_number=2, replicas-1
+	  do i=1, na_u
+	    Fmod2=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
+!	    if (Fmod2.lt.1d-9) write(*,*) "fuerza 0 ", i,replica_number
+	  end do
+	end do
 
 	relaxd=.true.
 	MAXFmod_total=0.d0
@@ -48,17 +55,25 @@
 !calculo direccion tg
 !	write(*,*) "flag 112"
 
+!		if (replica_number.eq. 2) write(*,*) "F221 init", fclas_BAND
+
+
 	  call calculate_tg(1,na_u,replicas,replica_number,rclas_BAND,tang_vec)
 !	write(*,*) "flag 113"
 
 !remove parallel force
-	  call remove_parallel(na_u,replicas, replica_number,tang_vec,fclas_BAND)
+	 call remove_parallel(na_u,replicas, replica_number,tang_vec,fclas_BAND)
 !	write(*,*) "flag 114"
+
+!		if (replica_number.eq. 2) write(*,*) "F221 2nd", fclas_BAND
+
+
 
 !convergence criteria
 !	        ftol
 	  do i=1, na_u
 	    Fmod2=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
+!	    if (Fmod2.lt.1d-9) write(*,*) "fuerza perp 0 ", i,replica_number
 	    relaxd=relaxd .and. (Fmod2 .lt. ftol**2)
 	    if (Fmod2 .gt. MAXFmod_total) then
 	      MAXFmod_total=Fmod2
@@ -66,11 +81,19 @@
 	      MAX_FORCE_ATOM=i
 	    end if
 	  end do
+
+
+!		if (replica_number.eq. 2) write(*,*) "F221 3er", fclas_BAND
+
+
 !Spring force
 	  call calculate_spring_force(na_u, replicas, replica_number,rclas_BAND, tang_vec, F_spring)
 
-	  fclas_BAND(1:3, 1:na_u,replica_number)=fclas_BAND(1:3, 1:na_u,replica_number)+0.1*F_spring(1:3,1:na_u)
+	  fclas_BAND(1:3, 1:na_u,replica_number)=fclas_BAND(1:3, 1:na_u,replica_number)  &
+          + 0.2*MAXFmod_total*F_spring(1:3,1:na_u)
 
+
+!		if (replica_number.eq. 2) write(*,*) "F221 4th", fclas_BAND
 
 	  MAXFmod=0.d0
           do i=1, na_u
@@ -79,6 +102,7 @@
           end do
 
 
+!		if (replica_number.eq. 2) write(*,*) "F221 5th", fclas_BAND
 
 !	  MAXFmod=0.d0
 !	  do i=1, na_u
@@ -89,7 +113,7 @@
 !	  write(*,*) "flag 115"
 
 
-	  write(*,*) "muevo replica:", replica_number
+!	  write(*,*) "muevo replica:", replica_number
 	  MAXFmod=sqrt(MAXFmod)
 	  SZstep=SZstep_base/MAXFmod
           write(*,*) "maxforce", MAXFmod, "stepsize", SZstep, &
@@ -158,6 +182,12 @@
         do i=1, na_u
           NORMVEC= tang_vec(1,i)**2 + tang_vec(2,i)**2 + tang_vec(3,i)**2
           NORMVEC=sqrt(NORMVEC)
+	  if (NORMVEC .lt. 1d-9) then
+	write(*,*) "tangent vector null, replica: ", replica_number, "atom ", i
+	    stop
+	  else if (NORMVEC .ne. NORMVEC) then
+	    stop "NAN in tangent vector"
+	  end if
           tang_vec(1:3,i)=tang_vec(1:3,i)/NORMVEC
         end do
 
@@ -175,9 +205,22 @@
 
         do i=1, na_u
           proyForce=fclas_BAND(1,i,replica_number)*tang_vec(1,i)
-          proyForce=proyForce+fclas_BAND(2,i,replica_number)*tang_vec(2,i)
-          proyForce=proyForce+fclas_BAND(3,i,replica_number)*tang_vec(3,i)
-          fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)-proyForce*tang_vec(1:3,i) 
+!	  if (proyForce .ne. proyForce) then
+!	    write(*,*) "proyForce x", proyForce, "i, replica_number", i, replica_number
+!	    write(*,*) "fclas_BAND(1,i,replica_number), tang_vec(1,i)", fclas_BAND(1,i,replica_number), tang_vec(1,i)
+!	  end if
+
+	  proyForce=proyForce+fclas_BAND(2,i,replica_number)*tang_vec(2,i)
+!	   if (proyForce .ne. proyForce) then
+!	  write(*,*) "proyForce y", proyForce, "i, replica_number", i, replica_number
+!	     write(*,*) "fclas_BAND(2,i,replica_number), tang_vec(2,i)", fclas_BAND(2,i,replica_number), tang_vec(2,i)
+!	   end if
+	  proyForce=proyForce+fclas_BAND(3,i,replica_number)*tang_vec(3,i)
+!	   if (proyForce .ne. proyForce) then
+!	  write(*,*) "proyForce ", proyForce, "i, replica_number", i, replica_number
+!	    write(*,*) "fclas_BAND(3,i,replica_number), tang_vec(3,i)", fclas_BAND(3,i,replica_number), tang_vec(3,i)
+!	   end if
+	  fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)-proyForce*tang_vec(1:3,i) 
         end do
 
 	RETURN
