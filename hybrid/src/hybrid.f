@@ -203,7 +203,7 @@
       double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
       double precision, dimension(:), allocatable :: Energy_band
       logical :: band_xv_found
-      integer :: middle_point
+      integer :: middle_point, NEB_firstimage, NEB_lastimage
 
       double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
 
@@ -513,9 +513,11 @@
       else
 
 
+	NEB_firstimage=1
+	NEB_lastimage=replicas
+
 	allocate(rclas_BAND(3,natot,replicas), fclas_BAND(3,natot,replicas))
 	allocate(Energy_band(replicas))
-
 	rclas_BAND=0.d0
 	fclas_BAND=0.d0
 
@@ -779,7 +781,7 @@ C Read fixed atom constraints
           write(6,*) "Optimization level: ", optimization_lvl
 
 !start loot over replicas
-	do replica_number = 1, replicas       !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
+	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
 	  if (idyn .eq.1) then
 	    rclas(1:3,1:na_u)=rclas_BAND(1:3,1:na_u,replica_number)
 	  end if
@@ -1159,7 +1161,7 @@ C Write atomic forces
 
 
 	call bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND,
-     .  Energy_band, relaxd, ftol)
+     .  Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage)
       end if
 
 
