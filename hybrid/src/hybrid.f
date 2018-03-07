@@ -203,7 +203,7 @@
       double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
       double precision, dimension(:), allocatable :: Energy_band
       logical :: band_xv_found
-
+      integer :: middle_point
 
       double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
 
@@ -532,9 +532,9 @@
 
 
 
-	if (band_xv_found) then
+	if (band_xv_found) then !restart case
 	  write(*,*) "used .XV. restart"
-	else
+	else !not restart case
 
 	  write(*,*) "didnt found all necesary restarts .XV.i"
 	  write(*,*) "with i between 1 and ", replicas
@@ -549,6 +549,23 @@
 	  end if
           rclas_BAND(1:3,1:na_u,1)=xa(1:3,1:na_u)
 
+
+
+        !transition state
+	  call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'T',-1)
+          if (foundxv) then
+            xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+            write(*,*) "using  TS"
+            write(*,*) middle_point
+            middle_point=1+replicas
+            middle_point=middle_point/2
+            rclas_BAND(1:3,1:na_u,middle_point)=xa(1:3,1:na_u)
+          else
+            write(*,*) "not using  TS, initial band will be created",
+     .      "interpolating reactivs and products"
+            middle_point=replicas
+	  end if
+
         !read products coordinates
 	  call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'P',-1)
           if (foundxv) then
@@ -558,15 +575,52 @@
           end if
           rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
 
+
+
+	  write(*,*) "middle_point vale", middle_point
+	  write(*,*) "replicas vale ", replicas
+
+          write(*,*) "test TS0, Nick"
+          do k=1,replicas
+            do i=1,na_u
+               write(*,*) i,rclas_BAND(1:3,i,k)
+            end do
+            write(*,*)
+          end do
+
+
+
         !generate initial middleimages
 	  do i=1,na_u
-	    BAND_slope(1:3)= rclas_BAND(1:3,i,replicas)-rclas_BAND(1:3,i,1)
-	    BAND_slope=BAND_slope/(dble(replicas) - 1.d0)
+	    BAND_slope(1:3)= rclas_BAND(1:3,i,middle_point)-rclas_BAND(1:3,i,1)
+	    BAND_slope=BAND_slope/(dble(middle_point) - 1.d0)
 	    BAND_const=rclas_BAND(1:3,i,1)-BAND_slope(1:3)
-	    do k=1, replicas
+	    do k=1, middle_point
 	      rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
 	    end do
+
+	    !usign TS state case
+	    if (middle_point .ne. replicas) then
+	      BAND_slope(1:3)= rclas_BAND(1:3,i,replicas)   
+     .        - rclas_BAND(1:3,i,middle_point)
+	      BAND_slope=BAND_slope/(dble(replicas) - dble(middle_point))
+              BAND_const=rclas_BAND(1:3,i,middle_point)
+     .        - dble(middle_point)*BAND_slope(1:3)
+	      do k=middle_point, replicas
+	        rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
+              end do
+	    end if
 	  end do
+
+	  write(*,*) "test TS, Nick"
+	  do k=1,replicas
+	    do i=1,na_u
+	       write(*,*) i,rclas_BAND(1:3,i,k)
+	    end do
+	    write(*,*)
+	  end do
+
+
 	end if
       end if
 
@@ -1050,7 +1104,8 @@ C Write atomic forces
       endif !qm & mm
 
 ! Save last atomic positions and velocities
-      call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
+	if (idyn .ne. 1) 
+     .  call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
 
 ! write atomic constraints each step
       call wrtcrd(natot,rclas)

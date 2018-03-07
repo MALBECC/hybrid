@@ -45,10 +45,16 @@ c Find name of file
 
 
 	if (task.eq.'read' .or. task.eq.'READ') then
-	  if (Band.eq.'R') then
-	    fname = paste( sname, '.XVR')
-	  elseif (Band.eq.'P') then
-	    fname = paste( sname, '.XVP')
+!	  if (Band.eq.'R') then
+!	    fname = paste( sname, '.XVR')
+!	  elseif (Band.eq.'P') then
+!	    fname = paste( sname, '.XVP')
+
+!generalizacion para P R T, testear luego
+	  if (Band.ne.'X') then
+	     fname = paste( sname, '.XV')
+	     fname = paste( fname, band )
+
 	  elseif (rest_number .gt. 0) then
             fname = paste( sname, '.XV.' )
 	    if (rest_number .lt. 10) then
