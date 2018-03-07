@@ -1,4 +1,4 @@
-	SUBROUTINE bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND, Energy_band, relaxd, ftol)
+	SUBROUTINE bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND, Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage)
 !Steepest descend method for nudged elastic band.
 !N. Foglia 03/2018
 	IMPLICIT NONE
@@ -16,15 +16,25 @@
 	logical, intent(INOUT) :: relaxd
 	INTEGER :: replica_number
 	INTEGER :: MAX_FORCE_REPLICA, MAX_FORCE_ATOM
-	DOUBLE PRECISION ::  MAXFmod_total
+	DOUBLE PRECISION ::  MAXFmod_total, NEB_maxFimage
 	DOUBLE PRECISION, save :: MAXFmod_total_old
 	DOUBLE PRECISION, save :: SZstep_base
+	logical :: NEB_freeze
+	logical, dimension(replicas) :: NEB_converged_image
+	INTEGER, INTENT(INOUT) :: NEB_firstimage, NEB_lastimage
 	integer :: i 
 
-!	write(*,*) "mievo paso ", istep
-	if (istep.eq.0) then
+
+	if (istep.eq.0) then!initial max steep size
 	  SZstep_base=0.01d0
+	  NEB_firstimage=1
+	  NEB_lastimage=replicas
+	elseif (mod(istep,10).eq.0) then !recheck convergence on full band every X steps
+	  NEB_firstimage=1
+	  NEB_lastimage=replicas
 	end if
+	NEB_converged_image=.true.
+
 
 !	if (istep.eq.0) then
 !	  relaxd=.false.
@@ -38,7 +48,7 @@
 !	  Energy_band_old=Energy_band
 !	end if
 !check forces, sacar luego Nick
-	do replica_number=2, replicas-1
+	do replica_number=NEB_firstimage+1, NEB_lastimage-1
 	  do i=1, na_u
 	    Fmod2=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
 !	    if (Fmod2.lt.1d-9) write(*,*) "fuerza 0 ", i,replica_number
@@ -49,30 +59,21 @@
 	MAXFmod_total=0.d0
 	MAX_FORCE_REPLICA=-1
 	MAX_FORCE_ATOM=-1
-!	write(*,*) "flag 111"
 !	if (.not. relaxd) then
-	  do replica_number=2, replicas-1
+	  do replica_number=NEB_firstimage+1, NEB_lastimage-1
 !calculo direccion tg
-!	write(*,*) "flag 112"
-
-!		if (replica_number.eq. 2) write(*,*) "F221 init", fclas_BAND
-
-
-	 call calculate_tg(1,na_u,replicas,replica_number,rclas_BAND,tang_vec, Energy_band)
-!	write(*,*) "flag 113"
-
+	 call calculate_tg(2,na_u,replicas,replica_number,rclas_BAND,tang_vec, Energy_band)
 !remove parallel force
 	 call remove_parallel(na_u,replicas, replica_number,tang_vec,fclas_BAND)
-!	write(*,*) "flag 114"
-
-!		if (replica_number.eq. 2) write(*,*) "F221 2nd", fclas_BAND
-
 
 
 !convergence criteria
 !	        ftol
+
+	  NEB_maxFimage=0.d0
 	  do i=1, na_u
 	    Fmod2=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
+	    if (Fmod2 .gt. NEB_maxFimage) NEB_maxFimage=Fmod2
 !	    if (Fmod2.lt.1d-9) write(*,*) "fuerza perp 0 ", i,replica_number
 	    relaxd=relaxd .and. (Fmod2 .lt. ftol**2)
 	    if (Fmod2 .gt. MAXFmod_total) then
@@ -82,35 +83,20 @@
 	    end if
 	  end do
 
-
-!		if (replica_number.eq. 2) write(*,*) "F221 3er", fclas_BAND
-
+	  if (NEB_maxFimage.gt.ftol**2) NEB_converged_image(replica_number)=.false.
 
 !Spring force
-	  call calculate_spring_force(na_u, replicas, replica_number,rclas_BAND, tang_vec, F_spring)
+	  call calculate_spring_force(2,na_u, replicas, replica_number,rclas_BAND, tang_vec, F_spring)
 
 	  fclas_BAND(1:3, 1:na_u,replica_number)=fclas_BAND(1:3, 1:na_u,replica_number)  &
           + 0.2*MAXFmod_total*F_spring(1:3,1:na_u)
 
-
-!		if (replica_number.eq. 2) write(*,*) "F221 4th", fclas_BAND
 
 	  MAXFmod=0.d0
           do i=1, na_u
             Fmod2=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
             if (Fmod2 .gt. MAXFmod)  MAXFmod=Fmod2
           end do
-
-
-!		if (replica_number.eq. 2) write(*,*) "F221 5th", fclas_BAND
-
-!	  MAXFmod=0.d0
-!	  do i=1, na_u
-!	    MAXFmod_temp=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
-!	    if (MAXFmod_temp .gt. MAXFmod) MAXFmod=MAXFmod_temp
-!	  end do
-!	  write(*,*) "max force: ", MAXFmod, "comb crit", ftol
-!	  write(*,*) "flag 115"
 
 
 !	  write(*,*) "muevo replica:", replica_number
@@ -129,21 +115,43 @@
 
 
 	if (relaxd) then
-	  write(*,*) "system converged"
+	  if (NEB_firstimage.eq.1 .and. NEB_lastimage.eq.replicas) then
+	    write(*,*) "system converged"
+	  else
+	    NEB_firstimage=1
+	    NEB_lastimage=replicas
+	    relaxd=.false.
+	    write(*,*) "system converged on frozen band checking full band"
+	  end if
 	else
-	  write(*,*) "system NOT converged"  
+	  write(*,*) "system NOT converged"
+ 
+!freeze converged band
+	  NEB_freeze=.true.
+	  replica_number=0
+	  do while (replica_number .le. replicas .and. NEB_freeze)
+	    replica_number=replica_number+1
+	    NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
+	  end do
+!	  NEB_firstimage=replica_number
+
+          NEB_freeze=.true.
+          replica_number=replicas+1
+          do while (replica_number .ge. 1 .and. NEB_freeze)
+            replica_number=replica_number-1
+            NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
+          end do
+!	  NEB_lastimage=replica_number
+	  write(*,*) "freezing fists ", NEB_firstimage, "images and lasts ", NEB_lastimage, " images"
+
 	end if
 	write(*,*) "max force ", sqrt(MAXFmod_total), "on atom ", MAX_FORCE_ATOM,  &
         "in replica ", MAX_FORCE_REPLICA, "conv criteria", ftol
-!	end if
 
 	if (SZstep_base.lt.1d-8) then
 	  relaxd=.true.
 	  write(*,*) "max precision reached on atomic displacement"
 	end if
-
-!	write(*,*) "flag 11end"
-
 	END SUBROUTINE bandmove
 
 
@@ -227,21 +235,8 @@
 
         do i=1, na_u
           proyForce=fclas_BAND(1,i,replica_number)*tang_vec(1,i)
-!	  if (proyForce .ne. proyForce) then
-!	    write(*,*) "proyForce x", proyForce, "i, replica_number", i, replica_number
-!	    write(*,*) "fclas_BAND(1,i,replica_number), tang_vec(1,i)", fclas_BAND(1,i,replica_number), tang_vec(1,i)
-!	  end if
-
 	  proyForce=proyForce+fclas_BAND(2,i,replica_number)*tang_vec(2,i)
-!	   if (proyForce .ne. proyForce) then
-!	  write(*,*) "proyForce y", proyForce, "i, replica_number", i, replica_number
-!	     write(*,*) "fclas_BAND(2,i,replica_number), tang_vec(2,i)", fclas_BAND(2,i,replica_number), tang_vec(2,i)
-!	   end if
 	  proyForce=proyForce+fclas_BAND(3,i,replica_number)*tang_vec(3,i)
-!	   if (proyForce .ne. proyForce) then
-!	  write(*,*) "proyForce ", proyForce, "i, replica_number", i, replica_number
-!	    write(*,*) "fclas_BAND(3,i,replica_number), tang_vec(3,i)", fclas_BAND(3,i,replica_number), tang_vec(3,i)
-!	   end if
 	  fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)-proyForce*tang_vec(1:3,i) 
         end do
 
@@ -249,22 +244,33 @@
 	END SUBROUTINE remove_parallel
 
 
-	SUBROUTINE calculate_spring_force(na_u, replicas, replica_number,rclas_BAND, tang_vec, F_spring)
+	SUBROUTINE calculate_spring_force(methodSF, na_u, replicas, replica_number,rclas_BAND, tang_vec, F_spring)
         IMPLICIT NONE
         INTEGER, INTENT(IN) :: na_u,replicas
         DOUBLE PRECISION, DIMENSION(3,na_u), INTENT(INOUT) :: F_spring
         DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(IN) :: rclas_BAND
         DOUBLE PRECISION, DIMENSION(3,na_u), INTENT(IN)  :: tang_vec
 	DOUBLE PRECISION, DIMENSION(3) :: auxvector
-	DOUBLE PRECISION :: auxescalar
+	DOUBLE PRECISION :: auxescalar, auxescalarA, auxescalarB
         INTEGER :: replica_number
+	INTEGER, INTENT(IN) :: methodSF
         integer :: i
 
 	F_spring=0.d0
 	do i=1, na_u
-	  auxvector(1:3)=rclas_BAND(1:3, i, replica_number+1)+rclas_BAND(1:3, i, replica_number-1) - 2*rclas_BAND(1:3, i, replica_number) 
-	  auxescalar=auxvector(1)*tang_vec(1,i)+auxvector(2)*tang_vec(2,i)+auxvector(3)*tang_vec(3,i)
-	  F_spring(1:3,i)=auxescalar*tang_vec(1:3,i)
+	  IF (methodSF.eq.1) then
+	    auxvector(1:3)=rclas_BAND(1:3, i, replica_number+1)+rclas_BAND(1:3, i, replica_number-1) - 2*rclas_BAND(1:3, i, replica_number) 
+	    auxescalar=auxvector(1)*tang_vec(1,i)+auxvector(2)*tang_vec(2,i)+auxvector(3)*tang_vec(3,i)
+	  ELSEIF (methodSF.eq.2) then
+	    auxvector(1:3)=rclas_BAND(1:3, i, replica_number+1)-rclas_BAND(1:3, i, replica_number)
+	    auxescalarA=auxvector(1)**2+auxvector(2)**2+auxvector(3)**2
+	    auxvector(1:3)=rclas_BAND(1:3, i, replica_number)-rclas_BAND(1:3, i, replica_number-1)
+	    auxescalarB=auxvector(1)**2+auxvector(2)**2+auxvector(3)**2
+	    auxescalar=sqrt(auxescalarA)-sqrt(auxescalarB)
+	  ELSE
+	    STOP "wrong methodSF"
+	  END IF
+	    F_spring(1:3,i)=auxescalar*tang_vec(1:3,i)
 	end do
 
 	RETURN
