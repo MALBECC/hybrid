@@ -58,7 +58,7 @@
 !		if (replica_number.eq. 2) write(*,*) "F221 init", fclas_BAND
 
 
-	  call calculate_tg(1,na_u,replicas,replica_number,rclas_BAND,tang_vec)
+	 call calculate_tg(1,na_u,replicas,replica_number,rclas_BAND,tang_vec, Energy_band)
 !	write(*,*) "flag 113"
 
 !remove parallel force
@@ -147,13 +147,16 @@
 	END SUBROUTINE bandmove
 
 
-	SUBROUTINE calculate_tg(method,na_u,replicas,replica_number,rclas_BAND,tang_vec)
+	SUBROUTINE calculate_tg(method,na_u,replicas,replica_number,rclas_BAND,tang_vec, Energy_band)
 	IMPLICIT NONE
         INTEGER, INTENT(IN) :: method,na_u,replicas, replica_number
         DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(IN) :: rclas_BAND
         DOUBLE PRECISION, DIMENSION(3,na_u), INTENT(INOUT) :: tang_vec
 	DOUBLE PRECISION, DIMENSION(3,na_u) :: tang_vecA, tang_vecB
 	DOUBLE PRECISION :: NORMVEC, NORMVECA, NORMVECB
+	DOUBLE PRECISION, DIMENSION(replicas), intent(In) :: Energy_band
+	DOUBLE PRECISION :: E0, E1, E2, Vmax, Vmin
+
 	integer :: i
 
 	IF (method.eq.0) then
@@ -174,6 +177,25 @@
 
 	   tang_vec(1:3,1:na_u)=tang_vecA(1:3,1:na_u)+tang_vecB(1:3,1:na_u)
 
+	ELSEIF (method.eq.2) then
+!The Journal of Chemical Physics 113, 9978 (2000); https://doi.org/10.1063/1.1323224
+	  tang_vecA(1:3,1:na_u) = rclas_BAND(1:3,1:na_u,replica_number) - rclas_BAND(1:3,1:na_u,replica_number-1)
+	  tang_vecB(1:3,1:na_u) = rclas_BAND(1:3,1:na_u,replica_number+1) - rclas_BAND(1:3,1:na_u,replica_number)
+	  E0=Energy_band(replica_number-1)
+	  E1=Energy_band(replica_number)
+	  E2=Energy_band(replica_number+1)
+	  do i=1, na_u
+	    if ((E2.gt.E1) .and. (E1.gt.E0)) then
+	      tang_vec(1:3,i)=tang_vecB(1:3,i)
+	    else if ((E0.gt.E1) .and. (E1.gt.E2)) then
+	      tang_vec(1:3,i)=tang_vecA(1:3,i)
+	    else
+	      Vmax=max(abs(E2-E1), abs(E1-E0))
+	      Vmin=min(abs(E2-E1), abs(E1-E0))
+	      if (E2.gt.E0) tang_vec(1:3,i)=Vmax*tang_vecB(1:3,i)+Vmin*tang_vecA(1:3,i)
+	      if (E0.gt.E2) tang_vec(1:3,i)=Vmin*tang_vecB(1:3,i)+Vmax*tang_vecA(1:3,i)
+	    end if
+	  end do
 	ELSE
 	  STOP "Wrong method in calculate_tg"
 	END IF
