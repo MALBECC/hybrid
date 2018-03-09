@@ -28,7 +28,7 @@
       use sys, only: die
       use fdf
       use ionew, only: io_setup, IOnode    
-
+      use scarlett, only: aclas_BAND_old
       implicit none
 ! General Variables
       integer :: istep, inicoor,fincoor !actual, initial and final number of move step for each restrain
@@ -200,6 +200,7 @@
 !band optimization variables
       double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
       double precision, dimension(:,:,:), allocatable, save:: rclas_BAND!Position of all atoms in BAND method
+      double precision, dimension(:,:,:), allocatable, save:: vclas_BAND!velocities of all atoms in BAND method
       double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
       double precision, dimension(:), allocatable :: Energy_band
       logical :: band_xv_found
@@ -516,9 +517,11 @@
 	NEB_firstimage=1
 	NEB_lastimage=replicas
 
-	allocate(rclas_BAND(3,natot,replicas), fclas_BAND(3,natot,replicas))
+	allocate(rclas_BAND(3,natot,replicas), vclas_BAND(3,natot,replicas),
+     .   fclas_BAND(3,natot,replicas), aclas_BAND_old(3,natot,replicas))
 	allocate(Energy_band(replicas))
 	rclas_BAND=0.d0
+	vclas_BAND=0.d0
 	fclas_BAND=0.d0
 
 	band_xv_found=.true.
@@ -579,16 +582,16 @@
 
 
 
-	  write(*,*) "middle_point vale", middle_point
-	  write(*,*) "replicas vale ", replicas
+!	  write(*,*) "middle_point vale", middle_point
+!	  write(*,*) "replicas vale ", replicas
 
-          write(*,*) "test TS0, Nick"
-          do k=1,replicas
-            do i=1,na_u
-               write(*,*) i,rclas_BAND(1:3,i,k)
-            end do
-            write(*,*)
-          end do
+!          write(*,*) "test TS0, Nick"
+!          do k=1,replicas
+!            do i=1,na_u
+!               write(*,*) i,rclas_BAND(1:3,i,k)
+!            end do
+!            write(*,*)
+!          end do
 
 
 
@@ -614,13 +617,13 @@
 	    end if
 	  end do
 
-	  write(*,*) "test TS, Nick"
-	  do k=1,replicas
-	    do i=1,na_u
-	       write(*,*) i,rclas_BAND(1:3,i,k)
-	    end do
-	    write(*,*)
-	  end do
+!	  write(*,*) "test TS, Nick"
+!	  do k=1,replicas
+!	    do i=1,na_u
+!	       write(*,*) i,rclas_BAND(1:3,i,k)
+!	    end do
+!	    write(*,*)
+!	  end do
 
 
 	end if
@@ -1160,8 +1163,8 @@ C Write atomic forces
 
 
 
-	call bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND,
-     .  Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage)
+	call bandmove(istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND,
+     .  Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage, masst)
       end if
 
 
