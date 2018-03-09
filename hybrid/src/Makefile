@@ -49,7 +49,7 @@ MOD_OBJS=precision.o \
 	 version.o \
 	 neutralatom.o \
          parsing.o \
-
+	 scarlett_mod.o \
 
 COM_OBJS=$(OBJS) $(SYSOBJ)
 ALL_OBJS=$(MOD_OBJS) $(COM_OBJS)
@@ -62,11 +62,13 @@ ionew.o chkdim.o solv_assign.o hybrid.o readall.o qmmm_lst_blk.o fixed.o assign.
 subconstr.o :sys.o
 hybrid.o : fsiesta.o
 hybrid.o : neutralatom.o
+#hybrid.o bandmove.o: scarlett_mod.o
 neutralatom.o hybrid.o solv_assign.o :ionew.o
 reinit.o readall.o writeall.o : ionew.o
 qmmm_lst_blk.o : ionew.o
 iofa.o iocg.o ioxv.o ioxvconstr.o ofc.o : ionew.o
 assign.o : parse.o
+bandmove.o : scarlett_mod.o
 
 
 version:

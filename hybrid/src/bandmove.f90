@@ -1,4 +1,4 @@
-	SUBROUTINE bandmove(istep, na_u,replicas,rclas_BAND,fclas_BAND, Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage)
+	SUBROUTINE bandmove(istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND, Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage, masst)
 !Steepest descend method for nudged elastic band.
 !N. Foglia 03/2018
 	IMPLICIT NONE
@@ -6,6 +6,7 @@
 	DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(INOUT) :: fclas_BAND
 	DOUBLE PRECISION, DIMENSION(3,na_u) :: F_spring
 	DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(INOUT) :: rclas_BAND
+	DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(INOUT) :: vclas_BAND
 	DOUBLE PRECISION, DIMENSION(3,na_u) :: tang_vec
 	DOUBLE PRECISION, DIMENSION(replicas), intent(In) :: Energy_band
 	DOUBLE PRECISION, DIMENSION(replicas) :: Energy_band_old
@@ -23,10 +24,13 @@
 	logical, dimension(replicas) :: NEB_converged_image
 	INTEGER, INTENT(INOUT) :: NEB_firstimage, NEB_lastimage
 	integer :: i 
+	DOUBLE PRECISION, DIMENSION(na_u), INTENT(IN) :: masst
+	integer :: move_method
 
+	move_method=1
 
 	if (istep.eq.0) then!initial max steep size
-	  SZstep_base=0.01d0
+	  SZstep_base=0.1d0
 	  NEB_firstimage=1
 	  NEB_lastimage=replicas
 	elseif (mod(istep,10).eq.0) then !recheck convergence on full band every X steps
@@ -89,7 +93,7 @@
 	  call calculate_spring_force(2,na_u, replicas, replica_number,rclas_BAND, tang_vec, F_spring)
 
 	  fclas_BAND(1:3, 1:na_u,replica_number)=fclas_BAND(1:3, 1:na_u,replica_number)  &
-          + 0.2*MAXFmod_total*F_spring(1:3,1:na_u)
+          + 0.2*F_spring(1:3,1:na_u)
 
 
 	  MAXFmod=0.d0
@@ -105,10 +109,11 @@
           write(*,*) "maxforce", MAXFmod, "stepsize", SZstep, &
           "stepsize_base", SZstep_base
 
-	  rclas_BAND(1:3,1:na_u,replica_number)=rclas_BAND(1:3,1:na_u,replica_number)+SZstep*fclas_BAND(1:3,1:na_u,replica_number)
-
+!mueve
+	  if (move_method .eq.1) call NEB_movement_algorithm(1,na_u,replicas,rclas_BAND,fclas_BAND,SZstep, masst)
 	end do
-	
+	  if (move_method .eq.2) call  NEB_movement_algorithm(2,istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND,SZstep, masst)
+
         if (istep.eq.0) MAXFmod_total_old=MAXFmod_total
 	if (MAXFmod_total .gt. MAXFmod_total_old) SZstep_base=SZstep_base*0.85d0
 	MAXFmod_total_old=MAXFmod_total
@@ -125,30 +130,39 @@
 	  end if
 	else
 	  write(*,*) "system NOT converged"
- 
-!freeze converged band
-	  NEB_freeze=.true.
-	  replica_number=0
-	  do while (replica_number .le. replicas .and. NEB_freeze)
-	    replica_number=replica_number+1
-	    NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
-	  end do
-!	  NEB_firstimage=replica_number
 
-          NEB_freeze=.true.
-          replica_number=replicas+1
-          do while (replica_number .ge. 1 .and. NEB_freeze)
-            replica_number=replica_number-1
-            NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
-          end do
-!	  NEB_lastimage=replica_number
-	  write(*,*) "freezing fists ", NEB_firstimage, "images and lasts ", NEB_lastimage, " images"
+
+	  if (move_method .eq.1) then
+!freeze converged band
+	    NEB_freeze=.true.
+	    replica_number=0
+	    do while (replica_number .le. replicas .and. NEB_freeze)
+	      replica_number=replica_number+1
+	      NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
+	    end do
+	    NEB_firstimage=replica_number-1
+
+            NEB_freeze=.true.
+            replica_number=replicas+1
+            do while (replica_number .ge. 1 .and. NEB_freeze)
+              replica_number=replica_number-1
+              NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
+            end do
+	    NEB_lastimage=replica_number+1
+
+!	  do replica_number=1, replicas
+!	    write(*,*) replica_number, NEB_converged_image(replica_number)
+!	  end do
+
+	    write(*,*) "freezing images 1 -", NEB_firstimage, "and ", NEB_lastimage," - ", replicas
+	  end if
+
 
 	end if
 	write(*,*) "max force ", sqrt(MAXFmod_total), "on atom ", MAX_FORCE_ATOM,  &
         "in replica ", MAX_FORCE_REPLICA, "conv criteria", ftol
 
-	if (SZstep_base.lt.1d-8) then
+	if (SZstep_base.lt.1d-6) then
 	  relaxd=.true.
 	  write(*,*) "max precision reached on atomic displacement"
 	end if
@@ -275,3 +289,86 @@
 
 	RETURN
 	END SUBROUTINE calculate_spring_force
+
+
+	SUBROUTINE NEB_movement_algorithm(method,istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND,SZstep, masst)
+	use scarlett, only: aclas_BAND_old
+	IMPLICIT NONE
+	integer :: method
+	INTEGER, INTENT(IN) :: na_u, replicas
+	DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(IN) :: fclas_BAND
+	DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(INOUT) :: rclas_BAND
+	DOUBLE PRECISION, DIMENSION(3,na_u,replicas), INTENT(INOUT) :: vclas_BAND
+	DOUBLE PRECISION, DIMENSION(3,na_u,replicas) :: v12clas_BAND
+	DOUBLE PRECISION, DIMENSION(3,na_u,replicas) :: aclas_BAND
+	DOUBLE PRECISION, INTENT(IN) :: SZstep
+	DOUBLE PRECISION, DIMENSION(na_u), INTENT(IN) :: masst
+	integer, intent(in) :: istep
+	integer :: i, j, replica_number
+	DOUBLE PRECISION :: time_steep
+	DOUBLE PRECISION :: Fmod, velocity_proyected
+!	DOUBLE PRECISION, DIMENSION(3,na_u,replicas) :: aclas_BAND_old
+!	save aclas_BAND_old
+
+	time_steep=1.d-1
+	Fmod=0.d0
+
+	if (method.eq.1) then !steepest descend
+	  rclas_BAND(1:3,1:na_u,1:replicas)=rclas_BAND(1:3,1:na_u,1:replicas)+SZstep*fclas_BAND(1:3,1:na_u,1:replicas)
+	elseif (method.eq.2) then !velocity verlet
+
+	  do i=1, na_u
+	    aclas_BAND(1:3, i, 1:replicas) = fclas_BAND(1:3, i, 1:replicas)/masst(i)
+	    do j=1,3
+	      do replica_number=1,replicas
+	        Fmod=Fmod + fclas_BAND(j, i, replica_number)**2
+	      end do
+	    end do
+	  end do
+	  Fmod=sqrt(Fmod)
+
+!	    write(*,*) "masa", i, masst(i)
+
+
+	    if (istep .ne. 1) then
+	      vclas_BAND=vclas_BAND+0.5d0*(aclas_BAND+aclas_BAND_old)*time_steep
+
+	      velocity_proyected=0.d0      
+	      do i=1, na_u
+	        do j=1,3
+	          do replica_number=1,replicas
+	            velocity_proyected=velocity_proyected+vclas_BAND(j,i,replica_number) * fclas_BAND(j,i,replica_number)
+	          end do
+	        end do
+	      end do
+	      velocity_proyected=velocity_proyected/Fmod
+
+	      if (velocity_proyected .gt. 0.d0) then
+	        vclas_BAND=velocity_proyected*fclas_BAND/Fmod
+	      else
+	        vclas_BAND=0.d0*velocity_proyected*fclas_BAND/Fmod
+	      end if
+
+	    end if
+
+
+!	    write(*,*) "cambio ", 0.5d0*(aclas_BAND+aclas_BAND_old)*time_steep
+
+!foto 1 y ultima estan congeladas
+	    vclas_BAND(1:3, i,1)=0.d0
+	    vclas_BAND(1:3, i,replicas)=0.d0
+            aclas_BAND(1:3, i,1)=0.d0
+            aclas_BAND(1:3, i,replicas)=0.d0
+	    
+	    rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
+	    aclas_BAND_old=aclas_BAND
+
+!	    aclas_BAND(1:3, i, 1:replicas) = fclas_BAND(1:3, i, 1:replicas)/masst(i)
+!	    vclas_BAND=v12clas_BAND+0.5d0*aclas_BAND*time_steep
+!	    v12clas_BAND=vclas_BAND+0.5d0*fclas_BAND*time_steep 
+!	    rclas_BAND=rclas_BAND+v12clas_BAND*time_steep
+
+	else
+	  STOP "Wrong method in NEB_movement_algorithm"
+	end if
+	END SUBROUTINE NEB_movement_algorithm
