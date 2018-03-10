@@ -21,6 +21,7 @@
 ! This code uses several subroutines of SIESTA  as well as the 
 ! SiestaAsSubroutine and FDF packages. Crespo, May 2005. 
 ! Modified version for use Lio as QM-MM level and debugs, N. Foglia 2017
+! Icluded NEB method N. Foglia 2018
 !*****************************************************************************
 
 ! Modules
@@ -28,12 +29,14 @@
       use sys, only: die
       use fdf
       use ionew, only: io_setup, IOnode    
-      use scarlett, only: aclas_BAND_old
+      use scarlett, only: natot,replicas,aclas_BAND_old, rclas_BAND,
+     . vclas_BAND, fclas_BAND, Energy_band
+
+
       implicit none
 ! General Variables
       integer :: istep, inicoor,fincoor !actual, initial and final number of move step for each restrain
       integer :: idyn !kind of movent, idyn=0 (minimization) only avalable at this moment
-      integer :: replicas !number of replicas in band methods
       integer :: replica_number !auxiliar
       integer :: istp !number of move step for each restrain starting on 1
       integer :: nmove !max number of move step for each restrain
@@ -73,7 +76,6 @@
 
 ! Solvent (MM) General variables
       integer :: nac !number of MM atoms
-      integer :: natot !total number of atoms
       character*4,  dimension(:), allocatable, save :: atname,aaname !atom and residue name
 !in *.fdf
 !%block SolventInput
@@ -199,10 +201,6 @@
 
 !band optimization variables
       double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
-      double precision, dimension(:,:,:), allocatable, save:: rclas_BAND!Position of all atoms in BAND method
-      double precision, dimension(:,:,:), allocatable, save:: vclas_BAND!velocities of all atoms in BAND method
-      double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
-      double precision, dimension(:), allocatable :: Energy_band
       logical :: band_xv_found
       integer :: middle_point, NEB_firstimage, NEB_lastimage
 
@@ -517,12 +515,8 @@
 	NEB_firstimage=1
 	NEB_lastimage=replicas
 
-	allocate(rclas_BAND(3,natot,replicas), vclas_BAND(3,natot,replicas),
-     .   fclas_BAND(3,natot,replicas), aclas_BAND_old(3,natot,replicas))
-	allocate(Energy_band(replicas))
-	rclas_BAND=0.d0
-	vclas_BAND=0.d0
-	fclas_BAND=0.d0
+
+	call init_hybrid("NEB")
 
 	band_xv_found=.true.
 	do replica_number = 1, replicas
@@ -580,21 +574,6 @@
           end if
           rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
 
-
-
-!	  write(*,*) "middle_point vale", middle_point
-!	  write(*,*) "replicas vale ", replicas
-
-!          write(*,*) "test TS0, Nick"
-!          do k=1,replicas
-!            do i=1,na_u
-!               write(*,*) i,rclas_BAND(1:3,i,k)
-!            end do
-!            write(*,*)
-!          end do
-
-
-
         !generate initial middleimages
 	  do i=1,na_u
 	    BAND_slope(1:3)= rclas_BAND(1:3,i,middle_point)-rclas_BAND(1:3,i,1)
@@ -617,27 +596,11 @@
 	    end if
 	  end do
 
-!	  write(*,*) "test TS, Nick"
-!	  do k=1,replicas
-!	    do i=1,na_u
-!	       write(*,*) i,rclas_BAND(1:3,i,k)
-!	    end do
-!	    write(*,*)
-!	  end do
-
-
 	end if
       end if
 
 
-!	write(*,*) "test Nick"
-!	do j=1,replicas
-!	    write(975,*) na_u
-!	    write(975,*)
-!	  do i=1, na_u
-!	    write(975,444) i,rclas_BAND(1:3,i,j)
-!	  end do
-!	end do
+
 
 
 ! Reading LinkAtom variables
@@ -961,12 +924,7 @@ c return forces to fullatom arrays
 	end if
 
 
-!        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
-
-
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
-
-!        write(*,*) "Fuerzas 15", fdummy(1:3,1:natot)
 
 ! Calculation of Constrained Optimization Energy and Forces 
         if(imm.eq.1) then
@@ -1065,9 +1023,6 @@ C Write atomic forces
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
 
-!	write(*,*) "Fuerzas 23", cfdummy(1:3,1:na_u)
-
-
 	if (idyn.eq.1) then
 	  fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
 	  Energy_band(replica_number)=Etots/eV
@@ -1151,7 +1106,6 @@ C Write atomic forces
                else
 		  write(unitnumber,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
                end if
-!	       write(unitnumber,444) i, rclas_BAND(1:3,i,replica_number)*0.52
 	     end do
 
            end do
@@ -1161,10 +1115,11 @@ C Write atomic forces
             close(unitnumber)
           end do
 
+	call bandmove(istep, relaxd, ftol, NEB_firstimage, NEB_lastimage, 
+     .  masst)
 
-
-	call bandmove(istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND,
-     .  Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage, masst)
+!	call bandmove(istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND,
+!     .  Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage, masst)
       end if
 
 
@@ -1194,13 +1149,13 @@ C Write atomic forces
 	   open(unit=988,file="bandEnergies.dat")
 	   open(unit=989,file="bandtraj.xyz")
 	   do replica_number = 1, replicas
-	     write(988, *) replica_number, Energy_band(replica_number)
+	     write(988,*) replica_number, Energy_band(replica_number)
 	     write(989,*) natot
 	     write(989,*)
 
 	     do i=1, natot
 	       if (i.le.na_u) then
-		write(989,345) iza(inick), rclas_BAND(1:3,i,replica_number)*0.52
+		write(989,345) iza(i), rclas_BAND(1:3,i,replica_number)*0.52
                else
 		write(989,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
                end if
