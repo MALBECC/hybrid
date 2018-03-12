@@ -29,9 +29,15 @@
       use sys, only: die
       use fdf
       use ionew, only: io_setup, IOnode    
-      use scarlett, only: natot,replicas,aclas_BAND_old, rclas_BAND,
-     . vclas_BAND, fclas_BAND, Energy_band
-
+      use scarlett, only: natot,masst,
+     . rclas, vat,
+     . NEB_Nimages, 
+     . NEB_firstimage, NEB_lastimage,  
+     . aclas_BAND_old,
+     . rclas_BAND,
+     . vclas_BAND, fclas_BAND, Energy_band,
+     . ucell,
+     . ftol
 
       implicit none
 ! General Variables
@@ -51,7 +57,6 @@
       real(dp) :: strtol !Maximum stress tolerance
       real(dp) :: Etot ! QM + QM-MM interaction energy
       real(dp) :: fres !sqrt( Sum f_i^2 / 3N )
-      real(dp) :: ftol !MAx force tol criteria (in Ry/Bohr)
       real(dp) :: ftot(3) ! Total force in system
       real(dp) :: dxmax !Maximum atomic displacement in one CG step (Bohr)
       real(dp) :: tp !Target pressure
@@ -70,7 +75,7 @@
       external :: paste
       logical :: actualiz!MM interaction list control
 ! band method
-      real(dp) :: BAND_slope(3), BAND_const(3)
+!      real(dp) :: BAND_slope(3), BAND_const(3)
       integer :: unitnumber
       character*13 :: fname
 
@@ -200,18 +205,16 @@
       double precision :: Etots !QM+QMMM+MM energy
 
 !band optimization variables
-      double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
-      logical :: band_xv_found
-      integer :: middle_point, NEB_firstimage, NEB_lastimage
+!      double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
+!      logical :: band_xv_found
+!      integer :: middle_point 
 
-      double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
+!      double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
 
       double precision, dimension(:,:), allocatable, save:: fce_amber !Total MM force
       double precision, dimension(:,:), allocatable, save:: fdummy !QM+MM+QMMM force 
       double precision, dimension(:,:), allocatable, save:: cfdummy !QM+MM+QMMM force ater constrain
 
-
-      double precision, dimension(:), allocatable, save:: masst !atomic mass
 
       integer, dimension(:,:), allocatable, save:: ng1type !ng1type(i,j) number of bond type defined in amber.parm for atom i, bond j
       integer, dimension(:,:), allocatable, save:: angetype !angetype(i,j) number of angle type defined in amber.parm for atom i, bond j, with i in extreme
@@ -314,7 +317,6 @@
 ! Others that need check
 !!!! General Variables
       real(dp) :: dt
-      real(dp) :: ucell(3,3)
       real(dp) :: volcel
       external :: volcel
 
@@ -359,6 +361,7 @@
       do_properties=.false.
       Nick_cent=.false.
       writeRF=.true.
+      foundxv=.false.
 
 ! Initialize IOnode
       call io_setup   
@@ -498,109 +501,19 @@
 ! Read simulation data 
       call read_md( idyn, nmove, dt, dxmax, ftol, 
      .              usesavecg, usesavexv , Nick_cent, na_u,  
-     .              natot, nfce, wricoord, mmsteps, replicas)
+     .              natot, nfce, wricoord, mmsteps)
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
 
 
-
-! Read cell shape and atomic positions from a former run
-      if (idyn .ne. 1) then
+      if (idyn .ne. 1) then ! Read cell shape and atomic positions from a former run
         call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1) 
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-      else
-
-
-	NEB_firstimage=1
-	NEB_lastimage=replicas
-
-
+      else 
 	call init_hybrid("NEB")
-
-	band_xv_found=.true.
-	do replica_number = 1, replicas
-	  call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat,'X',
-     .         replica_number)
-	  band_xv_found=band_xv_found .and. foundxv
-	  if (foundxv) then
-	    rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
-	  end if
-	end do
-
-
-
-
-	if (band_xv_found) then !restart case
-	  write(*,*) "used .XV. restart"
-	else !not restart case
-
-	  write(*,*) "didnt found all necesary restarts .XV.i"
-	  write(*,*) "with i between 1 and ", replicas
-	  write(*,*) "using .XV.R and .XV.P for generate initial states"
-	 
-        !read reactive coordinates
-	  call ioxv('read',natot,ucell,rclas,vat, foundxv, foundvat,'R',-1)
-	  if (foundxv) then
-	    xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-	  else
-	    STOP ".XVR not found"
-	  end if
-          rclas_BAND(1:3,1:na_u,1)=xa(1:3,1:na_u)
-
-
-
-        !transition state
-	  call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'T',-1)
-          if (foundxv) then
-            xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-            write(*,*) "using  TS"
-            write(*,*) middle_point
-            middle_point=1+replicas
-            middle_point=middle_point/2
-            rclas_BAND(1:3,1:na_u,middle_point)=xa(1:3,1:na_u)
-          else
-            write(*,*) "not using  TS, initial band will be created",
-     .      "interpolating reactivs and products"
-            middle_point=replicas
-	  end if
-
-        !read products coordinates
-	  call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'P',-1)
-          if (foundxv) then
-            xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-          else
-            STOP ".XVP not fund"
-          end if
-          rclas_BAND(1:3,1:na_u,replicas)=xa(1:3,1:na_u)
-
-        !generate initial middleimages
-	  do i=1,na_u
-	    BAND_slope(1:3)= rclas_BAND(1:3,i,middle_point)-rclas_BAND(1:3,i,1)
-	    BAND_slope=BAND_slope/(dble(middle_point) - 1.d0)
-	    BAND_const=rclas_BAND(1:3,i,1)-BAND_slope(1:3)
-	    do k=1, middle_point
-	      rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
-	    end do
-
-	    !usign TS state case
-	    if (middle_point .ne. replicas) then
-	      BAND_slope(1:3)= rclas_BAND(1:3,i,replicas)   
-     .        - rclas_BAND(1:3,i,middle_point)
-	      BAND_slope=BAND_slope/(dble(replicas) - dble(middle_point))
-              BAND_const=rclas_BAND(1:3,i,middle_point)
-     .        - dble(middle_point)*BAND_slope(1:3)
-	      do k=middle_point, replicas
-	        rclas_BAND(1:3,i,k)=BAND_slope(1:3)*dble(k) + BAND_const(1:3)
-              end do
-	    end if
-	  end do
-
-	end if
+	call NEB_make_initial_band()
       end if
-
-
-
 
 
 ! Reading LinkAtom variables
@@ -616,11 +529,11 @@
         endif !LA
       endif !qm & mm
 
+
 ! Read a crd file from a former run
       call readcrd(na_u,nac,masst,linkatom,linkat,numlink,
      .             rclas,vat,foundcrd,foundvat)
       if(foundcrd) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-
 
 
 ! Sets LinkAtoms' positions
@@ -640,6 +553,7 @@
           enddo
         endif !LA
       endif !qm & mm
+
 
 ! Dump initial coordinates to output 
       if (writeipl) then
@@ -688,7 +602,7 @@
         volume = volcel( ucell )
 
 ! Center system 
-        if (.not.foundxv) call centermol(na_u,xa,rclas,ucell,natot)
+        if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
 
 
@@ -841,8 +755,6 @@ c return forces to fullatom arrays
           end do
         endif !qm
 
-
-!	write(*,*) "Fuerzas 13", fdummy(1:3,1:natot)
 
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
@@ -1023,68 +935,67 @@ C Write atomic forces
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
 
-	if (idyn.eq.1) then
-	  fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
-	  Energy_band(replica_number)=Etots/eV
-	end if
-
-
-! Move atoms 
-      if (idyn .eq. 0 ) then 
-          call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
+      if (idyn .eq. 0 ) then
+!Move atoms 
+        call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
-      endif
 
-!nick center
-          if (qm .and. .not. mm .and. Nick_cent) then
-            write(*,*) "Centrando Nick"
-            firstcent=0
-            if (istepconstr.eq.1 .and. istep.eq.inicoor ) firstcent=1
+!Nick center
+        if (qm .and. .not. mm .and. Nick_cent) then
+          write(*,*) "Centrando Nick"
+          firstcent=0
+          if (istepconstr.eq.1 .and. istep.eq.inicoor ) firstcent=1
             call center_rotation(natot, masst, rclas, firstcent, Inivec)
           end if
 
-
-! Write Energy in file
-      call wriene(step,slabel,idyn,Etots,cfmax)
+!Write Energy in file
+          call wriene(step,slabel,idyn,Etots,cfmax)
 
 ! sets variables for next cycle
-      fa = 0.d0
-      fdummy = 0.d0 
-      cfdummy = 0.d0
-      xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-      call flush(6)
+          fa = 0.d0
+          fdummy = 0.d0
+          cfdummy = 0.d0
+          xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+          call flush(6)
 
 ! Calculation Hlink's New positions 
-      if(qm.and.mm) then
-        if(linkatom) then
-        call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .    natot,na_u,nac,distl)
-        xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-        endif !LA
-      endif !qm & mm
+          if(qm.and.mm) then
+            if(linkatom) then
+              call link3(numlink,linkat,linkqm,linkmm,rclas,
+     .        natot,na_u,nac,distl)
+              xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+            endif !LA
+          endif !qm & mm
 
 ! Save last atomic positions and velocities
-	if (idyn .ne. 1) 
-     .  call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
-
+        call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
 ! write atomic constraints each step
-      call wrtcrd(natot,rclas)
+          call wrtcrd(natot,rclas)
+
+
+
+        elseif (idyn.eq.1) then
+          fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
+          Energy_band(replica_number)=Etots/eV
+        endif
 
 ! Exit MMxQM loop
       enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
 
       end do!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
 
+
+
       if (idyn .eq. 1 ) then
           write(*,*) "entre a band move"
 
-          do replica_number = 1, replicas
+          do replica_number = 1, NEB_Nimages
 	write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
           end do
 	write(*,*)"Energy-band"
 
 !trayectorias, mejorar luego esto
-          do replica_number = 1, replicas
+          do replica_number = 1, NEB_Nimages
             unitnumber=replica_number+500
 	    if (replica_number.lt. 10)
      .      write(fname,"(A7,I1,A4)") "Replica",replica_number,".xyz"
@@ -1095,7 +1006,7 @@ C Write atomic forces
             open(unit=unitnumber,file=fname, access='APPEND')
           end do
 
-          do replica_number = 1, replicas
+          do replica_number = 1, NEB_Nimages
             unitnumber=replica_number+500
              write(unitnumber,*) na_u
 	     write(unitnumber,*)
@@ -1110,16 +1021,13 @@ C Write atomic forces
 
            end do
 
-          do replica_number = 1, replicas
+          do replica_number = 1, NEB_Nimages
             unitnumber=replica_number+500
             close(unitnumber)
           end do
 
-	call bandmove(istep, relaxd, ftol, NEB_firstimage, NEB_lastimage, 
-     .  masst)
-
-!	call bandmove(istep, na_u,replicas,rclas_BAND,vclas_BAND,fclas_BAND,
-!     .  Energy_band, relaxd, ftol, NEB_firstimage, NEB_lastimage, masst)
+	call bandmove(istep, relaxd) 
+!aca luego hay q recalcular posicionesde link atoms para cada imagen
       end if
 
 
@@ -1148,7 +1056,7 @@ C Write atomic forces
 	if (idyn.eq.1) then
 	   open(unit=988,file="bandEnergies.dat")
 	   open(unit=989,file="bandtraj.xyz")
-	   do replica_number = 1, replicas
+	   do replica_number = 1, NEB_Nimages
 	     write(988,*) replica_number, Energy_band(replica_number)
 	     write(989,*) natot
 	     write(989,*)
