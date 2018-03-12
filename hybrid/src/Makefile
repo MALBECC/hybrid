@@ -24,7 +24,8 @@ OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	centerall.o ran3.o dot.o readall.o subconstr.o \
 	writeall.o qmmm_lst_blk.o solv_assign.o \
 	ljef.o solv_ene_fce.o linkatom.o recipes.o \
-	assignation.o center_rotation.o bandmove.o init_hybrid.o hybrid.o \
+	assignation.o center_rotation.o bandmove.o init_hybrid.o NEB_subs.o\
+        hybrid.o \
 
 # FDF Module
 FDF=libfdf.a

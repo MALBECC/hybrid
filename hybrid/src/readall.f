@@ -116,12 +116,14 @@ C Read the Dynamics Options
      .                   dt, dxmax, ftol,  
      .                   usesavecg, usesavexv , Nick_cent,
      .                   na, 
-     .                   nat, nfce, wricoord, mmsteps, replicas)
+     .                   nat, nfce, wricoord, mmsteps)
 
 C  Modules
       use precision
       use fdf
       use sys
+      use scarlett, only: NEB_move_method, NEB_spring_constant,
+     .   NEB_Nimages
 
       implicit none
 
@@ -129,8 +131,7 @@ C  Modules
      .  idyn,  
      .  nmove, 
      .  na, nfce, mmsteps,
-     .  wricoord, nat,
-     .  replicas
+     .  wricoord, nat
 
       double precision
      .  dt, dxmax, ftol
@@ -148,12 +149,14 @@ C  Internal variables .................................................
       integer 
      .  nmove_default,
      .  iunit, wrifces,
-     .  replicas_default 
+     .  NEB_Nimages_default,
+     .  NEB_move_method_default
 
       double precision
      .  dt_default, dxmax_default,
      .  ftol_default,  
-     .  dx_default
+     .  dx_default,
+     .  NEB_spring_constant_default
 
       logical
      .  leqi, qnch, qnch_default
@@ -200,9 +203,22 @@ C Read if use saved XV data
 C Maximum number of steps in CG coordinate optimization
       nmove_default = 0
         nmove = fdf_integer('MD.NumCGsteps',nmove_default)
-C BAND replicas
-      replicas_default = 1
-        replicas = fdf_integer('MD.NumReplicas',replicas_default)
+
+
+C NEB optimization method
+      NEB_move_method_default = 2
+	NEB_move_method = fdf_integer('NEB.OptimizationMethod',
+     .  NEB_move_method_default)
+C spring constant
+      NEB_spring_constant_default=0.2d0
+	NEB_spring_constant = fdf_double('NEB.SpringConstant',
+     .  NEB_spring_constant_default)
+C NEB images
+      NEB_Nimages_default = 1
+        NEB_Nimages = fdf_integer('NEB.NumImages',NEB_Nimages_default)
+
+
+
 
 C Maximum atomic displacement in one CG step
       dxmax_default = 0.2d0
