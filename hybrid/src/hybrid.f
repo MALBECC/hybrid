@@ -29,7 +29,7 @@
       use sys, only: die
       use fdf
       use ionew, only: io_setup, IOnode    
-      use scarlett, only: natot,masst,
+      use scarlett, only: natot,na_u,masst,isa, iza, pc, 
      . rclas, vat,
      . NEB_Nimages, 
      . NEB_firstimage, NEB_lastimage,  
@@ -37,7 +37,8 @@
      . rclas_BAND,
      . vclas_BAND, fclas_BAND, Energy_band,
      . ucell,
-     . ftol
+     . ftol,
+     . Ang
 
       implicit none
 ! General Variables
@@ -46,7 +47,6 @@
       integer :: replica_number !auxiliar
       integer :: istp !number of move step for each restrain starting on 1
       integer :: nmove !max number of move step for each restrain
-      integer :: na_u !number of QM atoms
       integer :: nesp !number of QM species
       integer :: step !total number of steps in a MMxQM movement (not tested in this version)
       integer :: ifmax(2) !number of atom with max force on each cicle
@@ -62,7 +62,7 @@
       real(dp) :: tp !Target pressure
       real(dp) :: volume !Cell volume
       real(dp), dimension(:,:), allocatable :: xa, fa !position and forces of QM atoms
-      integer, dimension(:), allocatable :: isa,iza !Chemical Specie Label, and atomic charge
+!      integer, dimension(:), allocatable :: isa,iza !Chemical Specie Label, and atomic charge
       character, dimension(:), allocatable :: atsym*2 !atomic symbol
       logical :: usesavexv, foundxv !control for coordinates restart
       logical :: usesavecg !control for restart CG
@@ -75,9 +75,8 @@
       external :: paste
       logical :: actualiz!MM interaction list control
 ! band method
-!      real(dp) :: BAND_slope(3), BAND_const(3)
       integer :: unitnumber
-      character*13 :: fname
+!      character*13 :: fname
 
 ! Solvent (MM) General variables
       integer :: nac !number of MM atoms
@@ -181,7 +180,7 @@
       integer, dimension(:,:), allocatable, save:: nonbonded !nonbonded(i,j) atomo jesimo unido de alguna forma al atomo i-esimo, por lo que NO se debe calcular LJ & coulomb
 
       double precision, dimension(:), allocatable, save:: Em, Rm !LJ parameters, in hybrid units
-      double precision, dimension(:), allocatable, save:: pc !charge of MM atoms
+!      double precision, dimension(:), allocatable, save:: pc !charge of MM atoms
 !in amber.parm
 !ljs
 !65
@@ -306,7 +305,7 @@
 
 
 ! Conversion factors
-      real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
+!      real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
       real(dp) :: eV !E_in_Hartree=E_in_eV * eV
       real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
 ! Auxiliars
@@ -373,7 +372,9 @@
       call timestamp('Start of run')      
 
 ! Factors of conversion to internal units 
-      Ang    = 1._dp / 0.529177_dp
+
+      call init_hybrid('Constants')
+!      Ang    = 1._dp / 0.529177_dp
       eV     = 1._dp / 27.211396132_dp
       kcal   = 1.602177E-19_dp * 6.02214E23_dp / 4184.0_dp
 
@@ -491,10 +492,10 @@
 
 ! changing cutoff to atomic units
       rcorteqmmm=rcorteqmmm*Ang
-      rcorteqmmm=rcorteqmmm**2 !para comparar cuadrados
+      rcorteqmmm=rcorteqmmm**2 !we will compare square in cutoff
 
       radbloqmmm=radbloqmmm*Ang
-      radbloqmmm=radbloqmmm**2
+      radbloqmmm=radbloqmmm**2 !we will compare square in cutoff
 
       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
@@ -606,7 +607,7 @@
       endif !qm
 
 
-C Read fixed atom constraints
+! Read fixed atom constraints
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
      .            atname,aaname,aanum,water)
 
@@ -935,8 +936,7 @@ C Write atomic forces
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
 
-      if (idyn .eq. 0 ) then
-!Move atoms 
+      if (idyn .eq. 0 ) then !Move atoms with a CG algorithm
         call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
 
@@ -946,38 +946,38 @@ C Write atomic forces
           firstcent=0
           if (istepconstr.eq.1 .and. istep.eq.inicoor ) firstcent=1
             call center_rotation(natot, masst, rclas, firstcent, Inivec)
-          end if
+        end if
 
 !Write Energy in file
-          call wriene(step,slabel,idyn,Etots,cfmax)
+        call wriene(step,slabel,idyn,Etots,cfmax)
 
 ! sets variables for next cycle
-          fa = 0.d0
-          fdummy = 0.d0
-          cfdummy = 0.d0
-          xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-          call flush(6)
+        fa = 0.d0
+        fdummy = 0.d0
+        cfdummy = 0.d0
+        xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+        call flush(6)
 
 ! Calculation Hlink's New positions 
-          if(qm.and.mm) then
-            if(linkatom) then
-              call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .        natot,na_u,nac,distl)
-              xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-            endif !LA
-          endif !qm & mm
+        if(qm.and.mm) then
+          if(linkatom) then
+            call link3(numlink,linkat,linkqm,linkmm,rclas,
+     .      natot,na_u,nac,distl)
+            xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+          endif !LA
+        endif !qm & mm
 
 ! Save last atomic positions and velocities
         call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
 ! write atomic constraints each step
-          call wrtcrd(natot,rclas)
+        call wrtcrd(natot,rclas)
 
 
 
-        elseif (idyn.eq.1) then
-          fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
-          Energy_band(replica_number)=Etots/eV
-        endif
+      elseif (idyn.eq.1) then !Save forces and energy for a NEB optimization
+        fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
+        Energy_band(replica_number)=Etots/eV
+      endif
 
 ! Exit MMxQM loop
       enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
@@ -986,47 +986,46 @@ C Write atomic forces
 
 
 
-      if (idyn .eq. 1 ) then
-          write(*,*) "entre a band move"
-
-          do replica_number = 1, NEB_Nimages
-	write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
-          end do
-	write(*,*)"Energy-band"
+      if (idyn .eq. 1 ) then !Move atoms in a NEB scheme
+!          write(*,*) "entre a band move"
+	  call NEB_save_traj_energy()
+!          do replica_number = 1, NEB_Nimages
+!	write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
+!          end do
 
 !trayectorias, mejorar luego esto
-          do replica_number = 1, NEB_Nimages
-            unitnumber=replica_number+500
-	    if (replica_number.lt. 10)
-     .      write(fname,"(A7,I1,A4)") "Replica",replica_number,".xyz"
+!          do replica_number = 1, NEB_Nimages
+!            unitnumber=replica_number+500
+!	    if (replica_number.lt. 10)
+!     .      write(fname,"(A7,I1,A4)") "Replica",replica_number,".xyz"
+!
+!            if (replica_number.ge. 10)
+!     .      write(fname,"(A7,I2,A4)") "Replica",replica_number,".xyz"
+!
+!            open(unit=unitnumber,file=fname, access='APPEND')
+!          end do
 
-            if (replica_number.ge. 10)
-     .      write(fname,"(A7,I2,A4)") "Replica",replica_number,".xyz"
+!          do replica_number = 1, NEB_Nimages
+!            unitnumber=replica_number+500
+!             write(unitnumber,*) na_u
+!	     write(unitnumber,*)
+!
+!	     do i=1, natot
+!		if (i.le.na_u) then
+!		  write(unitnumber,345) iza(i), rclas_BAND(1:3,i,replica_number)*0.52
+!               else
+!		  write(unitnumber,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
+!               end if
+!	     end do
+!
+!           end do
+!
+!          do replica_number = 1, NEB_Nimages
+!            unitnumber=replica_number+500
+!            close(unitnumber)
+!          end do
 
-            open(unit=unitnumber,file=fname, access='APPEND')
-          end do
-
-          do replica_number = 1, NEB_Nimages
-            unitnumber=replica_number+500
-             write(unitnumber,*) na_u
-	     write(unitnumber,*)
-
-	     do i=1, natot
-		if (i.le.na_u) then
-		  write(unitnumber,345) iza(i), rclas_BAND(1:3,i,replica_number)*0.52
-               else
-		  write(unitnumber,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
-               end if
-	     end do
-
-           end do
-
-          do replica_number = 1, NEB_Nimages
-            unitnumber=replica_number+500
-            close(unitnumber)
-          end do
-
-	call bandmove(istep, relaxd) 
+	call NEB_move_system(istep, relaxd) 
 !aca luego hay q recalcular posicionesde link atoms para cada imagen
       end if
 
@@ -1053,6 +1052,7 @@ C Write atomic forces
  10   continue
 
 
+!Write optimiced structure(s) and energy(es)
 	if (idyn.eq.1) then
 	   open(unit=988,file="bandEnergies.dat")
 	   open(unit=989,file="bandtraj.xyz")
