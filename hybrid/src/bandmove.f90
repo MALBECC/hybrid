@@ -1,5 +1,6 @@
-	SUBROUTINE bandmove(istep, relaxd)
-!Steepest descend method for nudged elastic band.
+	SUBROUTINE NEB_move_system(istep, relaxd)
+!Nudged elastic band method
+!movement methods avalables are: Steepest descend and quick-min using velocity verlet.
 !N. Foglia 03/2018
        use scarlett, only: natot, NEB_Nimages, masst, NEB_firstimage, NEB_lastimage, rclas_BAND, vclas_BAND, fclas_BAND, aclas_BAND_old, Energy_band,NEB_move_method, NEB_spring_constant, ftol
 
@@ -14,7 +15,7 @@
 	logical, intent(INOUT) :: relaxd
 	INTEGER :: replica_number
 	INTEGER :: MAX_FORCE_REPLICA, MAX_FORCE_ATOM
-	DOUBLE PRECISION ::  MAXFmod_total
+	DOUBLE PRECISION ::  MAXFmod_total, NEB_Ekin
 	DOUBLE PRECISION, save :: MAXFmod_total_old
 	DOUBLE PRECISION, save :: SZstep_base
 	logical :: NEB_freeze
@@ -41,56 +42,28 @@
 	do replica_number=NEB_firstimage+1, NEB_lastimage-1
 	  call calculate_tg(2,replica_number,tang_vec) !calculate tangent direccion 
 	  call remove_parallel(replica_number,tang_vec) !remove force in tangent direction
-	  call check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
+	  call NEB_check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
 	  call calculate_spring_force(2, replica_number, tang_vec, F_spring) !Spring force
 
 	  fclas_BAND(1:3, 1:natot,replica_number)=fclas_BAND(1:3, 1:natot,replica_number)  &
-          + NEB_spring_constant*F_spring(1:3,1:natot)
-
+	  + NEB_spring_constant*F_spring(1:3,1:natot) !New force
 	end do
 
-!mueve
-	call NEB_movement_algorithm(NEB_move_method,istep, SZstep_base, MAXFmod_total)
 
-
-        if (istep.eq.0) MAXFmod_total_old=MAXFmod_total
-	if (MAXFmod_total .gt. MAXFmod_total_old) SZstep_base=SZstep_base*0.85d0
-	MAXFmod_total_old=MAXFmod_total
-
-
-	if (relaxd) then
-	  if (NEB_firstimage.eq.1 .and. NEB_lastimage.eq.NEB_Nimages) then
-	    write(*,*) "system converged"
-	  else
-	    NEB_firstimage=1
-	    NEB_lastimage=NEB_Nimages
-	    relaxd=.false.
-	    write(*,*) "system converged on frozen band checking full band"
-	  end if
-	else
+	if (.not. relaxd) then
+	  call NEB_movement_algorithm(NEB_move_method,istep, SZstep_base, MAXFmod_total) !move systems
+	  if (istep.eq.0) MAXFmod_total_old=MAXFmod_total
+	  if (MAXFmod_total .gt. MAXFmod_total_old) SZstep_base=SZstep_base*0.85d0
+	  MAXFmod_total_old=MAXFmod_total
 	  write(*,*) "system NOT converged"
-
-
-	  if (NEB_move_method .eq.1) then
-!freeze converged band
-	    NEB_freeze=.true.
-	    replica_number=0
-	    do while (replica_number .le. NEB_Nimages .and. NEB_freeze)
-	      replica_number=replica_number+1
-	      NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
-	    end do
-	    NEB_firstimage=replica_number-1
-
-            NEB_freeze=.true.
-            replica_number=NEB_Nimages+1
-            do while (replica_number .ge. 1 .and. NEB_freeze)
-              replica_number=replica_number-1
-              NEB_freeze=NEB_freeze.and.NEB_converged_image(replica_number)
-            end do
-	    NEB_lastimage=replica_number+1
-	    write(*,*) "freezing images 1 -", NEB_firstimage, "and ", NEB_lastimage," - ", NEB_Nimages
-	  end if
+	else
+	  write(*,*) "system converged"
 	end if
+	
+	if (NEB_move_method .eq. 2) THEN
+	  CALL NEB_calculate_T(NEB_Ekin)
+	  WRITE(*,*) "TOTAL K ", NEB_Ekin, "AVERAGE K", NEB_Ekin/(dble(NEB_Nimages-2))
+	END IF
 
 	write(*,*) "max force ", sqrt(MAXFmod_total), "on atom ", MAX_FORCE_ATOM,  &
         "in replica ", MAX_FORCE_REPLICA, "conv criteria", ftol
@@ -248,7 +221,7 @@
           "stepsize_base", SZstep_base
 	  rclas_BAND(1:3,1:natot,1:NEB_Nimages)=rclas_BAND(1:3,1:natot,1:NEB_Nimages)+SZstep*fclas_BAND(1:3,1:natot,1:NEB_Nimages)
 
-	elseif (method.eq.2) then !velocity verlet
+	elseif (method.eq.2) then !quick-min using velocity verlet
 
 	  do i=1, natot
 	    aclas_BAND(1:3, i, 1:NEB_Nimages) = fclas_BAND(1:3, i, 1:NEB_Nimages)/masst(i)
@@ -281,13 +254,14 @@
 
 	    end if
 
-!foto 1 y ultima estan congeladas
+	!freezing 1st and last images 
 	    vclas_BAND(1:3, 1:natot,1)=0.d0
 	    vclas_BAND(1:3, 1:natot,NEB_Nimages)=0.d0
             aclas_BAND(1:3, 1:natot,1)=0.d0
             aclas_BAND(1:3, 1:natot,NEB_Nimages)=0.d0
-	    
-	    rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
+
+	!move images
+    	    rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
 	    aclas_BAND_old=aclas_BAND
 
 	else
@@ -296,7 +270,7 @@
 	END SUBROUTINE NEB_movement_algorithm
 
 
-	SUBROUTINE check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
+	SUBROUTINE NEB_check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
 	use scarlett, only: natot, fclas_BAND, ftol, NEB_Nimages
 	implicit none
 	integer :: i !auxiliar
@@ -324,4 +298,25 @@
 
 	if (NEB_maxFimage.gt.ftol**2) NEB_converged_image(replica_number)=.false.
 	return
-	END SUBROUTINE check_convergence
+	END SUBROUTINE NEB_check_convergence
+
+
+	SUBROUTINE NEB_calculate_T(NEB_Ekin)
+!calculate kinectic energy of band
+	use scarlett, only: natot, NEB_Nimages, vclas_BAND, masst
+	implicit none
+	double precision, intent(inout) :: NEB_Ekin
+	double precision :: vel2
+	integer :: replica_number, i, j
+	
+	NEB_Ekin=0.d0
+	do replica_number=1, NEB_Nimages
+	  do i=1, natot
+	    vel2=0.d0
+	    do j=1, 3
+	      vel2=vel2+vclas_BAND(j,i, replica_number)**2
+	    end do
+	    NEB_Ekin=NEB_Ekin+0.5d0*masst(i)*vel2
+	  end do
+	end do
+	END SUBROUTINE NEB_calculate_T

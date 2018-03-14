@@ -4,7 +4,8 @@
 	use precision, only: dp
 	implicit none
 
-
+! General Variables
+	integer, dimension(:), allocatable :: isa,iza !Chemical Specie Label, and atomic charge
 	real(dp) :: ftol !MAx force tol criteria (in Ry/Bohr)
 	double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
 	double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
@@ -12,8 +13,9 @@
 
 ! Solvent (MM) General variables
 	integer :: natot !total number of atoms
+	integer :: na_u !number of QM atoms
 	double precision, dimension(:), allocatable, save:: masst !atomic mass
-
+	double precision, dimension(:), allocatable, save:: pc !charge of MM atoms
 
 !NEB variables
 	integer :: NEB_Nimages !number of images in band methods
@@ -25,6 +27,9 @@
 	double precision, dimension(:,:,:), allocatable, save:: vclas_BAND!velocities of all atoms in BAND method
 	double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
 	double precision, dimension(:), allocatable :: Energy_BAND !Energy of each image
+
+! Conversion factors
+	real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
 
 
 ! Others that need check

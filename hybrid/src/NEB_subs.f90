@@ -77,4 +77,64 @@
 	  end do
 	end if
 	return
-        end subroutine NEB_make_initial_band
+	end subroutine NEB_make_initial_band
+
+
+
+	subroutine NEB_save_traj_energy()
+	use scarlett, only: natot, na_u, iza, pc, NEB_Nimages, rclas_BAND, Energy_band, Ang
+	implicit none
+	integer :: replica_number, i
+	integer :: unitnumber
+	character*13 :: fname
+	
+	!save energy
+	do replica_number = 1, NEB_Nimages
+	  write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
+	end do
+	  write(*,*)"Energy-band"
+	
+	!open files
+	do replica_number = 1, NEB_Nimages
+	  unitnumber=replica_number+500
+	  if (replica_number.lt. 10) then
+	    write(fname,"(A7,I1,A4)") "Replica",replica_number,".xyz"
+	  elseif (replica_number.ge. 10) then
+	    write(fname,"(A7,I2,A4)") "Replica",replica_number,".xyz"
+	  end if
+	  open(unit=unitnumber,file=fname, access='APPEND')
+	end do
+	
+
+	!write .xyz
+	do replica_number = 1, NEB_Nimages
+	  unitnumber=replica_number+500
+	  write(unitnumber,*) natot
+	  write(unitnumber,*)
+	
+	  do i=1, natot
+	    if (i.le.na_u) then
+	      write(unitnumber,345) iza(i), rclas_BAND(1:3,i,replica_number)/Ang
+	    else
+	      write(unitnumber,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)/Ang
+	    end if
+	  end do
+	end do
+	
+	!close files
+	do replica_number = 1, NEB_Nimages
+	  unitnumber=replica_number+500
+	  close(unitnumber)
+	end do
+ 345  format(2x, I2,    2x, 3(f10.6,2x))
+ 346  format(2x, f10.6, 2x, 3(f10.6,2x))
+	end subroutine NEB_save_traj_energy
+
+
+
+
+
+
+
+
+
