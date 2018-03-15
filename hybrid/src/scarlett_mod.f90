@@ -28,8 +28,10 @@
 	double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
 	double precision, dimension(:), allocatable :: Energy_BAND !Energy of each image
 	integer :: NEB_Ndescend !number of consecutive steps in which F·v >= 0
-	double precision :: time_steep_max
-	double precision :: NEB_alpha
+	double precision :: time_steep_max !max value of timesteep in FIRE algorithm
+	double precision :: NEB_alpha !alpha value in FIRE algorithm
+	double precision :: NEB_steep_size !steep size in steepest descend algorithm in NEB
+	double precision :: NEB_MAXFmod !Max force in NEB optimizarion
 ! Conversion factors
 	real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
 

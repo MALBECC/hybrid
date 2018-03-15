@@ -975,7 +975,7 @@ C Write atomic forces
 
 
       elseif (idyn.eq.1) then !Save forces and energy for a NEB optimization
-        fclas_BAND(1:3,1:na_u,replica_number)=cfdummy(1:3,1:na_u)
+        fclas_BAND(1:3,1:natot,replica_number)=cfdummy(1:3,1:natot)
         Energy_band(replica_number)=Etots/eV
       endif
 
@@ -1025,7 +1025,7 @@ C Write atomic forces
 !            close(unitnumber)
 !          end do
 
-	call NEB_move_system(istep, relaxd) 
+	call NEB_steep(istep, relaxd) 
 !aca luego hay q recalcular posicionesde link atoms para cada imagen
       end if
 
