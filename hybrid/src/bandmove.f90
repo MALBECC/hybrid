@@ -40,11 +40,10 @@
 
 
 	do replica_number=NEB_firstimage+1, NEB_lastimage-1
-	  call calculate_tg(2,replica_number,tang_vec) !calculate tangent direccion 
-	  call remove_parallel(replica_number,tang_vec) !remove force in tangent direction
+	  call NEB_calculate_tg(2,replica_number,tang_vec) !calculate tangent direccion 
+	  call NEB_remove_parallel(replica_number,tang_vec) !remove force in tangent direction
 	  call NEB_check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
 	  call calculate_spring_force(2, replica_number, tang_vec, F_spring) !Spring force
-
 	  fclas_BAND(1:3, 1:natot,replica_number)=fclas_BAND(1:3, 1:natot,replica_number)  &
 	  + NEB_spring_constant*F_spring(1:3,1:natot) !New force
 	end do
@@ -60,23 +59,21 @@
 	  write(*,*) "system converged"
 	end if
 	
-	if (NEB_move_method .eq. 2) THEN
+	if (NEB_move_method .eq. 1) THEN
+	  if (SZstep_base.lt.1d-5) then
+	    relaxd=.true.
+	    write(*,*) "max precision reached on atomic displacement"
+	  end if
+	else if (NEB_move_method .eq. 2) THEN
 	  CALL NEB_calculate_T(NEB_Ekin)
 	  WRITE(*,*) "TOTAL K ", NEB_Ekin, "AVERAGE K", NEB_Ekin/(dble(NEB_Nimages-2))
 	END IF
-
 	write(*,*) "max force ", sqrt(MAXFmod_total), "on atom ", MAX_FORCE_ATOM,  &
         "in replica ", MAX_FORCE_REPLICA, "conv criteria", ftol
-
-	if (SZstep_base.lt.1d-5) then
-	  relaxd=.true.
-	  write(*,*) "max precision reached on atomic displacement"
-	end if
-
-	END SUBROUTINE bandmove
+	END SUBROUTINE NEB_move_system
 
 
-	SUBROUTINE calculate_tg(method,replica_number,tang_vec)
+	SUBROUTINE NEB_calculate_tg(method,replica_number,tang_vec)
 
 	use scarlett, only: NEB_Nimages, natot, rclas_BAND, Energy_band
 	IMPLICIT NONE
@@ -85,7 +82,6 @@
 	DOUBLE PRECISION, DIMENSION(3,natot) :: tang_vecA, tang_vecB
 	DOUBLE PRECISION :: NORMVEC, NORMVECA, NORMVECB
 	DOUBLE PRECISION :: E0, E1, E2, Vmax, Vmin
-
 	integer :: i
 
 	IF (method.eq.0) then
@@ -125,7 +121,7 @@
 	    end if
 	  end do
 	ELSE
-	  STOP "Wrong method in calculate_tg"
+	  STOP "Wrong method in NEB_calculate_tg"
 	END IF
 
 
@@ -142,9 +138,9 @@
         end do
 
 	RETURN
-	END SUBROUTINE calculate_tg
+	END SUBROUTINE NEB_calculate_tg
 
-	SUBROUTINE remove_parallel(replica_number,tang_vec) 
+	SUBROUTINE NEB_remove_parallel(replica_number,tang_vec) 
 	use scarlett, only: NEB_Nimages, natot, fclas_BAND
 	IMPLICIT NONE
         DOUBLE PRECISION, DIMENSION(3,natot), INTENT(IN) :: tang_vec
@@ -160,7 +156,7 @@
         end do
 
 	RETURN
-	END SUBROUTINE remove_parallel
+	END SUBROUTINE NEB_remove_parallel
 
 
 	SUBROUTINE calculate_spring_force(methodSF, replica_number, tang_vec, F_spring)
@@ -196,7 +192,7 @@
 
 
 	SUBROUTINE NEB_movement_algorithm(method,istep, SZstep_base, MAXFmod_total)
-	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst
+	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst, NEB_Ndescend, time_steep, time_steep_max, NEB_alpha
 	IMPLICIT NONE
 	integer :: method
 	DOUBLE PRECISION, DIMENSION(3,natot,NEB_Nimages) :: v12clas_BAND
@@ -207,10 +203,9 @@
 	DOUBLE PRECISION :: SZstep
 	integer, intent(in) :: istep
 	integer :: i, j, replica_number
-	DOUBLE PRECISION :: time_steep
-	DOUBLE PRECISION :: Fmod, velocity_proyected
+	DOUBLE PRECISION :: Fmod, velocity_proyected, velocity_mod
 
-	time_steep=1.d-1
+	if (istep .eq. 1 ) time_steep=1.d-1 !cambiar esto luego, por ahora valor arbitrario
 	Fmod=0.d0
 
 	if (method.eq.1) then !steepest descend
@@ -249,7 +244,7 @@
 	      if (velocity_proyected .gt. 0.d0) then
 	        vclas_BAND=velocity_proyected*fclas_BAND/Fmod
 	      else
-	        vclas_BAND=0.3d0*velocity_proyected*fclas_BAND/Fmod
+	        vclas_BAND=0.3d0*velocity_proyected*fclas_BAND/Fmod !0.3 fue arbitrario. hay q liberarlo
 	      end if
 
 	    end if
@@ -263,7 +258,60 @@
 	!move images
     	    rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
 	    aclas_BAND_old=aclas_BAND
+	elseif (method.eq.3) then !FIRE, Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
+!duplico el anterior y luego mergeo
 
+          do i=1, natot
+            aclas_BAND(1:3, i, 1:NEB_Nimages) = fclas_BAND(1:3, i, 1:NEB_Nimages)/masst(i)
+            do j=1,3
+              do replica_number=1,NEB_Nimages
+                Fmod=Fmod + fclas_BAND(j, i, replica_number)**2
+              end do
+            end do
+          end do
+          Fmod=sqrt(Fmod)
+
+	    if (istep .ne. 1) then
+	      vclas_BAND=vclas_BAND+0.5d0*(aclas_BAND+aclas_BAND_old)*time_steep
+	      velocity_proyected=0.d0 !P in paper
+	      velocity_mod=0.d0
+	
+	      do i=1, natot
+		do j=1,3
+		  do replica_number=1,NEB_Nimages
+		    velocity_proyected=velocity_proyected+vclas_BAND(j,i,replica_number) * fclas_BAND(j,i,replica_number)
+		    velocity_mod=velocity_mod+vclas_BAND(j,i,replica_number)*vclas_BAND(j,i,replica_number)
+		  end do
+		end do
+	      end do
+	      velocity_mod=sqrt(velocity_mod)
+	
+	       if (velocity_proyected .gt. 0.d0) then
+	         NEB_Ndescend=NEB_Ndescend+1
+	         if (NEB_Ndescend .gt. 5) then
+	           time_steep=min(time_steep*1.1d0, time_steep_max) !checkear q esto este bien
+	           NEB_alpha=NEB_alpha*0.99d0
+	         end if
+	         vclas_BAND=(1.d0-NEB_alpha)*vclas_BAND+NEB_alpha*velocity_mod*1.d0/Fmod*fclas_BAND
+	       else
+	         NEB_Ndescend=0
+	         NEB_alpha=0.1d0
+	         time_steep=time_steep*0.5
+	         vclas_BAND=0.d0
+	       end if
+	    else !initialice variables in 1st steep
+	      NEB_Ndescend=0
+	      time_steep_max=10.d0*time_steep
+	      NEB_alpha=0.1d0
+	    end if
+	!freezing 1st and last images 
+	    vclas_BAND(1:3, 1:natot,1)=0.d0
+	    vclas_BAND(1:3, 1:natot,NEB_Nimages)=0.d0
+	    aclas_BAND(1:3, 1:natot,1)=0.d0
+	    aclas_BAND(1:3, 1:natot,NEB_Nimages)=0.d0
+	!move images
+	    rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
+	    aclas_BAND_old=aclas_BAND
 	else
 	  STOP "Wrong method in NEB_movement_algorithm"
 	end if

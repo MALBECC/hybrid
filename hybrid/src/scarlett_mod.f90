@@ -9,7 +9,7 @@
 	real(dp) :: ftol !MAx force tol criteria (in Ry/Bohr)
 	double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
 	double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
-
+	double precision :: time_steep
 
 ! Solvent (MM) General variables
 	integer :: natot !total number of atoms
@@ -27,7 +27,9 @@
 	double precision, dimension(:,:,:), allocatable, save:: vclas_BAND!velocities of all atoms in BAND method
 	double precision, dimension(:,:,:), allocatable, save:: fclas_BAND!Force all atoms in BAND method
 	double precision, dimension(:), allocatable :: Energy_BAND !Energy of each image
-
+	integer :: NEB_Ndescend !number of consecutive steps in which F·v >= 0
+	double precision :: time_steep_max
+	double precision :: NEB_alpha
 ! Conversion factors
 	real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
 
