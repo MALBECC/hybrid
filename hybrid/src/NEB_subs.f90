@@ -2,7 +2,9 @@
 !Nudged elastic band method
 !movement methods avalables are: Steepest descend and quick-min and FIRE using velocity verlet 
 !N. Foglia 03/2018
-	use scarlett, only: natot, NEB_Nimages, masst, NEB_firstimage, NEB_lastimage, rclas_BAND, vclas_BAND, fclas_BAND, aclas_BAND_old, Energy_band,NEB_move_method, NEB_spring_constant, ftol, NEB_steep_size, NEB_MAXFmod
+	use scarlett, only: natot, NEB_Nimages, masst, NEB_firstimage, NEB_lastimage, rclas_BAND, &
+        vclas_BAND, fclas_BAND, aclas_BAND_old, Energy_band,NEB_move_method, NEB_spring_constant, &
+        ftol, NEB_steep_size, NEB_MAXFmod
 	implicit none
 	integer, intent(in) :: istep
 	double precision, dimension(3,natot) :: F_spring
@@ -188,7 +190,8 @@
 
 
 	SUBROUTINE NEB_movement_algorithm(method,istep, MAXFmod_total)
-	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst, NEB_Ndescend, time_steep, time_steep_max, NEB_alpha, NEB_steep_size
+	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst,  &
+	NEB_Ndescend, time_steep, time_steep_max, NEB_alpha, NEB_steep_size
 	implicit none
 	integer :: method
 	double precision, dimension(3,natot,NEB_Nimages) :: v12clas_BAND
