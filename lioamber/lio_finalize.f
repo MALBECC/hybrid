@@ -8,20 +8,20 @@
        use ECP_mod, only : ecpmode
        implicit none
  	logical :: test
-       if (idip.eq.1) then
-        write(69,8703)
+       if ((idip.eq.1) .or. (dipole) )then
+        if (style) write(69,8703)
         CLOSE(69)
        end if
 
 !--------------------------------------------------------------------!
-       if (allocated(Smat))    deallocate(Smat)
-       if (allocated(RealRho)) deallocate(RealRho)
-       if (allocated(sqsm))    deallocate(sqsm)
-       if (allocated(Eorbs))   deallocate(Eorbs)
+       if (allocated(Smat))      deallocate(Smat)
+       if (allocated(RealRho))   deallocate(RealRho)
+       if (allocated(sqsm))      deallocate(sqsm)
+       if (allocated(Eorbs))     deallocate(Eorbs)
+       if (allocated(MO_coef_at))   deallocate(MO_coef_at)
+       if (allocated(MO_coef_at_b)) deallocate(MO_coef_at_b)
 
 !--------------------------------------------------------------------!
-
-
        deallocate(r,v,rqm, Em, Rm)
        deallocate(pc, Iz, cx, ax, cd, ad, c, a)
       deallocate(Nuc,ncont,Nucx,ncontx,Nucd
@@ -30,6 +30,7 @@
        deallocate(natomc,nnps,nnpp,nnpd,nns)
        deallocate(nnd,nnp,atmin,jatc,d)
 
+       call g2g_timer_summary()
        call g2g_deinit()
 
        call aint_deinit()

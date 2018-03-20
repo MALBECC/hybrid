@@ -4,10 +4,10 @@
        implicit real*8 (a-h,o-z)
 
       INCLUDE 'param.f'
-      logical verbose 
+      logical verbose
       integer M,Md,natom,ntatom,NMAX,NCO,NUNP,igrid,igrid2
      >  ,Iexch,nsol,npas,npasw,idip,watermod,noconverge,
-     > converge,ndiis,nang,timedep,ntdstep,propagator,NBCH 
+     > converge,ndiis,nang,propagator,NBCH
       integer restart_freq, energy_freq
       real*8 GOLD, TOLD, qmmmcut, dgtrig
 !      parameter (nng=100)
@@ -20,17 +20,16 @@
      > solv2
       character*4 ctype
       logical exists,MEMO,predcoef
-      logical done(ntq),used,NORM,OPEN,ATRHO,DIRECT,VCINP,SHFT,DIIS
+      logical done(ntq),used,NORM,OPEN,DIRECT,VCINP,SHFT,DIIS
       logical done_fit(ntq)
-      logical TMP1,TMP2,dens,EXTR,SVD,field1
+      logical dens,EXTR,SVD
 !write1
       logical Coul,GRAD,BSSE,integ,SVD1,sol,tipe
 !Prop,GRAD,BSSE,integ,SVD1,sol,tipe
       logical exter,exter1,resp1,primera,writexyz,intsoldouble
       logical OPEN1
-      logical dens1,integ1,sol1,free,free1, field, extern
+      logical dens1,integ1,sol1,free,free1
 
-      logical tdrestart, writedens
       logical writeforces
 
       logical cubegen_only,cube_dens,cube_orb,cube_elec, cube_sqrt_orb
@@ -38,12 +37,10 @@
       character*20 cube_dens_file,cube_orb_file,cube_elec_file
 
 
-      dimension OCC(40),oc2(400),ATCOEF(100*ng0),ighost(ntq),
-     > ighost1(ntq)
+      dimension ighost(ntq), ighost1(ntq)
       real*8 e_(50,3),wang(50),e_2(116,3),wang2(116),e3(194,3), ! intg1 e intg2
      > wang3(194)                                               !
       integer Nr(0:54),Nr2(0:54)
-      real*8 Fx, Fy, Fz, epsilon, a0,tdstep
 
       real*8, dimension (:,:), ALLOCATABLE :: r,v,rqm,d
       real*8, dimension (:), ALLOCATABLE ::  Em, Rm, pc
@@ -58,7 +55,7 @@ c ncf, lt,at,ct parameters for atomic basis sets
       dimension Num(0:3),nlb(ng),nld(ngd),nshelld(0:4)
        integer iconst1,idip1,ipop1,ispin1,
      > icharge1,Nsol1,natsol1,Ll(3)
-      
+
        real*8, dimension (:), ALLOCATABLE :: af
        real*8, dimension (:,:), ALLOCATABLE :: c,a,cx,ax,cd,ad,B
        integer, dimension (:), ALLOCATABLE :: Nuc,ncont,Nucx,ncontx,Nucd
@@ -66,11 +63,12 @@ c ncf, lt,at,ct parameters for atomic basis sets
         integer, dimension (:), ALLOCATABLE :: indexii, indexiid
 
 c
-       
+
        real*8, dimension (:), ALLOCATABLE :: RMM,RMM1,RMM2,RMM3
+       real*8, dimension (:), ALLOCATABLE :: RMM_save ! TODO: delete after use (FFR)
        real*8, dimension (:), ALLOCATABLE :: rhoalpha,rhobeta
        real*8, dimension (:,:), ALLOCATABLE :: X, XX
-       real*8, dimension (:), ALLOCATABLE :: old1,old2,old3 
+       real*8, dimension (:), ALLOCATABLE :: old1,old2,old3
 
 c
       parameter(pi32=5.56832799683170698D0,pi=3.14159265358979312D0,
@@ -92,7 +90,7 @@ c
       Data Num /1,3,6,10/
       dimension jatom(2,100),coef(100),dist(100,3),distt(100)
       integer ndis
-      real*8 kjar,xini,xfinal   
+      real*8 kjar,xini,xfinal
 
       integer, dimension(:), ALLOCATABLE :: natomc,nnps,nnpp,nnpd,nns
       integer, dimension(:), ALLOCATABLE :: nnd,nnp
@@ -136,12 +134,12 @@ c      parameter rmintsol=16.0D0
       integer :: nng, max_func
       integer, allocatable, dimension(:) :: ncf, lt
       real*8, allocatable, dimension(:) :: at, ct
-     
+
 !      dimension ncf(nng),lt(nng)
 !      dimension at(nng),ct(nng)
 
 ! GPU OPTIONS
-      logical :: assign_all_functions, remove_zero_weights, 
+      logical :: assign_all_functions, remove_zero_weights,
      >              energy_all_iterations
       real*8  :: free_global_memory, sphere_radius, little_cube_size
       integer :: min_points_per_cube, max_function_exponent
@@ -167,6 +165,7 @@ c      parameter rmintsol=16.0D0
       real*8, dimension (:), ALLOCATABLE :: Fock_Hcore !contains core-Hamiltonian matrix, reemplaze RMM(M11)
       real*8, dimension (:), ALLOCATABLE :: Fock_Overlap ! reemplaze RMM(M5)
       real*8, dimension (:), ALLOCATABLE :: P_density ! reemplaze RMM(M1)
+      real*8, dimension (:), ALLOCATABLE :: MO_coef_at, MO_coef_at_b
 !Geometry optimizations
       logical :: steep !enables steepest decend algorithm
       real*8 :: Force_cut, Energy_cut, minimzation_steep !energy and force convergence crit and initial steep
@@ -178,4 +177,3 @@ c      parameter rmintsol=16.0D0
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
       end module
-
