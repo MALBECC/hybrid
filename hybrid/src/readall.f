@@ -83,7 +83,7 @@ c Assignates atomic number (iza)
        enddo
 
 c Calculates the total number of electrons 
-      charnet_def=0.0
+      charnet_def=0.0d0
       charnet=fdf_double('NetCharge',charnet_def)
       charge=int(charnet)
       nelec=0
@@ -162,7 +162,7 @@ C  Internal variables .................................................
      .  leqi, qnch, qnch_default
 
 C Kind of dynamics
-      dyntype_default='verlet'
+      dyntype_default='Jolie'
         dyntype = fdf_string('MD.TypeOfRun',dyntype_default)
 
       if (leqi(dyntype,'cg')) then
@@ -174,7 +174,7 @@ C Kind of dynamics
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
      .     usesavecg
-      elseif (leqi(dyntype,'band')) then
+      elseif (leqi(dyntype,'neb')) then
         idyn = 1
           write(6,'(a,a)')
      .     'read: Dynamics option                  = ',
@@ -189,7 +189,7 @@ C Kind of dynamics
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:      - CG - BAND                      '
+        write(6,'(a)') 'read:      - CG - NEB                      '
         write(6,102)
         call die
       endif 

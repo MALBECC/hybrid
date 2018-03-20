@@ -1,4 +1,6 @@
-      subroutine reinit(slabel, sname) 
+      subroutine reinit(slabel)
+!, sname) 
+!despues de probar eliminar sname
 
 C Subroutine to initialise the reading of the data for SIESTA 
 C
@@ -57,7 +59,7 @@ C
         inquire(file='INPUT_DEBUG',exist=debug_input)
         if (debug_input) then
            write(6,'(a)') 'WARNING: ' //
-     $          'Siesta is reading its input from file INPUT_DEBUG'
+     $          'Hybrid is reading its input from file INPUT_DEBUG'
            
            call io_assign(lun)
            filein = 'INPUT_DEBUG'

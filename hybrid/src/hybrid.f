@@ -62,7 +62,6 @@
       real(dp) :: tp !Target pressure
       real(dp) :: volume !Cell volume
       real(dp), dimension(:,:), allocatable :: xa, fa !position and forces of QM atoms
-!      integer, dimension(:), allocatable :: isa,iza !Chemical Specie Label, and atomic charge
       character, dimension(:), allocatable :: atsym*2 !atomic symbol
       logical :: usesavexv, foundxv !control for coordinates restart
       logical :: usesavecg !control for restart CG
@@ -70,12 +69,12 @@
       logical :: relaxd ! True when CG converged
       logical :: qm, mm ! True when system have a subsystem QM,MM
       character :: slabel*20 ! system label, name of outputs
-      character :: sname*150 !name of system
+!      character :: sname*150 !name of system
       character :: paste*25
       external :: paste
       logical :: actualiz!MM interaction list control
 ! band method
-      integer :: unitnumber
+!      integer :: unitnumber
 !      character*13 :: fname
 
 ! Solvent (MM) General variables
@@ -203,12 +202,6 @@
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
 
-!band optimization variables
-!      double precision, dimension(:,:), allocatable, save:: rclas !Position of all atoms
-!      logical :: band_xv_found
-!      integer :: middle_point 
-
-!      double precision, dimension(:,:), allocatable, save:: vat !velocities of all atoms, not used for CG
 
       double precision, dimension(:,:), allocatable, save:: fce_amber !Total MM force
       double precision, dimension(:,:), allocatable, save:: fdummy !QM+MM+QMMM force 
@@ -379,7 +372,7 @@
       kcal   = 1.602177E-19_dp * 6.02214E23_dp / 4184.0_dp
 
 ! Initialise read 
-      call reinit(slabel, sname)
+      call reinit(slabel) !, sname)
 
 ! Read the number of QM atoms
       na_u=fdf_integer('NumberOfAtoms',0)
@@ -664,7 +657,7 @@
 !start loot over replicas
 	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
 	  if (idyn .eq.1) then
-	    rclas(1:3,1:na_u)=rclas_BAND(1:3,1:na_u,replica_number)
+	    rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
 	  end if
 
 
@@ -987,44 +980,7 @@ C Write atomic forces
 
 
       if (idyn .eq. 1 ) then !Move atoms in a NEB scheme
-!          write(*,*) "entre a band move"
-	  call NEB_save_traj_energy()
-!          do replica_number = 1, NEB_Nimages
-!	write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
-!          end do
-
-!trayectorias, mejorar luego esto
-!          do replica_number = 1, NEB_Nimages
-!            unitnumber=replica_number+500
-!	    if (replica_number.lt. 10)
-!     .      write(fname,"(A7,I1,A4)") "Replica",replica_number,".xyz"
-!
-!            if (replica_number.ge. 10)
-!     .      write(fname,"(A7,I2,A4)") "Replica",replica_number,".xyz"
-!
-!            open(unit=unitnumber,file=fname, access='APPEND')
-!          end do
-
-!          do replica_number = 1, NEB_Nimages
-!            unitnumber=replica_number+500
-!             write(unitnumber,*) na_u
-!	     write(unitnumber,*)
-!
-!	     do i=1, natot
-!		if (i.le.na_u) then
-!		  write(unitnumber,345) iza(i), rclas_BAND(1:3,i,replica_number)*0.52
-!               else
-!		  write(unitnumber,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
-!               end if
-!	     end do
-!
-!           end do
-!
-!          do replica_number = 1, NEB_Nimages
-!            unitnumber=replica_number+500
-!            close(unitnumber)
-!          end do
-
+	call NEB_save_traj_energy()
 	call NEB_steep(istep, relaxd) 
 !aca luego hay q recalcular posicionesde link atoms para cada imagen
       end if

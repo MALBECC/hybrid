@@ -210,7 +210,10 @@
 	  write(*,*) "maxforce", MAXFmod, "stepsize", SZstep, &
 	  "stepsize_base", NEB_steep_size
 	  rclas_BAND(1:3,1:natot,1:NEB_Nimages)=rclas_BAND(1:3,1:natot,1:NEB_Nimages)+SZstep*fclas_BAND(1:3,1:natot,1:NEB_Nimages)
+	
+	
 	elseif (method.eq.2) then !quick-min using velocity verlet
+	
 	  do i=1, natot
 	    aclas_BAND(1:3, i, 1:NEB_Nimages) = fclas_BAND(1:3, i, 1:NEB_Nimages)/masst(i)
 	    do j=1,3
@@ -247,8 +250,10 @@
 	!move images
     	  rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
 	  aclas_BAND_old=aclas_BAND
+	
+	
 	elseif (method.eq.3) then !FIRE, Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
-!duplico el anterior y luego mergeo
+	
 	  do i=1, natot
 	    aclas_BAND(1:3, i, 1:NEB_Nimages) = fclas_BAND(1:3, i, 1:NEB_Nimages)/masst(i)
 	    do j=1,3
@@ -300,7 +305,10 @@
 	!move images
 	  rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
 	  aclas_BAND_old=aclas_BAND
+	
+	
 	else
+	
 	  STOP "Wrong method in NEB_movement_algorithm"
 	end if
 	END SUBROUTINE NEB_movement_algorithm
@@ -309,7 +317,7 @@
 	SUBROUTINE NEB_check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
 	use scarlett, only: natot, fclas_BAND, ftol, NEB_Nimages
 	implicit none
-	integer :: i !auxiliar
+	integer :: i,j !auxiliar
 	integer, intent(in) :: replica_number
 	integer, intent(inout) :: MAX_FORCE_REPLICA, MAX_FORCE_ATOM
 	logical, intent(inout) :: relaxd
@@ -320,16 +328,19 @@
 	NEB_maxFimage=0.d0
 	
 	do i=1, natot
-	  Fmod2=fclas_BAND(1,i,replica_number)**2+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
+	  do j=1,3
+	    Fmod2=fclas_BAND(j,i,replica_number)**2
+!a+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
 	
-	  if (Fmod2 .gt. NEB_maxFimage) NEB_maxFimage=Fmod2
-	  relaxd=relaxd .and. (Fmod2 .lt. ftol**2)
+	    if (Fmod2 .gt. NEB_maxFimage) NEB_maxFimage=Fmod2
+	    relaxd=relaxd .and. (Fmod2 .lt. ftol**2)
 	
-	  if (Fmod2 .gt. MAXFmod_total) then
-	    MAXFmod_total=Fmod2
-	    MAX_FORCE_REPLICA=replica_number
-	    MAX_FORCE_ATOM=i
-	  end if
+	    if (Fmod2 .gt. MAXFmod_total) then
+	      MAXFmod_total=Fmod2
+	      MAX_FORCE_REPLICA=replica_number
+	      MAX_FORCE_ATOM=i
+	    end if
+	  end do
 	end do
 	
 	if (NEB_maxFimage.gt.ftol**2) NEB_converged_image(replica_number)=.false.
