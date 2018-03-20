@@ -71,7 +71,7 @@ extern "C" void g2g_parameter_init_(
     double* r, double* Rm, const unsigned int* Iz, const unsigned int* Nr,
     const unsigned int* Nr2, unsigned int* Nuc, const unsigned int& M,
     unsigned int* ncont, const unsigned int* nshell, double* c, double* a,
-    double* RMM, const unsigned int& M18, const unsigned int& M5,
+    double* RMM, const unsigned int& M5,
     const unsigned int& M3, double* rhoalpha, double* rhobeta,
     const unsigned int& nco, bool& OPEN, const unsigned int& nunp,
     const unsigned int& nopt, const unsigned int& Iexch, double* e, double* e2,
@@ -95,7 +95,9 @@ extern "C" void g2g_parameter_init_(
 #ifdef _DEBUG
   // trap floating point exceptions on debug
   signal(SIGFPE, SIG_DFL);
-  feenableexcept(FE_INVALID);
+  //feenableexcept(FE_INVALID);
+  // This line interferes with Lapack routines on floating point error catching.
+  // Commented out until a better solution is found.
 #endif
 
   /* MO BASIS SET */

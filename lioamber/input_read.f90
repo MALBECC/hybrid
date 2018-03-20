@@ -11,12 +11,10 @@ subroutine read_options(inputFile, charge)
     use garcha_mod, only : natom, nsol, basis, output, fmulliken, fcoord, OPEN,&
                            NMAX, basis_set, fitting_set, int_basis, DIIS,      &
                            ndiis, GOLD, told, Etold, hybrid_converg, good_cut, &
-                           rmax, rmaxs, omit_bas, timedep, propagator, tdstep, &
-                           ntdstep, NBCH, Fx, Fy, Fz, field, tdrestart, exter, &
-                           verbose, writedens, VCINP, restart_freq, writexyz,  &
+                           rmax, rmaxs, omit_bas, propagator, NBCH, verbose,   &
+                           VCINP, restart_freq, writexyz, dgtrig, Iexch, integ,&
                            frestartin, frestart, predcoef, idip, intsoldouble, &
-                           dgtrig, Iexch, integ, DENS, IGRID, IGRID2, epsilon, &
-                           a0, cubegen_only, cube_res, cube_dens, cube_orb,    &
+                           cubegen_only, cube_res, cube_dens, cube_orb, DENS,  &
                            cube_sel, cube_orb_file, cube_dens_file, cube_elec, &
                            cube_elec_file, energy_freq, NUNP, style, allnml,   &
                            writeforces, cube_sqrt_orb, fukui, little_cube_size,&
@@ -26,17 +24,27 @@ subroutine read_options(inputFile, charge)
                            sphere_radius, dipole, lowdin, mulliken,            &
                            print_coeffs, number_restr, Dbug, steep, Force_cut, &
                            Energy_cut, minimzation_steep, n_min_steeps,        &
-                           lineal_search, n_points, timers, spinpop
-
-
+                           lineal_search, n_points, timers, IGRID, IGRID2
+    use field_data, only : field, a0, epsilon, Fx, Fy, Fz, field_iso_file,     &
+                           field_aniso_file, nfields_iso, nfields_aniso
+    use field_subs, only : read_fields
+    use td_data   , only : tdrestart, writedens, td_rst_freq, tdstep, ntdstep, &
+                           timedep
     use ECP_mod   , only : ecpmode, ecptypes, tipeECP, ZlistECP, verbose_ECP,  &
                            cutECP, local_nonlocal, ecp_debug, FOCK_ECP_read,   &
                            FOCK_ECP_write, ecp_full_range_int, Fulltimer_ECP,  &
                            cut2_0, cut3_0
 
 
-    use transport ,only  : transport_calc, generate_rho0, gate_field,          &
-                           save_charge_freq, driving_rate, Pop_Drive
+    use transport_data, only  : transport_calc, generate_rho0, gate_field,     &
+                                save_charge_freq, driving_rate, Pop_Drive
+
+    use dftb_data ,only: dftb_calc, MTB, alfaTB, betaTB, gammaTB, Vbias_TB,    &
+                         end_bTB, start_tdtb, end_tdtb, TBsave, TBload
+
+    use lionml_subs , only: lionml_Reads
+    use trans_Data, only: gaussian_convert
+
     implicit none
     character(len=20), intent(in)  :: inputFile
     integer          , intent(out) :: charge
@@ -51,10 +59,13 @@ subroutine read_options(inputFile, charge)
                    ! File Input/Output.
                    frestartin, style, allnml, frestart, fukui, dipole, lowdin, &
                    mulliken, writeforces, int_basis, fitting_set, basis_set,   &
-                   restart_freq, print_coeffs, spinpop,                        &
+                   restart_freq, print_coeffs,                                 &
                    ! DFT and TD-DFT Variables.
-                   timedep, tdstep, ntdstep, propagator, NBCH, field, epsilon, &
-                   a0, exter, Fx, Fy, Fz, tdrestart, writedens,                &
+                   timedep, tdstep, ntdstep, propagator, NBCH, tdrestart,      &
+                   writedens, td_rst_freq,                                     &
+                   ! Field Variables
+                   field, epsilon, a0, Fx, Fy, Fz, nfields_iso, nfields_aniso, &
+                   field_aniso_file, field_iso_file,                           &
                    ! Effective Core Potential Variables.
                    ecpmode, ecptypes, tipeECP, ZlistECP, cutECP, ecp_debug,    &
                    local_nonlocal, ecp_debug, ecp_full_range_int, verbose_ECP, &
@@ -79,17 +90,24 @@ subroutine read_options(inputFile, charge)
                    natom, nsol, charge,                                        &
                    ! Variables for Transport
                    transport_calc, generate_rho0, gate_field,                  &
-                   save_charge_freq, driving_rate, Pop_Drive
-
+                   save_charge_freq, driving_rate, Pop_Drive,                  &
+                   !Variables for DFTB
+                   dftb_calc, MTB, alfaTB, betaTB, gammaTB, Vbias_TB, end_bTB, &
+                   start_tdtb, end_tdtb, TBsave, TBload,                       &
+                   ! Variables for translation
+                   gaussian_convert
     inquire(file = inputFile, exist = fileExists)
     if(fileExists) then
         open(unit = 100, file = inputFile, iostat = ios)
         read(100, nml = lio, iostat = iErr)
         if(ierr.gt.0) stop 'Input error in LIO namelist.'
+        call lionml_Reads( 100 )
         close(unit = 100)
     else
         write(*,*) 'File ', adjustl(inputFile), ' not found. Using defaults.'
     endif
+
+    call read_fields()
 
     return
 end subroutine read_options
@@ -104,7 +122,7 @@ subroutine read_coords(inputCoord)
     use garcha_mod, only : natom, ntatom, nsol, iz, r, rqm, pc
 
     character(len=20), intent(in) :: inputCoord
-   
+
     integer :: ios
     logical :: fileExists
 
@@ -128,7 +146,6 @@ subroutine read_coords(inputCoord)
     enddo
     r  = r   / 0.529177D0
     rqm= rqm / 0.529177D0
- 
+
     return
 end subroutine read_coords
-
