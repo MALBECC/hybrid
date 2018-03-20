@@ -1,0 +1,77 @@
+SystemName     cut5            
+SystemLabel    cut5            
+CenterMolecule T    
+NumberOfAtoms         4
+NumberOfSpecies      2
+NetCharge 0.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.04 eV/Ang 
+NumberOfSolventAtoms      0
+
+
+%block ConstrainedOpt
+nconstr 1
+steps 99
+type 2
+kte 200
+inicoord 1.470 fincoord  7.000
+atoms 1 2
+%endblock ConstrainedOpt
+
+
+%block ChemicalSpeciesLabel   
+       1   8  O 
+       2   1  H 
+%endblock ChemicalSpeciesLabel
+ 
+AtomicCoordinatesFormat  Ang  
+%block AtomicCoordinatesAndAtomicSpecies
+   0.00000   0.00000   0.000000        1
+   0.00000   0.00000   1.480000        1
+   0.89567   0.00000  -0.316663        2
+  -0.44783   0.77567   1.796667        2
+%endblock AtomicCoordinatesAndAtomicSpecies
+ 
+%block SoluteAtomTypes   
+  OH  O1    AOX
+  OH  O2    AOX
+  HO  H1    AOX
+  HO  H2    AOX
+%endblock SoluteAtomTypes
+ 
+ 
+PAO.BasisType split       
+PAO.BasisSize       DZP   
+PAO.EnergyShift      25 meV
+PAO.SplitNorm       0.15  
+ 
+WriteMDXmol F             
+WriteMullikenPop 0        
+ 
+XC.functional       GGA   
+XC.authors          PBE   
+MeshCutoff         150.0 Ry
+ 
+SpinPolarized        T    
+MaxSCFIterations    80    
+DM.MixingWeight      0.1  
+DM.NumberPulay       3    
+DM.UseSaveDM   T          
+MD.USeSaveXV   T          
+MD.UseSaveCG   T          
+LongOutput    F           
+ 
+MD.TypeOfRun    CG        
+MD.NumCGsteps   500
+ 
+%block CutOffRadius       
+QM  0.2                   
+QMMM 100.0                 
+MM 80.0                    
+BLO 80.0                   
+%endblock CutOffRadius    
+ 
+ 
+%block SolventInput   
+%endblock SolventInput
