@@ -7,7 +7,7 @@
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
 	fclas_BAND, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
-	Ang, eV, kcal, na_u, qm, nesp
+	Ang, eV, kcal, na_u, qm, nesp, natoms_partial_freeze, coord_freeze
         implicit none
         character(len=*), intent(in) :: init_type
 !ire moviendo inicializaciones a este subrutina en el futuro
@@ -39,6 +39,14 @@
 	
 	  allocate(xa(3,na_u), fa(3,na_u), isa(na_u), iza(na_u), atsym(nesp))
 	
+	! Read number of partial freeze atoms
+	  natoms_partial_freeze = fdf_integer('NumberOfPartialFreeze',0)
+	  if ( natoms_partial_freeze .gt. 0 ) then
+	    allocate(coord_freeze(natoms_partial_freeze,3))
+	  end if
+	
+	  
+
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
