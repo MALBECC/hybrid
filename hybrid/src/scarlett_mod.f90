@@ -16,6 +16,8 @@
 	double precision, dimension(:,:), allocatable :: vat !velocities of all atoms, not used for CG
 	double precision :: time_steep
 	logical :: qm, mm ! True when system have a subsystem QM,MM
+	integer :: natoms_partial_freeze
+	integer, dimension(:,:) :: coord_freeze
 
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
