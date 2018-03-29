@@ -30,7 +30,7 @@
       use fdf
       use ionew, only: io_setup, IOnode    
       use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
-     . natot,na_u,qm, mm, 
+     . natot,na_u,qm, mm, atsym, nparm, 
      . xa, fa,
      . masst,isa, iza, pc, 
      . nac, atname, aaname, attype, qmattype, aanum, ng1, bondtype,
@@ -40,9 +40,15 @@
      . scalexat, scale, nonbondedxat, nonbonded, Em, Rm,
      . fce_amber, fdummy, cfdummy, ng1type, angetype, angmtype,
      . dihety,dihmty,impty, evaldihelog, evaldihmlog,
-     . rclas, vat, izs, 
-     . linkatom, numlink, linkat, linkqm, ,linkmm, linkmm2, parametro,
-     . linkqmtype, Elink, distl, pclinkmm, ,Emlink,
+     . atange, atangm,
+     . atdihe,atdihm,atimp,
+     . rclas, vat, izs, evaldihe,evaldihm, 
+     . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, parametro,
+     . linkqmtype, Elink, distl, pclinkmm, Emlink,
+!cutoff
+     . r_cut_list_QMMM,blocklist,blockqmmm,
+     . listqmmm,MM_freeze_list,
+!NEB
      . NEB_Nimages, 
      . NEB_firstimage, NEB_lastimage,  
      . aclas_BAND_old,
@@ -50,7 +56,11 @@
      . vclas_BAND, fclas_BAND, Energy_band,
      . ucell,
      . ftol,
-     . Ang, eV, kcal
+     . Ang, eV, kcal, 
+!Lio
+     . charge, spin
+
+
       implicit none
 ! General Variables
       integer :: replica_number !auxiliar
@@ -68,7 +78,7 @@
       real(dp) :: dxmax !Maximum atomic displacement in one CG step (Bohr)
       real(dp) :: tp !Target pressure
       real(dp) :: volume !Cell volume
-      character, dimension(:), allocatable :: atsym*2 !atomic symbol
+!      character, dimension(:), allocatable :: atsym*2 !atomic symbol
       logical :: usesavexv, foundxv !control for coordinates restart
       logical :: usesavecg !control for restart CG
       logical :: varcel !true if variable cell optimization
@@ -80,7 +90,7 @@
       logical :: actualiz!MM interaction list control
 !!!!
       integer :: nfree !number of atoms without a contrain of movement
-      integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
+!     integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
       integer :: mmsteps !number of MM steps for each QM step, not tested
       integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
@@ -112,14 +122,14 @@
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
 
-      integer, dimension(:), allocatable, save:: blocklist,blockqmmm, 
-     . listqmmm !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
+!      integer, dimension(:), allocatable, save:: blocklist,blockqmmm, 
+!     . listqmmm !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
       logical :: do_properties !control for lio properties calculation
-      double precision :: spin !number of unpaired electrons
-      integer :: charge !charge of QM sub-system
+!      double precision :: spin !number of unpaired electrons
+!      integer :: charge !charge of QM sub-system
 
 ! Optimization scheme
       integer :: opt_scheme ! turn on optimization scheme
@@ -142,8 +152,8 @@
      .  F_cut_QMMM
       double precision, allocatable, dimension(:) :: Iz_cut_QMMM
       integer :: at_MM_cut_QMMM, r_cut_pos
-      integer, allocatable, dimension(:) :: r_cut_list_QMMM
-      logical, allocatable, dimension(:) :: MM_freeze_list
+!      integer, allocatable, dimension(:) :: r_cut_list_QMMM
+!      logical, allocatable, dimension(:) :: MM_freeze_list
       double precision :: r12 !auxiliar
       integer :: i_qm, i_mm ! auxiliars
       logical :: done, done_freeze, done_QMMM !control variables
@@ -173,11 +183,11 @@
      .  read_md, fixed2
 
 !!!! Solvent General variables
-      integer, dimension(:,:,:), allocatable, save ::  atange, atangm,
-     . atdihe,atdihm,atimp
+!      integer, dimension(:,:,:), allocatable, save ::  atange, atangm,
+!     . atdihe,atdihm,atimp
       double precision  :: sfc
-      integer, dimension(:,:,:), allocatable, save::
-     .  evaldihe,evaldihm
+!      integer, dimension(:,:,:), allocatable, save::
+!     .  evaldihe,evaldihm
       logical :: water
 
 ! Solvent external variables
@@ -256,42 +266,43 @@
 !      allocate(xa(3,na_u), fa(3,na_u), isa(na_u), iza(na_u), 
 !     . atsym(nesp))
  
-! Read QM coordinates and labels
-      write(6,*)
-      write(6,"('read:',71(1h*))")
-      if(qm) then
-        call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
-      endif !qm
+!! Read QM coordinates and labels
+!      write(6,*)
+!      write(6,"('read:',71(1h*))")
+!      if(qm) then
+!        call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
+!      endif !qm
 
-! Allocation of solvent variables
-      natot = nac + na_u
+!! Allocation of solvent variables
+!      natot = nac + na_u
 
-      allocate(r_cut_list_QMMM(nac)) ! referencia posiciones de atomos MM con los vectores cortados
+!      allocate(r_cut_list_QMMM(nac)) ! referencia posiciones de atomos MM con los vectores cortados
 
-      nparm = 500 ! numero de tipos de bonds q tiene definido el amber.parm. NO DEBERIA ESTAR fijo, Nick
+!      nparm = 500 ! numero de tipos de bonds q tiene definido el amber.parm. NO DEBERIA ESTAR fijo, Nick
 
-      allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
-      allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
-      allocate(vat(3,natot), cfdummy(3,natot), fdummy(3,natot))
-      allocate(qmattype(na_u), attype(nac), atname(nac))
-      allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
-      allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
-      allocate(ng1type(nac,6), angetype(nac,25), angmtype(nac,25))
-      allocate(evaldihe(nac,100,5), evaldihm(nac,100,5))
-      allocate(dihety(nac,100), dihmty(nac,100), impty(nac,25))
-      allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
-      allocate(evaldihmlog(nac,100), scalexat(nac))
-      allocate(nonbondedxat(nac))
-      allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
-      allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
-      allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm),
-     . multidihe(nparm), perdihe(nparm))
-      allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm),
-     . perimp(nparm))
-      allocate(atange(nac,25,2), atangm(nac,25,2), atdihe(nac,100,3))
-      allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
-      allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
-      allocate(impxat(nac), atimp(nac,25,4))
+!      allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
+!      allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
+!      allocate(vat(3,natot), cfdummy(3,natot), fdummy(3,natot))
+!      allocate(qmattype(na_u), attype(nac), atname(nac))
+!      allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
+!      allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
+!      allocate(ng1type(nac,6), angetype(nac,25), angmtype(nac,25))
+!      allocate(evaldihe(nac,100,5), evaldihm(nac,100,5))
+!      allocate(dihety(nac,100), dihmty(nac,100), impty(nac,25))
+!      allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
+!      allocate(evaldihmlog(nac,100), scalexat(nac))
+!      allocate(nonbondedxat(nac))
+!      allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
+!      allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
+!      allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm),
+!     . multidihe(nparm), perdihe(nparm))
+!      allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm),
+!     . perimp(nparm))
+!      allocate(atange(nac,25,2), atangm(nac,25,2), atdihe(nac,100,3))
+!      allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
+!      allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
+!      allocate(impxat(nac), atimp(nac,25,4))
+!
 
 ! Some definitions 
       ucell=0.d0

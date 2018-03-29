@@ -7,11 +7,22 @@
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
 	fclas_BAND, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
-	Ang, eV, kcal, na_u, qm, nesp, natoms_partial_freeze, coord_freeze
-        implicit none
-        character(len=*), intent(in) :: init_type
-!ire moviendo inicializaciones a este subrutina en el futuro
+	Ang, eV, kcal, na_u, qm, mm, nesp, natoms_partial_freeze, coord_freeze, &
+	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, MM_freeze_list, &
+	masst, vat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
+	ng1, blocklist, blockqmmm, listqmmm, fce_amber, ng1type, angetype, & 
+	angmtype, evaldihe, evaldihm, dihety, dihmty, impty, nonbonded, &
+	scale, evaldihelog, evaldihmlog, scalexat, nonbondedxat, kbond,bondeq, &
+	bondtype, kangle,angleeq,angletype, kdihe,diheeq,dihetype, multidihe, &
+	perdihe, kimp,impeq, imptype,multiimp, perimp, atange, atangm, atdihe, &
+	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
+	xa, fa, isa, iza, atsym, charge, spin
 
+
+	implicit none
+	character(len=*), intent(in) :: init_type
+!ire moviendo inicializaciones a este subrutina en el futuro
+	
 	if ( init_type == 'Jolie') then
 	  write(*,*) "Hi Angi!" !most important part of code of course
 	! Read the number of QM atoms
@@ -45,7 +56,38 @@
 	    allocate(coord_freeze(natoms_partial_freeze,3))
 	  end if
 	
-	  
+	! Read QM coordinates and labels
+	  write(6,*)
+	  write(6,"('read:',71(1h*))")
+	  if(qm) then
+	    call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
+	  endif !qm
+	
+	! Allocation of solvent variables
+	  natot = nac + na_u
+	  allocate(r_cut_list_QMMM(nac)) ! referencia posiciones de atomos MM con los vectores cortados
+	  nparm = 500 ! numero de tipos de bonds q tiene definido el amber.parm. NO DEBERIA ESTAR fijo, Nick
+	!muchos allocate tienen valores fijos. habria que reveer esto en el futuro. Nick
+	  allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
+	  allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
+	  allocate(vat(3,natot), cfdummy(3,natot), fdummy(3,natot))
+	  allocate(qmattype(na_u), attype(nac), atname(nac))
+	  allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
+	  allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
+	  allocate(ng1type(nac,6), angetype(nac,25), angmtype(nac,25))
+	  allocate(evaldihe(nac,100,5), evaldihm(nac,100,5))
+	  allocate(dihety(nac,100), dihmty(nac,100), impty(nac,25))
+	  allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
+	  allocate(evaldihmlog(nac,100), scalexat(nac))
+	  allocate(nonbondedxat(nac))
+	  allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
+	  allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
+	  allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm), multidihe(nparm), perdihe(nparm))
+	  allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm), perimp(nparm))
+	  allocate(atange(nac,25,2), atangm(nac,25,2), atdihe(nac,100,3))
+	  allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
+	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
+	  allocate(impxat(nac), atimp(nac,25,4))
 
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp

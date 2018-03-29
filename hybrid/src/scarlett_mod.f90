@@ -17,7 +17,20 @@
 	double precision :: time_steep
 	logical :: qm, mm ! True when system have a subsystem QM,MM
 	integer :: natoms_partial_freeze
-	integer, dimension(:,:) :: coord_freeze
+	integer,  allocatable, dimension(:,:) :: coord_freeze
+	integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
+	character, dimension(:), allocatable :: atsym*2 !atomic symbol
+
+!variables para cuts
+	integer, allocatable, dimension(:) :: r_cut_list_QMMM
+	logical, allocatable, dimension(:) :: MM_freeze_list
+
+! Cut Off QM-MM variables
+	integer, dimension(:), allocatable, save:: blocklist,blockqmmm,listqmmm
+!listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
+
+
+
 
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
@@ -150,6 +163,8 @@
 	integer, dimension(:,:), allocatable :: dihety,dihmty,impty !same with dihedrals and impropers
 	logical, dimension(:,:), allocatable :: evaldihelog !control for evaluate diedral i, j on energy/force
 	logical, dimension(:,:), allocatable :: evaldihmlog !control for evaluate diedral i, j on energy/force
+	integer, dimension(:,:,:), allocatable :: evaldihe,evaldihm
+	integer, dimension(:,:,:), allocatable ::  atange, atangm, atdihe,atdihm,atimp
 
 
 ! Link Atom variables
@@ -164,6 +179,11 @@
 	double precision :: Elink !Energy of link atoms
 	double precision :: distl(15) !distancia del link atom i al atomo QM mas cercano
 	double precision :: pclinkmm(15,15),Emlink(15,4)
+
+
+! Lio
+      double precision :: spin !number of unpaired electrons
+      integer :: charge !charge of QM sub-system
 
 
 
