@@ -47,7 +47,8 @@
      . linkqmtype, Elink, distl, pclinkmm, Emlink,
 !cutoff
      . r_cut_list_QMMM,blocklist,blockqmmm,
-     . listqmmm,MM_freeze_list,
+     . listqmmm,MM_freeze_list, natoms_partial_freeze, 
+     . natoms_partial_freeze, coord_freeze, 
 !NEB
      . NEB_Nimages, 
      . NEB_firstimage, NEB_lastimage,  
@@ -676,6 +677,19 @@ c return forces to fullatom arrays
             cfdummy(1:3,inick) = 0.d0
           end if
         end do
+
+! partial freeze
+	do inick=1,natoms_partial_freeze
+	  do jnick=1,3
+	    if (coord_freeze(inick,1+jnick) .eq. 1) then
+	      cfdummy(jnick,coord_freeze(inick,1))=0.d0
+	    end if
+	  end do
+	enddo
+
+
+
+
 
 ! write xyz, hay q ponerle un if para escribir solo cuando se necesita
 	call write_xyz(natot, na_u, iza, pc, rclas)
