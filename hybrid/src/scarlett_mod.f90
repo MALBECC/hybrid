@@ -16,18 +16,24 @@
 	double precision, dimension(:,:), allocatable :: vat !velocities of all atoms, not used for CG
 	double precision :: time_steep
 	logical :: qm, mm ! True when system have a subsystem QM,MM
-	integer :: natoms_partial_freeze
-	integer,  allocatable, dimension(:,:) :: coord_freeze
 	integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
 	character, dimension(:), allocatable :: atsym*2 !atomic symbol
 
-!variables para cuts
+! Cut Off & freeeze variables 
 	integer, allocatable, dimension(:) :: r_cut_list_QMMM
 	logical, allocatable, dimension(:) :: MM_freeze_list
+	integer :: natoms_partial_freeze !number of atoms with 0 force in any direction
+	integer,  allocatable, dimension(:,:) :: coord_freeze !cartesian direction with force = 0
+
 
 ! Cut Off QM-MM variables
 	integer, dimension(:), allocatable, save:: blocklist,blockqmmm,listqmmm
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
+
+
+
+
+
 
 
 ! Solvent (MM) General variables

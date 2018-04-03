@@ -3,7 +3,7 @@
 !kind of initialization is controlled by  init_type
 ! N. foglia 03/2018
 	use precision, only: dp
-	use fdf, only: fdf_integer
+	use fdf, only: fdf_integer, fdf_block
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
 	fclas_BAND, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
@@ -17,11 +17,14 @@
 	perdihe, kimp,impeq, imptype,multiimp, perimp, atange, atangm, atdihe, &
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
 	xa, fa, isa, iza, atsym, charge, spin
-
-
+	
+	
 	implicit none
 	character(len=*), intent(in) :: init_type
-!ire moviendo inicializaciones a este subrutina en el futuro
+	character :: XF, YF, ZF
+	character*3 :: XYZF
+	integer :: i 
+	integer :: iunit
 	
 	if ( init_type == 'Jolie') then
 	  write(*,*) "Hi Angi!" !most important part of code of course
@@ -53,15 +56,34 @@
 	! Read number of partial freeze atoms
 	  natoms_partial_freeze = fdf_integer('NumberOfPartialFreeze',0)
 	  if ( natoms_partial_freeze .gt. 0 ) then
-	    allocate(coord_freeze(natoms_partial_freeze,3))
+	    allocate(coord_freeze(natoms_partial_freeze,4))
 	  end if
+	
+	! Read partial freeze atoms
+	  if ( fdf_block('PartialFreeze',iunit) ) then
+	    coord_freeze=0
+	    do i=1,natoms_partial_freeze
+	      read(iunit,*,err=2,end=2) coord_freeze(i, 1:4) !atom number, xfreeze, yfreeze, zfreeze
+	    enddo
+	
+	    do i=1,natoms_partial_freeze
+	      XF=" "
+	      YF=" "
+	      ZF=" "
+	      XYZF=""
+	      if (coord_freeze(i,2) .eq.1) XF="X"
+	      if (coord_freeze(i,3) .eq.1) YF="Y"
+	      if (coord_freeze(i,4) .eq.1) ZF="Z"
+	      write(XYZF,"(A1,A1,A1)") XF, YF, ZF
+	      write(*,*) "freezing atom: ", coord_freeze(i,1), "coord(s)", XYZF
+	    enddo
+	  endif
+	
 	
 	! Read QM coordinates and labels
 	  write(6,*)
 	  write(6,"('read:',71(1h*))")
-	  if(qm) then
-	    call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
-	  endif !qm
+	  if(qm) call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
 	
 	! Allocation of solvent variables
 	  natot = nac + na_u
@@ -88,11 +110,14 @@
 	  allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
 	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
 	  allocate(impxat(nac), atimp(nac,25,4))
-
+	
+	
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
 	  kcal   = 1.602177E-19_dp * 6.02214E23_dp / 4184.0_dp
+	
+	
 	elseif ( init_type == 'NEB') then !initialize Nudged elastic band variables
 	  if (NEB_Nimages .lt. 3) STOP 'Runing NEB with less than 3 images'
 	  NEB_firstimage=1
@@ -104,9 +129,13 @@
 	  vclas_BAND=0.d0
 	  fclas_BAND=0.d0
 	  Energy_band=0.d0
+	
+	
 	else
 	  STOP "Wrong init_type"
 	end if
 	
+	return
+ 2     stop 'read: problem reading partial freeze block'
 	end subroutine init_hybrid
 
