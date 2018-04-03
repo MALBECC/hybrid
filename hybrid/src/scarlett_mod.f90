@@ -30,8 +30,6 @@
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
 
-
-
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms
@@ -208,10 +206,7 @@
 	real(dp) :: eV !E_in_Hartree=E_in_eV * eV
 	real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
 
-
 ! Others that need check
 	real(dp) :: ucell(3,3)
-
-
 
 	end module scarlett
