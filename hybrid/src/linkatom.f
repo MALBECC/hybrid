@@ -59,8 +59,7 @@ c assignation of CQM and CMM
 	  if(rmin(linkqm(k,1)).gt.4) then
 	    write(6,*) k,linkqm(k,1),rmin(linkqm(k,1))
 	    write(6,*) 'Wrong Link Atom CQM atom....Check geometry'
-	    STOP
-!el atomo QM esta muy lejos de un atomo MM
+	    STOP !el atomo QM esta muy lejos de un atomo MM
 	  endif
 	  rmin(linkqm(k,1))=20
 	  linkmm(k,1)=min(linkqm(k,1))-na
