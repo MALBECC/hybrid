@@ -78,19 +78,16 @@
       real(dp) :: dxmax !Maximum atomic displacement in one CG step (Bohr)
       real(dp) :: tp !Target pressure
       real(dp) :: volume !Cell volume
-!      character, dimension(:), allocatable :: atsym*2 !atomic symbol
       logical :: usesavexv, foundxv !control for coordinates restart
       logical :: usesavecg !control for restart CG
       logical :: varcel !true if variable cell optimization
       logical :: relaxd ! True when CG converged
-!      logical :: qm, mm ! True when system have a subsystem QM,MM
       character :: slabel*20 ! system label, name of outputs
       character :: paste*25
       external :: paste
       logical :: actualiz!MM interaction list control
 !!!!
       integer :: nfree !number of atoms without a contrain of movement
-!     integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
       integer :: mmsteps !number of MM steps for each QM step, not tested
       integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
@@ -121,15 +118,9 @@
       double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
-
-!      integer, dimension(:), allocatable, save:: blocklist,blockqmmm, 
-!     . listqmmm !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
-
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
       logical :: do_properties !control for lio properties calculation
-!      double precision :: spin !number of unpaired electrons
-!      integer :: charge !charge of QM sub-system
 
 ! Optimization scheme
       integer :: opt_scheme ! turn on optimization scheme
@@ -152,8 +143,6 @@
      .  F_cut_QMMM
       double precision, allocatable, dimension(:) :: Iz_cut_QMMM
       integer :: at_MM_cut_QMMM, r_cut_pos
-!      integer, allocatable, dimension(:) :: r_cut_list_QMMM
-!      logical, allocatable, dimension(:) :: MM_freeze_list
       double precision :: r12 !auxiliar
       integer :: i_qm, i_mm ! auxiliars
       logical :: done, done_freeze, done_QMMM !control variables
@@ -183,11 +172,7 @@
      .  read_md, fixed2
 
 !!!! Solvent General variables
-!      integer, dimension(:,:,:), allocatable, save ::  atange, atangm,
-!     . atdihe,atdihm,atimp
       double precision  :: sfc
-!      integer, dimension(:,:,:), allocatable, save::
-!     .  evaldihe,evaldihm
       logical :: water
 
 ! Solvent external variables
@@ -237,72 +222,6 @@
 
 ! Read and initialize basics variables 
       call init_hybrid('Jolie')
-
-! Read the number of QM atoms
-!      na_u=fdf_integer('NumberOfAtoms',0)
-!      if (na_u.eq.0) then
-!        write(6,'(/a)') 'hybrid: Running with no QM atoms'
-!        qm=.false.
-!      endif
-
-! Read the number of MM atoms
-!      nac = fdf_integer('NumberOfSolventAtoms',0)
-!      if (nac.eq.0) then
-!        write(6,'(/a)') 'hybrid: Running with no MM atoms'
-!        mm=.false.
-!      endif
-
-!      if (nac.eq.0 .and. na_u.eq.0) then
-!        call die("no atoms in system")
-!      end if
-
-! Read the number of species
-!      nesp = fdf_integer('NumberOfSpecies',0)
-!      if(qm.and.(nesp.eq.0)) then
-!        call die("hybrid: You must specify the number of species")
-!      endif
-
-! allocate some varibles
-!      allocate(xa(3,na_u), fa(3,na_u), isa(na_u), iza(na_u), 
-!     . atsym(nesp))
- 
-!! Read QM coordinates and labels
-!      write(6,*)
-!      write(6,"('read:',71(1h*))")
-!      if(qm) then
-!        call read_qm(na_u,nesp,isa,iza,xa,atsym,charge, spin)
-!      endif !qm
-
-!! Allocation of solvent variables
-!      natot = nac + na_u
-
-!      allocate(r_cut_list_QMMM(nac)) ! referencia posiciones de atomos MM con los vectores cortados
-
-!      nparm = 500 ! numero de tipos de bonds q tiene definido el amber.parm. NO DEBERIA ESTAR fijo, Nick
-
-!      allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
-!      allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
-!      allocate(vat(3,natot), cfdummy(3,natot), fdummy(3,natot))
-!      allocate(qmattype(na_u), attype(nac), atname(nac))
-!      allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
-!      allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
-!      allocate(ng1type(nac,6), angetype(nac,25), angmtype(nac,25))
-!      allocate(evaldihe(nac,100,5), evaldihm(nac,100,5))
-!      allocate(dihety(nac,100), dihmty(nac,100), impty(nac,25))
-!      allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
-!      allocate(evaldihmlog(nac,100), scalexat(nac))
-!      allocate(nonbondedxat(nac))
-!      allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
-!      allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
-!      allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm),
-!     . multidihe(nparm), perdihe(nparm))
-!      allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm),
-!     . perimp(nparm))
-!      allocate(atange(nac,25,2), atangm(nac,25,2), atdihe(nac,100,3))
-!      allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
-!      allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
-!      allocate(impxat(nac), atimp(nac,25,4))
-!
 
 ! Some definitions 
       ucell=0.d0
@@ -875,24 +794,9 @@ C Write atomic forces
 
 !Write optimiced structure(s) and energy(es)
 	if (idyn.eq.1) then
-!	   open(unit=988,file="bandEnergies.dat")
-!	   open(unit=989,file="bandtraj.xyz")
 	   do replica_number = 1, NEB_Nimages
-!	     write(988,*) replica_number, Energy_band(replica_number)
-!	     write(989,*) natot
-!	     write(989,*)
-
-!	     do i=1, natot
-!	       if (i.le.na_u) then
-!		write(989,345) iza(i), rclas_BAND(1:3,i,replica_number)*0.52
-!               else
-!		write(989,346) pc(i-na_u), rclas_BAND(1:3,i,replica_number)*0.52
-!               end if
-!	     end do
-
 		Etots=Energy_band(replica_number)-Energy_band(1)
 		rclas=rclas_BAND(1:3,1:natot,replica_number)
-
 !guardo en rce y rcg.
            call wrirtc(slabel,Etots,dble(replica_number),replica_number,
      .             na_u,nac,
@@ -901,8 +805,6 @@ C Write atomic forces
            call ioxvconstr(natot,ucell,rclas,vat,replica_number)
 
            end do
-!	   close(988)
-!	   close(989)
 
 	else
 	  write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal,
