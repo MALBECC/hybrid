@@ -9,4 +9,4 @@ C  CALCULATES THE VOLUME OF THE UNIT CELL
      .         ( C(3,1)*C(1,2) - C(1,1)*C(3,2) ) * C(2,3) +
      .         ( C(1,1)*C(2,2) - C(2,1)*C(1,2) ) * C(3,3)
       VOLCEL = ABS( VOLCEL )
-      END
+      END FUNCTION VOLCEL
