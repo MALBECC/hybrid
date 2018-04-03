@@ -315,21 +315,34 @@
       if(foundcrd) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 
 
+
+     
 ! Sets LinkAtoms' positions
       if(qm.and.mm) then
         if (linkatom) then
-          call link3(numlink,linkat,linkqm,linkmm,rclas,
+	  if (idyn .ne. 1) then
+            call link3(numlink,linkat,linkqm,linkmm,rclas,
      .               natot,na_u,nac,distl)
-          xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-! Sets to zero pc and Em for MMLink 
-          do i=1,numlink
-            pclinkmm(i,1:4)=pc(linkmm(i,1:4))
-            pc(linkmm(i,1:1))=0.d0
-            pc(linkmm(i,2:4))=pc(linkmm(i,2:4))+pclinkmm(i,1)/3.d0
+            xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+	  else !NEB case
+
+	    do replica_number = NEB_firstimage, NEB_lastimage 
+	      rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
+	      call link3(numlink,linkat,linkqm,linkmm,rclas,
+     .               natot,na_u,nac,distl)
+	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
+	    end do
+	  
+	  end if
+	  ! Sets to zero pc and Em for MMLink 
+            do i=1,numlink
+              pclinkmm(i,1:4)=pc(linkmm(i,1:4))
+              pc(linkmm(i,1:1))=0.d0
+              pc(linkmm(i,2:4))=pc(linkmm(i,2:4))+pclinkmm(i,1)/3.d0
 ! two options: Em(linkmm(i,1:1))=0.0 or Em(linkmm(i,1:4))=0.0
-            Emlink(i,1:1)=Em(na_u+linkmm(i,1:1))
-            Em(na_u+linkmm(i,1:1))=0.d0
-          enddo
+              Emlink(i,1:1)=Em(na_u+linkmm(i,1:1))
+              Em(na_u+linkmm(i,1:1))=0.d0
+            enddo
         endif !LA
       endif !qm & mm
 
@@ -439,7 +452,7 @@
      .                    '=============================='
           write(6,*) "Optimization level: ", optimization_lvl
 
-!start loot over replicas
+!start loot over NEB images
 	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
 	  if (idyn .eq.1) then
 	    rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
@@ -767,6 +780,9 @@ C Write atomic forces
 
       elseif (idyn.eq.1) then !Save forces and energy for a NEB optimization
         fclas_BAND(1:3,1:natot,replica_number)=cfdummy(1:3,1:natot)
+	fa = 0.d0
+        fdummy = 0.d0
+        cfdummy = 0.d0
         Energy_band(replica_number)=Etots/eV
       endif
 
@@ -780,7 +796,18 @@ C Write atomic forces
       if (idyn .eq. 1 ) then !Move atoms in a NEB scheme
 	call NEB_save_traj_energy()
 	call NEB_steep(istep, relaxd) 
-!aca luego hay q recalcular posicionesde link atoms para cada imagen
+
+! Calculation Hlink's New positions 
+        if(qm.and.mm) then
+          if(linkatom) then
+	    do replica_number = NEB_firstimage, NEB_lastimage
+              rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
+	      call link3(numlink,linkat,linkqm,linkmm,rclas,
+     .               natot,na_u,nac,distl)
+	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
+	    end do
+	  endif !LA
+	endif !qm & mm
       end if
 
 
