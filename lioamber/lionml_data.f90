@@ -23,6 +23,18 @@ module lionml_data
 !  ndyn /= 0 & edyn /= 0   =>   Ehrenfest dynamic (aux mm)
 !
    logical :: nullify_forces = .false.
+   integer :: propagator = 1  ! 1 uses verlet
+                              ! 2 uses magnus
+                              ! (first steps always with smaller verlet)
+!
+!
+!  Output information
+!------------------------------------------------------------------------------!
+!  TODO: set option so that data is defaulted into one output and you
+!        need to activate different files.
+   integer           :: verbose_level = 0
+   integer           :: wdip_nfreq = 0
+   character(len=80) :: wdip_fname = "liorun.dip"
 !
 !
 !  Restarting information
@@ -58,8 +70,8 @@ module lionml_data
 
    logical :: eefld_timegih = .false. ! time gaussian initial half
    logical :: eefld_timegfh = .false. ! time gaussian final half
-   real*8  :: eefld_timepos = 50.0d0  ! in ps (currently fs!)
-   real*8  :: eefld_timeamp = 25.0d0  ! in ps (currently fs!)
+   real*8  :: eefld_timepos =  1.0d0  ! in ps (currently fs!)
+   real*8  :: eefld_timeamp =  0.2d0  ! in ps (currently fs!)
    real*8  :: eefld_wavelen =  0.0d0  ! in nm
 !
 !
@@ -67,7 +79,9 @@ module lionml_data
 !------------------------------------------------------------------------------!
    namelist /lionml/ &
 !
-   &  ndyn_steps, edyn_steps, nullify_forces                                   &
+   &  ndyn_steps, edyn_steps, nullify_forces, propagator                       &
+!
+   &, verbose_level, wdip_nfreq, wdip_fname                                    &
 !
    &, rsti_loads, rsti_fname, rsto_saves, rsto_nfreq, rsto_fname               &
 !
