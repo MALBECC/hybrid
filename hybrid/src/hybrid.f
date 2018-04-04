@@ -59,8 +59,9 @@
      . ftol,
      . Ang, eV, kcal, 
 !Lio
-     . charge, spin
-
+     . charge, spin,
+!outputs
+     . writeRF
 
       implicit none
 ! General Variables
@@ -129,9 +130,6 @@
 ! 1- only QM atoms with restrain
 ! 2- only MM atoms
 ! 3- all
-
-! force integration
-      logical :: writeRF
 
 !variables para centrado del sistema, mejorar esto agregando el tensor de inercia, Nick
       logical :: Nick_cent !activa centrado y conservacion de los ejes de inercia
@@ -203,7 +201,6 @@
       radbloqmmm=0.d0
       do_properties=.false.
       Nick_cent=.false.
-      writeRF=.true.
       foundxv=.false.
 
 ! Initialize IOnode
@@ -619,13 +616,15 @@ c return forces to fullatom arrays
             endif !qm & mm
 
 
-	if (writeRF) then !falta un control aca
-	   do itest=1, natot
-	   write(969,423) itest, rclas(1,itest),rclas(2,itest),
-     .   rclas(3,itest),fdummy(1,itest)*0.5d0,fdummy(2,itest)*0.5d0,
-     .   fdummy(3,itest)*0.5d0
-	   end do
-	end if
+!	if (writeRF .eq. 1) then !falta un control aca
+!	  open(unit=969, file="Pos_forces.dat")
+!	  do itest=1, natot
+!	  write(969,423) itest, rclas(1,itest),rclas(2,itest),
+!     .   rclas(3,itest),fdummy(1,itest)*0.5d0,fdummy(2,itest)*0.5d0,
+!     .   fdummy(3,itest)*0.5d0
+!	   end do
+!	  close(969)
+!	end if
 
 
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
@@ -741,7 +740,16 @@ C Write atomic forces
 
 
       if (idyn .eq. 0 ) then !Move atoms with a CG algorithm
-        call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
+
+        if (writeRF .eq. 1) then!save coordinates and forces for integration 
+           do itest=1, natot
+	    write(969,423) itest, rclas(1:3,itest),fdummy(1:3,itest)*0.5d0
+           end do
+        end if
+ 
+
+
+       call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
 
 !Nick center
@@ -794,6 +802,22 @@ C Write atomic forces
 
 
       if (idyn .eq. 1 ) then !Move atoms in a NEB scheme
+
+	if (writeRF .eq. 1) then!save coordinates and forces for integration 
+	  open(unit=969, file="Pos_forces.dat")
+	  do replica_number = NEB_firstimage, NEB_lastimage ! Band Replicas
+	    do itest=1, natot
+	      write(969,423) itest, rclas_BAND(1:3,itest,replica_number),
+     .        fclas_BAND(1:3,itest,replica_number)*0.5d0
+	    end do
+	    write(969,423)
+	  end do
+	  close(969)
+	end if
+
+
+
+
 	call NEB_save_traj_energy()
 	call NEB_steep(istep, relaxd) 
 

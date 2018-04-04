@@ -16,7 +16,7 @@
 	bondtype, kangle,angleeq,angletype, kdihe,diheeq,dihetype, multidihe, &
 	perdihe, kimp,impeq, imptype,multiimp, perimp, atange, atangm, atdihe, &
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
-	xa, fa, isa, iza, atsym, charge, spin
+	xa, fa, isa, iza, atsym, charge, spin, writeRF
 	
 	
 	implicit none
@@ -111,6 +111,8 @@
 	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
 	  allocate(impxat(nac), atimp(nac,25,4))
 	
+	  writeRF=0
+	  writeRF = fdf_integer('PFIntegrationOutput',0)
 	
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
