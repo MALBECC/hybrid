@@ -1,0 +1,7 @@
+&lio
+nmax=2000
+diis=f
+ndiis=30
+&end
+
+
