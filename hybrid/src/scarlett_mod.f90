@@ -207,6 +207,9 @@
 	double precision :: NEB_steep_size !steep size in steepest descend algorithm in NEB
 	double precision :: NEB_MAXFmod !Max force in NEB optimizarion
 
+!outputs
+	integer :: writeRF ! force integration
+
 ! Conversion factors
 	real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
 	real(dp) :: eV !E_in_Hartree=E_in_eV * eV
