@@ -460,7 +460,7 @@
 !verifico que especies hay en el subsistema QM
 	nspec=0
 	do i=1,118
-	  if (QMspec(i) .eq. .true.) then
+	  if (QMspec(i) .eqv. .true.) then
 	    nspec=nspec+1
 	  end if
 	end do
@@ -469,7 +469,7 @@
 
 	j=0
 	do i=1, 118
-	  if (QMspec(i) .eq. .true.) then
+	  if (QMspec(i) .eqv. .true.) then
 	    j=j+1
 	    spec(j)=vec(i)
 	    specz(j)=i
@@ -648,8 +648,8 @@
         integer, intent(out) :: Z
 	logical :: found, finish
 
-        vecCAP=(/'H  ','He ','LI ','BE ','B  ','C  ','N  ','O  ','F  ','Ne ','Na ','MG ','AL ','SI ','P  ','S  ','CL ','AR ','K  ',  &
-        'Ca ','SC ','TI ','V  ','CR ','MN ','FE ','CO ','NI ','CU ','ZN ','GA ','GE ','AS ','SE ','BR ','KR ','RB ','SR ','Y  ',  &
+	vecCAP=(/'H  ','He ','LI ','BE ','B  ','C  ','N  ','O  ','F  ','Ne ','Na ','MG ','AL ','SI ','P  ','S  ','CL ','AR ','K  ',  &
+	'Ca ','SC ','TI ','V  ','CR ','MN ','FE ','CO ','NI ','CU ','ZN ','GA ','GE ','AS ','SE ','BR ','KR ','RB ','SR ','Y  ',  &
         'ZR ','Nb ','MO ','TC ','RU ','RH ','PD ','AG ','Cd ','IN ','SN ','SB ','TE ','I  ','XE ','CS ','BA ','LA ','Ce ','PR ',  &
         'Nd ','PM ','SM ','EU ','GD ','TB ','DY ','HO ','ER ','TM ','YB ','LU ','HF ','TA ','W  ','RE ','OS ','IR ','PT ','AU ',  &
         'Hg ','TL ','PB ','BI ','PO ','AT ','RN ','FR ','RA ','AC ','TH ','PA ','U  ','NP ','PU ','AM ','Cm ','BK ','CF ','ES ',  &
@@ -740,12 +740,18 @@
         write(*,1204)
         write(*,1205)
         write(*,*)
- 1200 FORMAT(4x,"██████╗ ██████╗ ██████╗     ██████╗     ██╗  ██╗██╗   ██╗██████╗ ")
- 1201 FORMAT(4x,"██╔══██╗██╔══██╗██╔══██╗    ╚════██╗    ██║  ██║╚██╗ ██╔╝██╔══██╗")
- 1202 FORMAT(4x,"██████╔╝██║  ██║██████╔╝     █████╔╝    ███████║ ╚████╔╝ ██████╔╝")
- 1203 FORMAT(4x,"██╔═══╝ ██║  ██║██╔══██╗    ██╔═══╝     ██╔══██║  ╚██╔╝  ██╔══██╗")
- 1204 FORMAT(4x,"██║     ██████╔╝██████╔╝    ███████╗    ██║  ██║   ██║   ██████╔╝")
- 1205 FORMAT(4x,"╚═╝     ╚═════╝ ╚═════╝     ╚══════╝    ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ")
+ 1200 FORMAT(4x,"██████╗ ██████╗ ██████╗     ██████╗     ██╗  █",&
+      "█╗██╗   ██╗██████╗ ")
+ 1201 FORMAT(4x,"██╔══██╗██╔══██╗██╔══██╗    ╚════██╗    ██",&
+      "║  ██║╚██╗ ██╔╝██╔══██╗")
+ 1202 FORMAT(4x,"██████╔╝██║  ██║██████╔╝     █████╔╝    ████",&
+      "███║ ╚████╔╝ ██████╔╝")
+ 1203 FORMAT(4x,"██╔═══╝ ██║  ██║██╔══██╗    ██╔═══╝     ██╔══",&
+      "██║  ╚██╔╝  ██╔══██╗")
+ 1204 FORMAT(4x,"██║     ██████╔╝██████╔╝    ███████╗    ██║  ██",&
+      "║   ██║   ██████╔╝")
+ 1205 FORMAT(4x,"╚═╝     ╚═════╝ ╚═════╝     ╚══════╝    ╚═╝  ╚═╝  ",&
+      " ╚═╝   ╚═════╝ ")
 !ascii art page: http://patorjk.com/software/taag/#p=display&f=Ghost&t
 	end subroutine logo
 

@@ -1,5 +1,5 @@
 .DEFAULT_GOAL = all
-CC = ifort
+include ../Makefile.arch
 
 SOURCES := $(wildcard *.f90)
 TARGETS := $(SOURCES:%.f90=%)
@@ -8,7 +8,7 @@ CLTARGETS := $(TARGETS:%=../bin/%)
 
 all: $(TARGETS)
 %: %.f90 
-	$(CC) -o ../bin/$@ $<
+	$(FC) -o ../bin/$@ $<
 
 clean:
 	rm -r $(CLTARGETS)
