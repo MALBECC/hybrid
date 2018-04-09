@@ -57,26 +57,25 @@
 	  natoms_partial_freeze = fdf_integer('NumberOfPartialFreeze',0)
 	  if ( natoms_partial_freeze .gt. 0 ) then
 	    allocate(coord_freeze(natoms_partial_freeze,4))
-	  end if
-	
 	! Read partial freeze atoms
-	  if ( fdf_block('PartialFreeze',iunit) ) then
-	    coord_freeze=0
-	    do i=1,natoms_partial_freeze
-	      read(iunit,*,err=2,end=2) coord_freeze(i, 1:4) !atom number, xfreeze, yfreeze, zfreeze
-	    enddo
+	    if ( fdf_block('PartialFreeze',iunit) ) then
+	      coord_freeze=0
+	      do i=1,natoms_partial_freeze
+	        read(iunit,*,err=2,end=2) coord_freeze(i, 1:4) !atom number, xfreeze, yfreeze, zfreeze
+	      enddo
 	
-	    do i=1,natoms_partial_freeze
-	      XF=" "
-	      YF=" "
-	      ZF=" "
-	      XYZF=""
-	      if (coord_freeze(i,2) .eq.1) XF="X"
-	      if (coord_freeze(i,3) .eq.1) YF="Y"
-	      if (coord_freeze(i,4) .eq.1) ZF="Z"
-	      write(XYZF,"(A1,A1,A1)") XF, YF, ZF
-	      write(*,*) "freezing atom: ", coord_freeze(i,1), "coord(s)", XYZF
-	    enddo
+	      do i=1,natoms_partial_freeze
+	        XF=" "
+	        YF=" "
+	        ZF=" "
+	        XYZF=""
+	        if (coord_freeze(i,2) .eq.1) XF="X"
+	        if (coord_freeze(i,3) .eq.1) YF="Y"
+	        if (coord_freeze(i,4) .eq.1) ZF="Z"
+	        write(XYZF,"(A1,A1,A1)") XF, YF, ZF
+	        write(*,*) "freezing atom: ", coord_freeze(i,1), "coord(s)", XYZF
+	      enddo
+	    endif
 	  endif
 	
 	
