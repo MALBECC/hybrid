@@ -464,7 +464,7 @@ subroutine td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM11, r, pc, &
    use mask_ecp   , only: ECP_fock
    implicit none
    integer, intent(in)    :: MM, igpu, nsol, ntatom
-   real*8 , intent(in)    :: r(ntatom), pc(ntatom)
+   real*8 , intent(in)    :: r(ntatom,3), pc(ntatom)
    real*8 , intent(inout) :: RMM(MM), RMM11(MM), E1, En, E1s, Ens
    integer :: icount
 
