@@ -129,14 +129,14 @@
 	  NORMVEC= tang_vec(1,i)**2 + tang_vec(2,i)**2 + tang_vec(3,i)**2
 	  NORMVEC=sqrt(NORMVEC)
 	  if (NORMVEC .lt. 1d-9) then
-	    write(*,*) "tangent vector null, replica: ",replica_number, "atom ", i
-	    stop
+!	    write(*,*) "tangent vector null, replica: ",replica_number, "atom ", i
+!	    stop
 	  else if (NORMVEC .ne. NORMVEC) then
 	    stop "NAN in tangent vector"
+	  else
+	    tang_vec(1:3,i)=tang_vec(1:3,i)/NORMVEC
 	  end if
-	  tang_vec(1:3,i)=tang_vec(1:3,i)/NORMVEC
 	end do
-	
 	RETURN
 	END SUBROUTINE NEB_calculate_tg
 

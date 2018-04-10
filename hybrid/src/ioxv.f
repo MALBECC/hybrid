@@ -16,6 +16,7 @@ C
       use precision
       use ionew
       use fdf
+      use scarlett, only: sname 
       implicit          none
       character         Band
       character         task*(*), paste*33
@@ -26,7 +27,7 @@ C
       integer rest_number
 
 c Internal variables and arrays
-      character  sname*30, fname*33
+      character  fname*33
       integer    ia,iu,iv,ix,na
       logical    frstme
       save       frstme, fname
@@ -38,7 +39,7 @@ c Internal variables and arrays
 
 c Find name of file
         if (frstme) then
-          sname = fdf_string( 'SystemLabel', 'siesta' )
+          sname = fdf_string( 'SystemLabel', 'Angi' )
           fname = paste( sname, '.XV' )
           frstme = .false.
         endif
@@ -68,7 +69,7 @@ c Find name of file
             fname = paste( fname, numb )
 	  end if
 	end if
-	  write(*,*) fname
+	  write(*,*) "reading: ", fname
 
 c Choose between read or write
         if (task.eq.'read' .or. task.eq.'READ') then
