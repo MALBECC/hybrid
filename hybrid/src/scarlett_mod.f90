@@ -5,6 +5,7 @@
 	implicit none
 
 ! General Variables
+	character*30 :: sname
 	integer :: istep, inicoor,fincoor !actual, initial and final number of move step for each restrain
 	integer :: idyn ! kind of calculation, idyn=0 (CG minimization), idyn=1 (NEB minimization)
 	integer :: nmove !max number of move step for each restrain
