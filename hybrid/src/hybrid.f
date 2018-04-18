@@ -821,11 +821,7 @@ C Write atomic forces
 	    do itest=1, natot
 	      write(969,423) itest,
      .        rclas_BAND(1:3,itest,replica_number)/Ang,
-     .        fclas_BAND(1:3,itest,replica_number)*Ang/eV*kcal
-
-!a*kcal/(eV *Ang)  ! Ang, kcal/ang mol
-*Ang/eV*kcal
-
+     .        fclas_BAND(1:3,itest,replica_number)*Ang/eV*kcal ! Ang, kcal/ang mol
 	    end do
 	    write(969,423)
 	  end do
