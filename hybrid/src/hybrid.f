@@ -544,6 +544,8 @@ c return forces to fullatom arrays
           end do
         endif !qm
 
+! here Etot in Hartree, fdummy in Hartree/bohr
+
 
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
@@ -590,11 +592,17 @@ c return forces to fullatom arrays
 ! converts fdummy to Kcal/mol/Ang  
             fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
  
+
+! here Etot in Hartree, fdummy in kcal/mol Ang
+
+
 ! add famber to fdummy  
             if(mm) then
               fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
      .        +fce_amber(1:3,1:nac)
             endif !mm
+
+
 
 ! Calculation of LinkAtom Energy and Forces
             if(qm.and.mm ) then
@@ -627,8 +635,10 @@ c return forces to fullatom arrays
           endif 
         endif !imm
 
-! Converts fdummy to Ry/Bohr 
+! Converts fdummy Hartree/bohr. 
         fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
+! here Etot in Hartree, fdummy in Hartree/bohr
+
 
 ! Writes final energy decomposition
         Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
@@ -657,9 +667,16 @@ c return forces to fullatom arrays
          endif !imm
        endif !qm & mm
 
+
+! here Etot in Hartree, fdummy in Hartree/bohr
+
 ! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat)
+! from here cfdummy is the reelevant forces for move system
+! here Etot in Hartree, cfdummy in Hartree/bohr
+
+
 
 ! Accumulate coordinates in PDB/CRD file for animation
       call wripdb(na_u,slabel,rclas,natot,step,wricoord,nac,atname,
@@ -727,12 +744,14 @@ C Write atomic forces
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
+! here Etot in Hartree, cfdummy in Hartree/bohr
 
       if (idyn .eq. 0 ) then !Move atoms with a CG algorithm
 
         if (writeRF .eq. 1) then!save coordinates and forces for integration 
            do itest=1, natot
-	    write(969,423) itest, rclas(1:3,itest),cfdummy(1:3,itest)
+	      write(969,423) itest, rclas(1:3,itest)*Ang,
+     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
            end do
         end if
  
@@ -756,7 +775,7 @@ C Write atomic forces
         fa = 0.d0
         fdummy = 0.d0
         cfdummy = 0.d0
-        xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+        xa(1:3,1:na_u)=rclas(1:3,1:na_u) !Bohr
         call flush(6)
 
 ! Calculation Hlink's New positions 
@@ -776,11 +795,11 @@ C Write atomic forces
 
 
       elseif (idyn.eq.1) then !Save forces and energy for a NEB optimization
-        fclas_BAND(1:3,1:natot,replica_number)=cfdummy(1:3,1:natot)
+        fclas_BAND(1:3,1:natot,replica_number)=cfdummy(1:3,1:natot) !Hartree/bohr
 	fa = 0.d0
         fdummy = 0.d0
         cfdummy = 0.d0
-        Energy_band(replica_number)=Etots/eV
+        Energy_band(replica_number)=Etots !/eVa ! eV
       endif
 
 ! Exit MMxQM loop
@@ -796,15 +815,14 @@ C Write atomic forces
 	  open(unit=969, file="Pos_forces.dat")
 	  do replica_number = NEB_firstimage, NEB_lastimage ! Band Replicas
 	    do itest=1, natot
-	      write(969,423) itest, rclas_BAND(1:3,itest,replica_number),
-     .        fclas_BAND(1:3,itest,replica_number)
+	      write(969,423) itest,
+     .        rclas_BAND(1:3,itest,replica_number)*Ang,
+     .        fclas_BAND(1:3,itest,replica_number)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 	    end do
 	    write(969,423)
 	  end do
 	  close(969)
 	end if
-
-
 
 
 	call NEB_save_traj_energy()
@@ -849,7 +867,7 @@ C Write atomic forces
 !Write optimiced structure(s) and energy(es)
 	if (idyn.eq.1) then
 	   do replica_number = 1, NEB_Nimages
-		Etots=Energy_band(replica_number)-Energy_band(1)
+		Etots=Energy_band(replica_number) -Energy_band(1) ! Hartree
 		rclas=rclas_BAND(1:3,1:natot,replica_number)
 !guardo en rce y rcg.
            call wrirtc(slabel,Etots,dble(replica_number),replica_number,
