@@ -31,7 +31,7 @@ c cambiado para E de lio
       open( unit, file=fname, form = 'formatted', position='append',
      .      status='unknown')
 
-	if(idyn .eq. 0 .or. idyn .eq. 5 ) then
+	if(idyn .eq. 0) then
 	  write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
 	endif
 
@@ -152,6 +152,7 @@ c subrutine that writes the reaction coordinate and its PDB
      .                   rclas,atname,aaname,aanum,nesp,atsym,isa)
 
       use ionew
+      use scarlett, only: kcal, eV
       implicit          none
       character         slabel*20, paste*24
       integer           na,nac,natot,istp,wricoord
@@ -164,8 +165,8 @@ c subrutine that writes the reaction coordinate and its PDB
       character         fnamee*24,fnamec*24 
       logical           frstme
       integer           i,j,ia,unite,unitc
-      double precision  eV, Ang
-      save              frstme,Ang,eV,unite,fnamee,unitc,fnamec
+      double precision  Ang
+      save              frstme,Ang,unite,fnamee,unitc,fnamec
       data              frstme /.true./
       integer           aanum(nac),constrpaso
       character*4       aaname(nac),atname(nac)
@@ -174,17 +175,20 @@ c -------------------------------------------------------------------
 
       if ( frstme ) then
         Ang  = 1.d0 / 0.529177d0
-        eV  = 1.d0 / 27.211396132d0
+c        eV  = 1.d0 / 27.211396132d0
       fnamec = paste(slabel,'.rcg')
       fnamee = paste(slabel,'.rce')
       frstme = .false.
       endif
 
+
+	write(*,*) "recibi energia: ", Etots
 c writes .rce file
       call io_assign(unite)
       open( unite, file=fnamee, form = 'formatted', position='append',
      .      status='unknown')
-       write(unite,'(F10.4,2x,F14.7)') rtot, Etots/eV
+       write(unite,'(F10.4,2x,F14.7)') rtot, Etots*kcal/eV
+c
       call io_close(unite)
 
 c wirtes .rcg file
