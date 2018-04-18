@@ -464,6 +464,7 @@
 	character*13 :: fname
 	
 	!save energy
+	  write(*,*)"Energy-band in eV"
 	do replica_number = 1, NEB_Nimages
 	  write(*,*)"Energy-band", replica_number," ",Energy_band(replica_number)
 	end do
