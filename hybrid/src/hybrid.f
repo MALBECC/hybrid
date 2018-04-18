@@ -546,7 +546,6 @@ c return forces to fullatom arrays
 
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
-
 ! Start MMxQM loop
           do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
             step = step +1
@@ -589,9 +588,13 @@ c return forces to fullatom arrays
      .    water,masst,radblommbond)
             endif !mm
 
+
+
 ! converts fdummy to Kcal/mol/Ang  
             fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
  
+
+
 
 ! here Etot in Hartree, fdummy in kcal/mol Ang
 
@@ -601,6 +604,7 @@ c return forces to fullatom arrays
               fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
      .        +fce_amber(1:3,1:nac)
             endif !mm
+
 
 
 
@@ -635,9 +639,13 @@ c return forces to fullatom arrays
           endif 
         endif !imm
 
+
+
 ! Converts fdummy Hartree/bohr. 
         fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 ! here Etot in Hartree, fdummy in Hartree/bohr
+
+
 
 
 ! Writes final energy decomposition
@@ -667,7 +675,6 @@ c return forces to fullatom arrays
          endif !imm
        endif !qm & mm
 
-
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
 ! Impose constraints to atomic movements by changing forces
@@ -675,7 +682,6 @@ c return forces to fullatom arrays
      .             fdummy,cfdummy,vat)
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
-
 
 
 ! Accumulate coordinates in PDB/CRD file for animation
@@ -704,9 +710,6 @@ c return forces to fullatom arrays
 	    end if
 	  end do
 	enddo
-
-
-
 
 
 ! write xyz, hay q ponerle un if para escribir solo cuando se necesita
@@ -799,7 +802,7 @@ C Write atomic forces
 	fa = 0.d0
         fdummy = 0.d0
         cfdummy = 0.d0
-        Energy_band(replica_number)=Etots !/eVa ! eV
+        Energy_band(replica_number)=Etots ! eV
       endif
 
 ! Exit MMxQM loop
@@ -812,12 +815,13 @@ C Write atomic forces
       if (idyn .eq. 1 ) then !Move atoms in a NEB scheme
 
 	if (writeRF .eq. 1) then!save coordinates and forces for integration 
+
 	  open(unit=969, file="Pos_forces.dat")
 	  do replica_number = NEB_firstimage, NEB_lastimage ! Band Replicas
 	    do itest=1, natot
 	      write(969,423) itest,
-     .        rclas_BAND(1:3,itest,replica_number)*Ang,
-     .        fclas_BAND(1:3,itest,replica_number)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
+     .        rclas_BAND(1:3,itest,replica_number)/Ang,
+     .        fclas_BAND(1:3,itest,replica_number)*Ang/eV*kcal ! Ang, kcal/ang mol
 	    end do
 	    write(969,423)
 	  end do

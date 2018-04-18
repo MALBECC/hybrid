@@ -212,7 +212,7 @@
 	integer :: writeRF ! force integration
 
 ! Conversion factors
-	real(dp) :: Ang !r_in_ang=r_in_bohr * Ang
+	real(dp) :: Ang !r_in_bohr=r_in_ang * Ang
 	real(dp) :: eV !E_in_Hartree=E_in_eV * eV
 	real(dp) :: kcal ! E_in_kcal_mol-1 = E_in_eV * kcal
 
