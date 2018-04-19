@@ -62,9 +62,11 @@
 	if (file_exists) then
 	  write(*,*) "reading IZ from IZ_input"
 	  open(unit=30, file="IZ_input")
+
 	  do j=1, natoms
-	    read(30,*) Iz(i)
+	    read(30,*) Iz(j)
 	  end do
+
 	  write(*,*) "centering trajectory"
 	  In0vec=0.d0
 	  do i=0,npict
@@ -146,6 +148,7 @@
 	LWMAX=1000
 	massZ= (/1.d0, 4.d0, 7.d0, 9.d0, 11.d0, 12.d0, 14.d0, 16.d0, 19.d0, 20.d0, 23.d0, 24.d0, 27.d0, 28.d0, 31.d0, 32.d0, 35.d0, 40.d0, 39.d0, 40.d0, 45.d0, 48.d0, 51.d0, 52.d0, 55.d0, 56.d0, 59.d0, 59.d0, 64.d0, 65.d0, 70.d0, 73.d0, 75.d0, 79.d0, 80.d0, 84.d0/) 
 !ampliar luegpo massZ hasta 118
+
 
 !calculo el centro de masa y centro al sistema
         RCM=0.d0
