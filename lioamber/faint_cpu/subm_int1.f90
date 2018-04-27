@@ -36,7 +36,7 @@
         integer,                       intent(inout) :: natom
 
         double precision, allocatable, intent(in) :: d(:,:)
-        double precision, intent(in) :: r(natom,3)
+        double precision, intent(in) :: r(:,:)
         double precision, allocatable, intent(in) :: a(:,:)
         double precision, allocatable, intent(in) :: c(:,:)
         integer, intent(in) :: Nuc(M)
