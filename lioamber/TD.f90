@@ -617,6 +617,7 @@ subroutine td_integration_setup(igrid2, igpu)
 end subroutine td_integration_setup
 
 subroutine td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM11, r, pc, &
+<<<<<<< HEAD
                           ntatom, natom, Smat, Nuc, a, c, d, Iz, ncont, NORM,  &
                           M, Md)
     use faint_cpu77, only: intsol
@@ -636,6 +637,16 @@ subroutine td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM11, r, pc, &
     double precision, allocatable, intent(inout) :: RMM(:), Smat(:,:)
 
     integer :: icount
+=======
+                          ntatom)
+   use faint_cpu77, only: int1, intsol
+   use mask_ecp   , only: ECP_fock
+   implicit none
+   integer, intent(in)    :: MM, igpu, nsol, ntatom
+   real*8 , intent(in)    :: r(ntatom,3), pc(ntatom)
+   real*8 , intent(inout) :: RMM(MM), RMM11(MM), E1, En, E1s, Ens
+   integer :: icount
+>>>>>>> e4d342c49f2e4a653d81ded8d1f368b751cc403c
 
    E1 = 0.0D0 ; En = 0.0D0
    call g2g_timer_sum_start('TD - 1-e Fock')

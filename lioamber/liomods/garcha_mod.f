@@ -128,7 +128,7 @@ c      parameter rmintsol=16.0D0
 !-Variables for outout format.
       logical :: style, allnml
 !-Variables for property calculations.
-      logical :: fukui, dipole, lowdin, mulliken, print_coeffs
+      logical :: fukui, dipole, lowdin, mulliken, spinpop, print_coeffs
 
 !     parameter (nng=100)
       integer :: nng, max_func
@@ -172,7 +172,8 @@ c      parameter rmintsol=16.0D0
       integer :: n_points ! number of points scaned for lineal search
       integer :: n_min_steeps !number of optimization steps
       logical :: lineal_search !enable lineal search
-
+!for properties calculation control
+      logical :: calc_propM
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
       end module
