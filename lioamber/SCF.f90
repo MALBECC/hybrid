@@ -35,7 +35,8 @@ subroutine SCF(E)
                           Eorbs, kkind,kkinds,cool,cools,NMAX,Dbug, idip, Iz,  &
                           nuc, doing_ehrenfest, first_step, RealRho,           &
                           total_time, MO_coef_at, MO_coef_at_b, Smat, good_cut,&
-                          ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN
+                          ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN, nshell, &
+                          Nuc, a, c, d, NORM
    use ECP_mod, only : ecpmode, term1e, VAAA, VAAB, VBAC, &
                        FOCK_ECP_read,FOCK_ECP_write,IzECP
    use field_data, only: field, fx, fy, fz
@@ -43,7 +44,8 @@ subroutine SCF(E)
    use td_data, only: timedep, tdrestart, tdstep
    use transport_data, only : generate_rho0
    use time_dependent, only : TD
-   use faint_cpu77, only: int1, int2, intsol, int3mem, int3lu
+   use faint_cpu, only: int1
+   use faint_cpu77, only: int2, intsol, int3mem, int3lu
    use dftb_data, only : dftb_calc, MDFTB, MTB, chargeA_TB, chargeB_TB,        &
                          rho_aDFTB, rho_bDFTB, TBsave, TBload
    use dftb_subs, only : dftb_init, getXY_DFTB, find_TB_neighbors,             &
@@ -60,6 +62,7 @@ subroutine SCF(E)
    use converger_subs, only: converger_init, conver
    use mask_cublas   , only: cublas_setmat, cublas_release
    use typedef_operator, only: operator !Testing operator
+   use trans_Data    , only: gaussian_convert, rho_exc, translation
 #  ifdef  CUBLAS
       use cublasmath , only: cumxp_r
 #  endif
@@ -326,7 +329,7 @@ subroutine SCF(E)
 !
       call g2g_timer_sum_start('1-e Fock')
       call g2g_timer_sum_start('Nuclear attraction')
-      call int1(En)
+      call int1(En, RMM, Smat, Nuc, a, c, d, r, Iz, ncont, NORM, natom, M, Md)
 
       call ECP_fock( MM, RMM(M11) )
 
@@ -456,7 +459,11 @@ subroutine SCF(E)
 
       if ((timedep.eq.1).and.(tdrestart)) then
         call g2g_timer_sum_start('TD')
-        call TD()
+        if(OPEN) then
+           call TD(fock_aop, rho_aop, fock_bop, rho_bop)
+        else
+           call TD(fock_aop, rho_aop)
+        endif
         call g2g_timer_sum_stop('TD')
         return
       endif
@@ -961,7 +968,7 @@ subroutine SCF(E)
         Es=Ens
 
 !       One electron Kinetic (with aint >3) or Kinetic + Nuc-elec (aint >=3)
-        call int1(En)
+        call int1(En, RMM, Smat, Nuc, a, c, d, r, Iz, ncont, NORM, natom, M, Md)
 
 !       Computing the E1-fock without the MM atoms
         if (nsol.gt.0.and.igpu.ge.1) then
@@ -1032,6 +1039,20 @@ subroutine SCF(E)
 
       call cubegen_matin( M, X )
 
+   if (gaussian_convert) then       ! Density matrix translation from Gaussian09
+      allocate(rho_exc(M,M))
+      call translation(M,rho_exc)   ! Reorganizes Rho to LIO format.
+
+      do jj=1,M                     ! Stores matrix in RMM
+         RMM(jj + (M2-jj)*(jj-1)/2) = rho_exc(jj,jj)
+         do kk = jj+1, M
+            RMM( kk + (M2-jj)*(jj-1)/2) = rho_exc(jj,kk) * 2.0D0
+         enddo
+      enddo
+
+      deallocate(rho_exc)
+   endif                            ! End of translation
+
 
 !------------------------------------------------------------------------------!
 ! TODO: have ehrendyn call SCF and have SCF always save the resulting rho in
@@ -1061,7 +1082,11 @@ subroutine SCF(E)
 !
       if (timedep.eq.1) then
         call g2g_timer_sum_start('TD')
-        call TD()
+        if (OPEN) then
+           call TD(fock_aop, rho_aop, fock_bop, rho_bop)
+        else
+           call TD(fock_aop, rho_aop)
+        end if
         call g2g_timer_sum_stop('TD')
       endif
 
