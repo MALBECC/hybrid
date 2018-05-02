@@ -187,7 +187,7 @@ c writes .rce file
       call io_assign(unite)
       open( unite, file=fnamee, form = 'formatted', position='append',
      .      status='unknown')
-       write(unite,'(F10.4,2x,F14.7)') rtot, Etots*kcal/eV
+       write(unite,'(F10.4,2x,F20.7)') rtot, Etots*kcal/eV
 c
       call io_close(unite)
 
