@@ -207,6 +207,8 @@
 	double precision :: NEB_alpha !alpha value in FIRE algorithm
 	double precision :: NEB_steep_size !steep size in steepest descend algorithm in NEB
 	double precision :: NEB_MAXFmod !Max force in NEB optimizarion
+	integer :: PNEB !enable partial nudged elastic band
+	integer :: PNEB_ini_atom, PNEB_last_atom ! initial and last atom in PNEB
 
 !outputs
 	integer :: writeRF ! force integration

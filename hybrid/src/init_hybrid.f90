@@ -7,6 +7,7 @@
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
 	fclas_BAND, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
+	PNEB, PNEB_ini_atom, PNEB_last_atom, &
 	Ang, eV, kcal, na_u, qm, mm, nesp, natoms_partial_freeze, coord_freeze, &
 	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, MM_freeze_list, &
 	masst, vat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
@@ -130,8 +131,13 @@
 	  vclas_BAND=0.d0
 	  fclas_BAND=0.d0
 	  Energy_band=0.d0
-	
-	
+	  PNEB=fdf_integer('PNEB',0)
+
+	  if ( PNEB .eq.1 ) then
+	    PNEB_ini_atom=fdf_integer('PNEBi',1)
+	    PNEB_last_atom=fdf_integer('PNEBl',natot)
+	  end if
+
 	else
 	  STOP "Wrong init_type"
 	end if
