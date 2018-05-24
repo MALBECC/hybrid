@@ -76,22 +76,33 @@
 
 
 	SUBROUTINE NEB_calculate_tg(method,replica_number,tang_vec)
-	use scarlett, only: NEB_Nimages, natot, rclas_BAND, Energy_band
+	use scarlett, only: NEB_Nimages, natot, rclas_BAND, Energy_band, PNEB, PNEB_ini_atom, PNEB_last_atom
 	implicit none
 	integer, intent(in) :: method, replica_number
 	double precision, dimension(3,natot), intent(inout) :: tang_vec
 	double precision, dimension(3,natot) :: tang_vecA, tang_vecB
 	double precision :: NORMVEC, NORMVECA, NORMVECB
 	double precision :: E0, E1, E2, Vmax, Vmin
+	integer :: initial_atom, last_atom
 	integer :: i
 	
-	IF (method.eq.0) then
-	  tang_vec(1:3,1:natot) = rclas_BAND(1:3,1:natot,replica_number) - rclas_BAND(1:3,1:natot,replica_number-1)
-	ELSEIF (method.eq.1) then
-	  tang_vecA(1:3,1:natot) = rclas_BAND(1:3,1:natot,replica_number) - rclas_BAND(1:3,1:natot,replica_number-1)
-	  tang_vecB(1:3,1:natot) = rclas_BAND(1:3,1:natot,replica_number+1) - rclas_BAND(1:3,1:natot,replica_number)
+	initial_atom=1
+	last_atom=natot
 	
-	  do i=1, natot
+	if ( PNEB .eq.1 ) then
+	  initial_atom=PNEB_ini_atom
+	  last_atom=PNEB_last_atom
+	  write(*,*) "Runing Partial nudged elastic band between atoms", PNEB_ini_atom, "and ", PNEB_last_atom
+	  tang_vec=0.d0
+	end if
+
+	IF (method.eq.0) then
+	  tang_vec(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number) - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
+	ELSEIF (method.eq.1) then
+	  tang_vecA(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number) - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
+	  tang_vecB(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
+	
+	  do i=initial_atom,last_atom
 	    NORMVECA= tang_vecA(1,i)**2 + tang_vecA(2,i)**2 + tang_vecA(3,i)**2
 	    NORMVECA=sqrt(NORMVECA)
 	    tang_vecA(1:3,i)=tang_vecA(1:3,i)/NORMVECA
@@ -101,15 +112,15 @@
 	    tang_vecB(1:3,i)=tang_vecB(1:3,i)/NORMVECB
 	  end do
 	
-	  tang_vec(1:3,1:natot)=tang_vecA(1:3,1:natot)+tang_vecB(1:3,1:natot)
+	  tang_vec(1:3,initial_atom:last_atom)=tang_vecA(1:3,initial_atom:last_atom)+tang_vecB(1:3,initial_atom:last_atom)
 	
 	ELSEIF (method.eq.2) then !The Journal of Chemical Physics 113, 9978 (2000); https://doi.org/10.1063/1.1323224
-	  tang_vecA(1:3,1:natot) = rclas_BAND(1:3,1:natot,replica_number) - rclas_BAND(1:3,1:natot,replica_number-1)
-	  tang_vecB(1:3,1:natot) = rclas_BAND(1:3,1:natot,replica_number+1) - rclas_BAND(1:3,1:natot,replica_number)
+	  tang_vecA(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number) - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
+	  tang_vecB(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
 	  E0=Energy_band(replica_number-1)
 	  E1=Energy_band(replica_number)
 	  E2=Energy_band(replica_number+1)
-	  do i=1, natot
+	  do i=initial_atom,last_atom
 	    if ((E2.gt.E1) .and. (E1.gt.E0)) then
 	      tang_vec(1:3,i)=tang_vecB(1:3,i)
 	    else if ((E0.gt.E1) .and. (E1.gt.E2)) then
@@ -125,7 +136,7 @@
 	  STOP "Wrong method in NEB_calculate_tg"
 	END IF
 	
-	do i=1, natot
+	do i=initial_atom,last_atom
 	  NORMVEC= tang_vec(1,i)**2 + tang_vec(2,i)**2 + tang_vec(3,i)**2
 	  NORMVEC=sqrt(NORMVEC)
 	  if (NORMVEC .lt. 1d-9) then
