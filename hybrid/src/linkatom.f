@@ -1003,7 +1003,7 @@ c calculates HL position
 	
 	subroutine link3(numlink,linkat,linkqm,linkmm,ramber,
      .    natot,na_u,namber,distl)
-
+	use scarlett, only: frstme
         implicit none
         integer numlink,linkat(15),linkqm(15,4),linkmm(15,4),
      .  na_u,natot,namber,linkmm2(15,4,3)
@@ -1012,9 +1012,9 @@ c calculates HL position
         double precision ramber(3,natot),
      .	x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4,
      .  r4,a4,d4,angle,dihedro2,distl(15)
-        logical frstme
-        save frstme
-        data frstme /.true./
+c        logical frstme
+c        save frstme
+c        data frstme /.true./
 
 c change units
         ramber(1:3,1:natot)=ramber(1:3,1:natot)*0.529177d0
