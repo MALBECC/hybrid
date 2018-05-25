@@ -25,6 +25,7 @@ OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	writeall.o qmmm_lst_blk.o solv_assign.o \
 	ljef.o solv_ene_fce.o linkatom.o recipes.o \
 	assignation.o center_rotation.o init_hybrid.o NEB_subs.o\
+	quickmin.o \
         hybrid.o \
 
 # FDF Module

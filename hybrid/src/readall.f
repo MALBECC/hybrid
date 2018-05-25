@@ -123,7 +123,7 @@ C  Modules
       use fdf
       use sys
       use scarlett, only: NEB_move_method, NEB_spring_constant,
-     .   NEB_Nimages
+     .   NEB_Nimages, time_steep
 
       implicit none
 
@@ -156,7 +156,8 @@ C  Internal variables .................................................
      .  dt_default, dxmax_default,
      .  ftol_default,  
      .  dx_default,
-     .  NEB_spring_constant_default
+     .  NEB_spring_constant_default,
+     .  time_steep_default
 
       logical
      .  leqi, qnch, qnch_default
@@ -170,6 +171,15 @@ C Kind of dynamics
           write(6,'(a,a)') 
      .     'read: Dynamics option                  = ',
      .     '    CG coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
+      elseif (leqi(dyntype,'qm')) then
+        idyn = 2
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    QM coord. optimization'
           usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
@@ -189,7 +199,7 @@ C Kind of dynamics
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:      - CG - NEB                      '
+        write(6,'(a)') 'read:      - CG - QM - NEB                  '
         write(6,102)
         call die
       endif 
