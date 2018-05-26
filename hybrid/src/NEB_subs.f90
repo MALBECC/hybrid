@@ -25,7 +25,7 @@
 	if (istep.eq.0) then!initial max steep size
 	  NEB_steep_size=0.1d0
 	  do i=1, natot
-	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*5.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
+	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*10.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
 	  end do
           fclas_BAND_fresh=fclas_BAND
         else
@@ -224,7 +224,7 @@
 
 	SUBROUTINE NEB_movement_algorithm(method,istep,MAXFmod_total,NEB_firstimage,NEB_lastimage)
 	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst,  &
-	NEB_Ndescend, time_steep, time_steep_max, NEB_alpha, NEB_steep_size
+	time_steep, time_steep_max, NEB_steep_size, NEB_time_steep, NEB_Ndescend, NEB_alpha
 	implicit none
 	integer :: method
 	double precision, dimension(3,natot,NEB_Nimages) :: v12clas_BAND
@@ -256,58 +256,15 @@
 	  end do
 	
 	elseif (method.eq.3) then !FIRE, Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
-	
-	  do i=1, natot
-	    aclas_BAND(1:3, i, 1:NEB_Nimages) = fclas_BAND(1:3, i, 1:NEB_Nimages)/masst(i)
-	    do j=1,3
-	      do replica_number=1,NEB_Nimages
-	        Fmod=Fmod + fclas_BAND(j, i, replica_number)**2
-	      end do
-	    end do
+	  do replica_number=NEB_firstimage+1, NEB_lastimage-1
+	    write(*,*) "moving image ", replica_number
+	    call FIRE(natot, rclas_BAND(:,:,replica_number), fclas_BAND(:,:,replica_number), &
+	    aclas_BAND_old(:,:,replica_number), vclas_BAND(:,:,replica_number), masst, &
+	    NEB_time_steep(replica_number), NEB_Ndescend(replica_number), time_steep_max, &
+	    NEB_alpha(replica_number))
+!	STOP "FINE NEB not ready"
+!falta  time_steep, Ndescend, time_steep_max, alpha)
 	  end do
-	  Fmod=sqrt(Fmod)
-	
-	  if (istep .ne. 1) then
-	    vclas_BAND=vclas_BAND+0.5d0*(aclas_BAND+aclas_BAND_old)*time_steep
-	    velocity_proyected=0.d0 !P in paper
-	    velocity_mod=0.d0
-	
-	    do i=1, natot
-	      do j=1,3
-		do replica_number=1,NEB_Nimages
-		  velocity_proyected=velocity_proyected+vclas_BAND(j,i,replica_number) * fclas_BAND(j,i,replica_number)
-		  velocity_mod=velocity_mod+vclas_BAND(j,i,replica_number)*vclas_BAND(j,i,replica_number)
-		end do
-	      end do
-	    end do
-	    velocity_mod=sqrt(velocity_mod)
-	
-	    if (velocity_proyected .gt. 0.d0) then
-	      NEB_Ndescend=NEB_Ndescend+1
-	      if (NEB_Ndescend .gt. 5) then
-	        time_steep=min(time_steep*1.1d0, time_steep_max) 
-	        NEB_alpha=NEB_alpha*0.99d0
-	      end if
-	      vclas_BAND=(1.d0-NEB_alpha)*vclas_BAND+NEB_alpha*velocity_mod*1.d0/Fmod*fclas_BAND
-	    else
-	      NEB_Ndescend=0
-	      NEB_alpha=0.1d0
-	      time_steep=time_steep*0.5
-	      vclas_BAND=0.d0
-	    end if
-	  else !initialice variables in 1st steep
-	    NEB_Ndescend=0
-	    time_steep_max=10.d0*time_steep
-	    NEB_alpha=0.1d0
-	  end if
-	!freezing 1st and last images 
-	  vclas_BAND(1:3, 1:natot,1)=0.d0
-	  vclas_BAND(1:3, 1:natot,NEB_Nimages)=0.d0
-	  aclas_BAND(1:3, 1:natot,1)=0.d0
-	  aclas_BAND(1:3, 1:natot,NEB_Nimages)=0.d0
-	!move images
-	  rclas_BAND=rclas_BAND+vclas_BAND*time_steep+0.5d0*aclas_BAND*time_steep**2
-	  aclas_BAND_old=aclas_BAND
 	else
 	  STOP "Wrong method in NEB_movement_algorithm"
 	end if

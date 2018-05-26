@@ -123,7 +123,7 @@ C  Modules
       use fdf
       use sys
       use scarlett, only: NEB_move_method, NEB_spring_constant,
-     .   NEB_Nimages, time_steep
+     .   NEB_Nimages, time_steep, time_steep_max
 
       implicit none
 
@@ -184,6 +184,15 @@ C Kind of dynamics
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
      .     usesavecg
+      elseif (leqi(dyntype,'fire')) then
+        idyn = 3
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    QM coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
           write(6,'(a,a)')
@@ -199,7 +208,7 @@ C Kind of dynamics
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:      - CG - QM - NEB                  '
+        write(6,'(a)') 'read:    - CG - QM - FIRE - NEB                '
         write(6,102)
         call die
       endif 
@@ -258,7 +267,7 @@ C hay qunificar los timesteeps
       time_steep_default=1d-1
       time_steep = fdf_double('Tstep',
      .  time_steep_default)
-
+      time_steep_max=10.d0*time_steep
 
 
 C Quench Option
