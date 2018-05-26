@@ -17,8 +17,9 @@
 	bondtype, kangle,angleeq,angletype, kdihe,diheeq,dihetype, multidihe, &
 	perdihe, kimp,impeq, imptype,multiimp, perimp, atange, atangm, atdihe, &
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
-	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme
-	
+	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
+	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
+	NEB_move_method
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -114,7 +115,8 @@
 	  writeRF=0
 	  writeRF = fdf_integer('PFIntegrationOutput',0)
 	  frstme=.true.
-	
+	  Ndescend=0
+	  alpha=0.1d0
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
@@ -139,6 +141,13 @@
 	  if ( PNEB .eq.1 ) then
 	    PNEB_ini_atom=fdf_integer('PNEBi',1)
 	    PNEB_last_atom=fdf_integer('PNEBl',natot)
+	  end if
+	
+	  if (NEB_move_method .eq.3) then
+	    allocate(NEB_time_steep(NEB_Nimages), NEB_alpha(NEB_Nimages),NEB_Ndescend(NEB_Nimages))
+	    NEB_time_steep=time_steep
+	    NEB_alpha=alpha
+	    NEB_Ndescend=0
 	  end if
 
 	else

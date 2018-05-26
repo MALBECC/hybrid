@@ -59,6 +59,8 @@
      . ucell,
      . ftol,
      . Ang, eV, kcal, 
+!FIRE
+     . time_steep, Ndescend, time_steep_max, alpha,
 !Lio
      . charge, spin,
 !outputs
@@ -433,7 +435,7 @@
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .lt. 3 ) then ! case 0 1 2
+        if (idyn .lt. 4 ) then ! case 0 1 2 3
           inicoor = 0
           fincoor = nmove
         endif
@@ -448,8 +450,8 @@
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 3) 
-     .    STOP 'only CG, QM or NEB minimization available'
+          if (idyn .ge. 4) 
+     .    STOP 'only CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
           write(6,'(2a)') '                        ',
@@ -759,6 +761,9 @@ C Write atomic forces
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
 	elseif (idyn .eq. 2) then
 	  call quick_min(natot, rclas, cfdummy, aat, vat, masst)
+	elseif (idyn .eq. 3) then
+	  call FIRE(natot, rclas, cfdummy, aat, vat, masst, time_steep,
+     .              Ndescend, time_steep_max, alpha)
 	end if
 
 !Nick center
