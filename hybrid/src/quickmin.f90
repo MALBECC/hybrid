@@ -12,7 +12,6 @@
 	double precision :: Fmod, velocity_proyected, velocity_proyectedR 
 	logical :: freeze
 	Fmod=0.d0
-
         do i=1, natot
           acel_new(1:3, i) = Force(1:3, i)/masst(i)
           do j=1,3

@@ -24,16 +24,13 @@
 	
 	if (istep.eq.0) then!initial max steep size
 	  NEB_steep_size=0.1d0
-!	  NEB_firstimage=1
-!	  NEB_lastimage=NEB_Nimages
-!	elseif (mod(istep,10).eq.0) then !recheck convergence on full band every X steps
-!	  NEB_firstimage=1
-!	  NEB_lastimage=NEB_Nimages
+	  do i=1, natot
+	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*5.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
+	  end do
           fclas_BAND_fresh=fclas_BAND
         else
 	  MAX_FORCE_REPLICA=NEB_firstimage
 	  if ( (MAX_FORCE_REPLICA .ne. 1) .and. (MAX_FORCE_REPLICA.ne. NEB_lastimage)) then
-	     write(222,*) "arreglo: ", replica_number
 	    fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA)=fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA)
 	    fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA-1)=fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA-1)
 	    fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA+1)=fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA+1)
@@ -51,7 +48,7 @@
 	
 	do replica_number=NEB_firstimage, NEB_lastimage
 	  if ( replica_number .gt. 1 .and. replica_number .lt. NEB_Nimages) then
-	  write(222,*) "cambio con sprimg en: ", replica_number
+!	  write(222,*) "cambio con sprimg en: ", replica_number
 	  call NEB_calculate_tg(2,replica_number,tang_vec) !calculate tangent direccion 
 	  call NEB_remove_parallel(replica_number,tang_vec) !remove force in tangent direction
 	  call NEB_calculate_spring_force(2, replica_number, tang_vec, F_spring) !Spring force
@@ -69,7 +66,6 @@
 	NEB_lastimage=MAX_FORCE_REPLICA+1
 	if (NEB_firstimage .lt. 1) NEB_firstimage=1
 	if (NEB_lastimage .gt. NEB_Nimages) NEB_lastimage=NEB_Nimages
-
 
 	if (.not. relaxd) then
 	  call NEB_movement_algorithm(NEB_move_method,istep, MAXFmod_total, NEB_firstimage, NEB_lastimage) !move systems
@@ -241,7 +237,6 @@
 	double precision :: Fmod, velocity_proyected, velocity_mod
 	
 	Fmod=0.d0
-	
 	if (method.eq.1) then !steepest descend
 	
 	  MAXFmod=sqrt(MAXFmod_total)
@@ -255,7 +250,7 @@
 	
 	  do replica_number=NEB_firstimage+1, NEB_lastimage-1
 	    write(*,*) "moving image ", replica_number
-	     write(222,*) "muevo: ", replica_number
+!	     write(222,*) "muevo: ", replica_number
 	    call quick_min(natot, rclas_BAND(:,:,replica_number), fclas_BAND(:,:,replica_number), &
 	    aclas_BAND_old(:,:,replica_number), vclas_BAND(:,:,replica_number), masst)
 	  end do
