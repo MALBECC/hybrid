@@ -336,8 +336,8 @@
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
 	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do
-	  
-	  end if
+	   end if
+
 	  ! Sets to zero pc and Em for MMLink 
             do i=1,numlink
               pclinkmm(i,1:4)=pc(linkmm(i,1:4))
@@ -458,7 +458,7 @@
 
 !start loot over NEB images
 	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
-	  write(222,*) "SCf en: ", replica_number
+!	  write(222,*) "SCf en: ", replica_number
 	  if (idyn .eq.1) then
 	    rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
 	  end if
@@ -469,7 +469,7 @@
 
 	  recompute_cuts=.false.
 	  if (istep.eq.inicoor) recompute_cuts=.true.
-	  if (replica_number.ne.1) recompute_cuts=.false.
+	  if (replica_number.gt.1) recompute_cuts=.false.
 
 	  if (recompute_cuts) then ! define lista de interacciones en el primer paso de cada valor del restrain
 	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
@@ -539,7 +539,6 @@
               Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
             end if
           end do
-
 	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
      .     F_cut_QMMM,
      .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
@@ -567,7 +566,7 @@ c return forces to fullatom arrays
               write(6,'(A,i5)') '   MM x QM Step : ', imm 
               write(6,'(A)')    '*******************************'
             endif
-
+	
 ! Calculation of last QM-MM interaction: LJ Energy and Forces only 
             if((qm.and.mm)) then
               call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
@@ -600,25 +599,15 @@ c return forces to fullatom arrays
      .    water,masst,radblommbond)
             endif !mm
 
-
-
 ! converts fdummy to Kcal/mol/Ang  
             fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
- 
-
-
-
 ! here Etot in Hartree, fdummy in kcal/mol Ang
-
 
 ! add famber to fdummy  
             if(mm) then
               fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
      .        +fce_amber(1:3,1:nac)
             endif !mm
-
-
-
 
 ! Calculation of LinkAtom Energy and Forces
             if(qm.and.mm ) then
@@ -639,7 +628,6 @@ c return forces to fullatom arrays
               endif ! LA
             endif !qm & mm
 
-
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
 ! Calculation of Constrained Optimization Energy and Forces 
@@ -651,14 +639,9 @@ c return forces to fullatom arrays
           endif 
         endif !imm
 
-
-
 ! Converts fdummy Hartree/bohr. 
         fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 ! here Etot in Hartree, fdummy in Hartree/bohr
-
-
-
 
 ! Writes final energy decomposition
         Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)

@@ -254,6 +254,12 @@ C re-Center system
 C Length of time step for MD
       dt_default = 0.1 
         dt = fdf_physical('MD.LengthTimeStep',dt_default,'fs')
+C hay qunificar los timesteeps
+      time_steep_default=1d-1
+      time_steep = fdf_double('Tstep',
+     .  time_steep_default)
+
+
 
 C Quench Option
       qnch_default = .false.
