@@ -287,8 +287,6 @@
 	do i=1, natot
 	  do j=1,3
 	    Fmod2=fclas_BAND(j,i,replica_number)**2
-!a+fclas_BAND(2,i,replica_number)**2+fclas_BAND(3,i,replica_number)**2
-	
 	    if (Fmod2 .gt. NEB_maxFimage) NEB_maxFimage=Fmod2
 	    relaxd=relaxd .and. (Fmod2 .lt. ftol**2)
 	

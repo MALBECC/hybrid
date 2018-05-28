@@ -1,6 +1,7 @@
 	subroutine FIRE(natot, pos, Force, acel, vel, masst, time_steep, Ndescend, time_steep_max, alpha)
 !FIRE, Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
 !FIRE optimization algorithm, Nfoglia 05/18 
+	use scarlett, only : Ndamped
 	implicit none
 	integer, intent(in) :: natot
 	double precision, dimension(3,natot), intent(in) :: Force
@@ -12,7 +13,7 @@
 	integer, intent(inout) :: Ndescend
 	integer :: i,j
 	logical :: damp
- 
+! 	write(*,*) "FIRE params", time_steep, Ndescend, time_steep_max, alpha
 !	do i=1, 11
 !	  write(975,*) i, pos(1:3,i), Force(1:3,i), acel(1:3,i), vel(1:3,i), time_steep
 !	end do
@@ -48,7 +49,8 @@
 	  end if
 	  vel=(1.d0-alpha)*vel+alpha*velocity_mod*Force/Fmod
 	else
-	  write(*,*) "damping system"
+	  Ndamped=Ndamped+1
+	  write(*,*) "damping system", Ndamped
 	  Ndescend=0
 	  alpha=0.1d0
 	  time_steep=time_steep*0.5d0

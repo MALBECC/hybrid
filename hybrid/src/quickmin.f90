@@ -1,7 +1,7 @@
 	subroutine quick_min(natot, pos, Force, acel, vel, masst)
 !quick min optimization algorithm
 !Nfoglia 05/18 
-	use scarlett, only : time_steep
+	use scarlett, only : time_steep, Ndamped
 	implicit none
 	integer, intent(in) :: natot !number of atoms
 	double precision, dimension(3,natot), intent(in) :: Force !forces
@@ -38,7 +38,8 @@
 	    freeze=.true.
 	    velocity_proyected=0.d0
 	    vel=0.d0
-	    write(*,*) "freezing system"
+	    Ndamped=Ndamped+1
+	    write(*,*) "damping system", Ndamped
 	  else
 	    velocity_proyected=velocity_proyected+velocity_proyectedR
 	  end if
