@@ -19,6 +19,7 @@
 	double precision :: time_steep
 	double precision :: time_steep_max !max value of timesteep in FIRE algorithm
 	double precision :: alpha !alpha value in FIRE algorithm
+	integer :: Ndamped !number of times that system was damped in QM of FIRE algorithm
 	integer :: Ndescend !number of consecutive steps in which F·v >= 0
 	logical :: qm, mm ! True when system have a subsystem QM,MM
 	integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick

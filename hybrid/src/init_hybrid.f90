@@ -19,7 +19,7 @@
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
-	NEB_move_method
+	NEB_move_method, Ndamped
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -117,6 +117,7 @@
 	  frstme=.true.
 	  Ndescend=0
 	  alpha=0.1d0
+	  Ndamped=0
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp

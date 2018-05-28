@@ -756,14 +756,16 @@ C Write atomic forces
         end if
  
 	if (idyn .eq. 0) then
-
 	  call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
 	elseif (idyn .eq. 2) then
-	  call quick_min(natot, rclas, cfdummy, aat, vat, masst)
+	  call check_convergence(relaxd, cfdummy)
+	  if (.not. relaxd) call quick_min(natot, rclas, cfdummy, aat, vat,
+     .                           masst)
 	elseif (idyn .eq. 3) then
-	  call FIRE(natot, rclas, cfdummy, aat, vat, masst, time_steep,
-     .              Ndescend, time_steep_max, alpha)
+	  call check_convergence(relaxd, cfdummy)
+	  if (.not. relaxd) call FIRE(natot, rclas, cfdummy, aat, vat, masst,
+     .              time_steep,Ndescend, time_steep_max, alpha)
 	end if
 
 !Nick center
