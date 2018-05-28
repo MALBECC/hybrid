@@ -123,7 +123,7 @@ C  Modules
       use fdf
       use sys
       use scarlett, only: NEB_move_method, NEB_spring_constant,
-     .   NEB_Nimages
+     .   NEB_Nimages, time_steep, time_steep_max
 
       implicit none
 
@@ -156,7 +156,8 @@ C  Internal variables .................................................
      .  dt_default, dxmax_default,
      .  ftol_default,  
      .  dx_default,
-     .  NEB_spring_constant_default
+     .  NEB_spring_constant_default,
+     .  time_steep_default
 
       logical
      .  leqi, qnch, qnch_default
@@ -170,6 +171,24 @@ C Kind of dynamics
           write(6,'(a,a)') 
      .     'read: Dynamics option                  = ',
      .     '    CG coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
+      elseif (leqi(dyntype,'qm')) then
+        idyn = 2
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    QM coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
+      elseif (leqi(dyntype,'fire')) then
+        idyn = 3
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    QM coord. optimization'
           usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
@@ -189,7 +208,7 @@ C Kind of dynamics
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:      - CG - NEB                      '
+        write(6,'(a)') 'read:    - CG - QM - FIRE - NEB                '
         write(6,102)
         call die
       endif 
@@ -244,6 +263,12 @@ C re-Center system
 C Length of time step for MD
       dt_default = 0.1 
         dt = fdf_physical('MD.LengthTimeStep',dt_default,'fs')
+C hay qunificar los timesteeps
+      time_steep_default=1d-1
+      time_steep = fdf_double('Tstep',
+     .  time_steep_default)
+      time_steep_max=10.d0*time_steep
+
 
 C Quench Option
       qnch_default = .false.
