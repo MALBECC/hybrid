@@ -695,7 +695,6 @@ c atom qm cq force, sum of each particular x
 	flink(1,at1)=flink(1,at1)-dx
 	flink(2,at1)=flink(2,at1)-dy
 	flink(3,at1)=flink(3,at1)-dz
-	
 c force over x, change at3 by at1 
 	dx=0.d0
         dy=0.d0
@@ -726,7 +725,6 @@ c sum each x
 	flink(1,at3)=flink(1,at3)-dx
         flink(2,at3)=flink(2,at3)-dy
         flink(3,at3)=flink(3,at3)-dz
-	
 c middle atom force (change in derivate) 
 	dx=0.d0
         dy=0.d0
@@ -763,7 +761,6 @@ c central atom force
         flink(1,at2)=flink(1,at2)-dx
         flink(2,at2)=flink(2,at2)-dy
         flink(3,at2)=flink(3,at2)-dz
-
 c enddo for each possible x 
  55	enddo
 
@@ -842,7 +839,6 @@ c force assignation
 	flink(1,at4)=flink(1,at4)-fce(10)
         flink(2,at4)=flink(2,at4)-fce(11)
         flink(3,at4)=flink(3,at4)-fce(12)	
-
 	enddo
 	else
 	goto 70
@@ -951,16 +947,15 @@ c angle proyection calculation, to proyect forces
 
 	angulo=angulo*pi/180.d0
 c        write(*,*) "angulo", angulo
-
 c  product  modF and dversor
 	 fmod=sqrt(fdummy(1,at3)**2d0+
      .   fdummy(2,at3)**2d0+fdummy(3,at3)**2d0)
 
 	fpar(1:3)=fmod*dversor(1:3)*dCOS(angulo)
+	if (fmod .eq.0.d0) fpar=0.d0
 c	write(*,*) "fpar calc", fmod, dversor(1:3), dCOS(angulo)
 	fpp(1:3)=fdummy(1:3,at3)-fpar(1:3) 
 c	write(*,*) "fpp calc", fdummy(1:3,at3),fpar(1:3)
-
 c perpendicular fce division and sum to CMM y CQM
 c parallel fce sum over CM and HL fce eq cero
 	fdummy(1:3,at3)=fpar(1:3)*scaling
@@ -982,7 +977,6 @@ c distance HL--CQ and CM--CQ
         flink(2,at1)=flink(2,at1)+fpp(2)*(1.d0-rhq/rqm)
         flink(3,at1)=flink(3,at1)+fpp(3)*(1.d0-rhq/rqm)
 
-
 	Ener=Ener+Elink(i)
 
 c      enddo numlink
@@ -1003,7 +997,7 @@ c calculates HL position
 	
 	subroutine link3(numlink,linkat,linkqm,linkmm,ramber,
      .    natot,na_u,namber,distl)
-
+	use scarlett, only: frstme
         implicit none
         integer numlink,linkat(15),linkqm(15,4),linkmm(15,4),
      .  na_u,natot,namber,linkmm2(15,4,3)
@@ -1012,9 +1006,9 @@ c calculates HL position
         double precision ramber(3,natot),
      .	x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4,
      .  r4,a4,d4,angle,dihedro2,distl(15)
-        logical frstme
-        save frstme
-        data frstme /.true./
+c        logical frstme
+c        save frstme
+c        data frstme /.true./
 
 c change units
         ramber(1:3,1:natot)=ramber(1:3,1:natot)*0.529177d0
