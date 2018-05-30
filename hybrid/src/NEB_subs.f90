@@ -25,7 +25,7 @@
 	if (istep.eq.0) then!initial max steep size
 	  NEB_steep_size=0.1d0
 	  do i=1, natot
-	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*10.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
+	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*12.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
 	  end do
           fclas_BAND_fresh=fclas_BAND
         else
@@ -54,6 +54,8 @@
 	  call NEB_calculate_spring_force(2, replica_number, tang_vec, F_spring) !Spring force
 	  fclas_BAND(1:3, 1:natot,replica_number)=fclas_BAND(1:3, 1:natot,replica_number)  &
 	  + NEB_spring_constant*F_spring(1:3,1:natot) !New force
+!F_sring in units: Bohr
+!fclas_band in H/bohr
 	  end if
 	end do
 	
