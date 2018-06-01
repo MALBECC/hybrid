@@ -14,7 +14,7 @@
 ! After it is done, this file should be commited.
 
 	integer, dimension(3), save  :: num_version = (/2,0,0/)
-	character(len=80), parameter :: version_str="HYBRID 2.0 -- [ Lio-hybrid ] (22 Dec 2017)" 
+	character(len=80), parameter :: version_str="HYBRID 2.0 -- [ Lio-hybrid ] (1 Jun 2018)" 
 	end module version_info
 !================================================================
 
@@ -31,12 +31,12 @@ implicit none
 write(6,'(a)') trim(version_str)
 !write(6,'(2a)') 'Architecture  : ', &
 !"SIESTA_ARCH"
-write(6,'(2a)') 'Compiler flags: ', &
-"FFLAGS"
+!write(6,'(2a)') 'Compiler flags: ', &
+!"FFLAGS"
 !#ifdef MPI
 !write(6,'(a)') 'PARALLEL version'
 !#else
-write(6,'(a)') 'SERIAL version'
+!write(6,'(a)') 'SERIAL version'
 !#endif
 
 !#ifdef CDF
