@@ -121,10 +121,17 @@
 	end if
 
 	IF (method.eq.0) then
-	  tang_vec(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number) - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
+	  tang_vec(1:3,initial_atom:last_atom) =  &
+	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
+	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
 	ELSEIF (method.eq.1) then
-	  tang_vecA(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number) - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
-	  tang_vecB(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
+	  tang_vecA(1:3,initial_atom:last_atom) = &
+	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
+	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
+	
+	  tang_vecB(1:3,initial_atom:last_atom) = &
+	  rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) &
+	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
 	
 	  do i=initial_atom,last_atom
 	    NORMVECA= tang_vecA(1,i)**2 + tang_vecA(2,i)**2 + tang_vecA(3,i)**2
@@ -136,11 +143,18 @@
 	    tang_vecB(1:3,i)=tang_vecB(1:3,i)/NORMVECB
 	  end do
 	
-	  tang_vec(1:3,initial_atom:last_atom)=tang_vecA(1:3,initial_atom:last_atom)+tang_vecB(1:3,initial_atom:last_atom)
+	  tang_vec(1:3,initial_atom:last_atom)= &
+	  tang_vecA(1:3,initial_atom:last_atom)+tang_vecB(1:3,initial_atom:last_atom)
 	
 	ELSEIF (method.eq.2) then !The Journal of Chemical Physics 113, 9978 (2000); https://doi.org/10.1063/1.1323224
-	  tang_vecA(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number) - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
-	  tang_vecB(1:3,initial_atom:last_atom) = rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
+	  tang_vecA(1:3,initial_atom:last_atom) = &
+	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
+	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
+	
+	  tang_vecB(1:3,initial_atom:last_atom) =  &
+	  rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) &
+	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
+	
 	  E0=Energy_band(replica_number-1)
 	  E1=Energy_band(replica_number)
 	  E2=Energy_band(replica_number+1)
