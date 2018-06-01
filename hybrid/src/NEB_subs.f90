@@ -25,7 +25,7 @@
 	if (istep.eq.0) then!initial max steep size
 	  NEB_steep_size=0.1d0
 	  do i=1, natot
-	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*10.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
+	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*12.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
 	  end do
           fclas_BAND_fresh=fclas_BAND
         else
@@ -54,6 +54,8 @@
 	  call NEB_calculate_spring_force(2, replica_number, tang_vec, F_spring) !Spring force
 	  fclas_BAND(1:3, 1:natot,replica_number)=fclas_BAND(1:3, 1:natot,replica_number)  &
 	  + NEB_spring_constant*F_spring(1:3,1:natot) !New force
+!F_sring in units: Bohr
+!fclas_band in H/bohr
 	  end if
 	end do
 	
@@ -159,10 +161,12 @@
 	END IF
 	
 	do i=initial_atom,last_atom
+	  if (i.lt. 9) write(556,*) "tangente", i, tang_vec(1:3,i)
 	  NORMVEC= tang_vec(1,i)**2 + tang_vec(2,i)**2 + tang_vec(3,i)**2
 	  NORMVEC=sqrt(NORMVEC)
-	  if (NORMVEC .lt. 1d-9) then
+	  if (NORMVEC .lt. 1d-20) then
 !	    write(*,*) "tangent vector null, replica: ",replica_number, "atom ", i
+	     tang_vec(1:3,i)=0.d0
 !	    stop
 	  else if (NORMVEC .ne. NORMVEC) then
 	    stop "NAN in tangent vector"
@@ -250,7 +254,6 @@
 	
 	  do replica_number=NEB_firstimage+1, NEB_lastimage-1
 	    write(*,*) "moving image ", replica_number
-!	     write(222,*) "muevo: ", replica_number
 	    call quick_min(natot, rclas_BAND(:,:,replica_number), fclas_BAND(:,:,replica_number), &
 	    aclas_BAND_old(:,:,replica_number), vclas_BAND(:,:,replica_number), masst)
 	  end do
@@ -262,8 +265,8 @@
 	    aclas_BAND_old(:,:,replica_number), vclas_BAND(:,:,replica_number), masst, &
 	    NEB_time_steep(replica_number), NEB_Ndescend(replica_number), time_steep_max, &
 	    NEB_alpha(replica_number))
-!	STOP "FINE NEB not ready"
-!falta  time_steep, Ndescend, time_steep_max, alpha)
+	    write(*,*) "timesteep", NEB_time_steep(replica_number)
+	    if (NEB_time_steep(replica_number) .lt. 1D-10) NEB_time_steep(replica_number)=1D-2
 	  end do
 	else
 	  STOP "Wrong method in NEB_movement_algorithm"
