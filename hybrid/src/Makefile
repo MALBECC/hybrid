@@ -76,8 +76,6 @@ reinit.o readall.o writeall.o : ionew.o
 qmmm_lst_blk.o : ionew.o
 iofa.o iocg.o ioxv.o ioxvconstr.o ofc.o : ionew.o
 assign.o : parse.o
-#bandmove.o : scarlett_mod.o
-
 
 version:
 	@echo
