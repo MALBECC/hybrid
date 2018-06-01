@@ -267,7 +267,7 @@ C hay qunificar los timesteeps
       time_steep_default=1d-1
       time_steep = fdf_double('Tstep',
      .  time_steep_default)
-      time_steep_max=10.d0*time_steep
+      time_steep_max=75.d0*time_steep
 
 
 C Quench Option
