@@ -88,15 +88,22 @@ version:
 	@echo
 
 LIO_OBJS = $(wildcard $(LIO_PATH)/lioamber/obj/*.o) 
-LFLAGS += -L$(LIO_PATH)/g2g
+
+
+HFLAGS += -O2 -L../../g2g
 
 hybrid: version $(FDF) $(ALL_OBJS)
 	@mkdir -p ../bin
 	@echo $(LFLAGS)
 	@echo $(FFLAGS) 
-
+	@echo $(LIBS)
+	@echo $(ALL_OBJS) 
+	@echo $(LIO_OBJS)
+	@echo $(FDF)
+	@echo $(LIBSH)
 	$(FC) -o ../bin/hybrid \
-		$(LFLAGS) $(ALL_OBJS) $(LIO_OBJS) $(FDF) $(LIBS)
+		$(HFLAGS) $(ALL_OBJS) $(LIO_OBJS) $(FDF) $(LIBS) 
+
 
 clean: 
 	@echo "==> Cleaning object, library, and executable files"
