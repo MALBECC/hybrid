@@ -15,8 +15,9 @@ LFLAGS += -L$(LIO_PATH)/g2g
 
 all: $(TARGETS)
 %: %.f90 
-	$(FC) $(LFLAGS) -o ../bin/$@ $< $(LIBS)
-
+	@echo lfflags $(LFLAGS)
+	@echo fflags $(FFLAGS)
+	$(FC) $(FFLAGS) -o ../bin/$@ $< $(LIBS)
 clean:
 	rm -r $(CLTARGETS)
 
