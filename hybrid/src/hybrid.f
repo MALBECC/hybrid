@@ -64,7 +64,7 @@
 !Lio
      . charge, spin,
 !outputs
-     . writeRF
+     . writeRF, slabel
 
       implicit none
 ! General Variables
@@ -87,7 +87,6 @@
       logical :: usesavecg !control for restart CG
       logical :: varcel !true if variable cell optimization
       logical :: relaxd ! True when CG converged
-      character :: slabel*20 ! system label, name of outputs
       character :: paste*25
       external :: paste
       logical :: actualiz!MM interaction list control
@@ -294,7 +293,7 @@
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
       else 
 	call init_hybrid("NEB")
-	call NEB_make_initial_band()
+	call NEB_make_initial_band(usesavecg)
       end if
 
 
@@ -460,7 +459,6 @@
 
 !start loot over NEB images
 	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
-!	  write(222,*) "SCf en: ", replica_number
 	  if (idyn .eq.1) then
 	    rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
 	  end if
@@ -880,19 +878,18 @@ C Write atomic forces
 	   do replica_number = 1, NEB_Nimages
 		Etots=Energy_band(replica_number) -Energy_band(1) ! Hartree
 		rclas=rclas_BAND(1:3,1:natot,replica_number)
+		vat=vclas_BAND(1:3,1:natot,replica_number)
 !guardo en rce y rcg.
            call wrirtc(slabel,Etots,dble(replica_number),replica_number,
      .             na_u,nac,
      .             natot,
      .             rclas,atname,aaname,aanum,nesp,atsym,isa)
            call ioxvconstr(natot,ucell,rclas,vat,replica_number)
-
            end do
-
+	  call NEB_restart(2, .false.) !write restart full precision
 	else
 	  write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal,
      .  Elink/kcal, Etots/eV
-
           if(constropt) then
            call subconstr3(ro(1),rt(1),dr,Etots)
 ! write .rce 

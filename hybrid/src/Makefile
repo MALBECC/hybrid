@@ -94,13 +94,6 @@ HFLAGS += -O2 -L../../g2g
 
 hybrid: version $(FDF) $(ALL_OBJS)
 	@mkdir -p ../bin
-	@echo $(LFLAGS)
-	@echo $(FFLAGS) 
-	@echo $(LIBS)
-	@echo $(ALL_OBJS) 
-	@echo $(LIO_OBJS)
-	@echo $(FDF)
-	@echo $(LIBSH)
 	$(FC) -o ../bin/hybrid \
 		$(HFLAGS) $(ALL_OBJS) $(LIO_OBJS) $(FDF) $(LIBS) 
 
