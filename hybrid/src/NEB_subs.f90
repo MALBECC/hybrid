@@ -342,25 +342,30 @@
 
 
 
-	subroutine NEB_make_initial_band()
+	subroutine NEB_make_initial_band(use_restart)
 !Generate initial configurations of images in NEB using, .XV.i restarts or
 !using only reactives and products restarts (and TS if posible)
 !N. Foglia 03/2018
-	use scarlett, only: natot, ucell, rclas, vat, rclas_BAND, NEB_Nimages
+	use scarlett, only: natot, ucell, rclas, vat, rclas_BAND, vclas_BAND, NEB_Nimages
 	implicit none
-	logical :: band_xv_found
+	logical, intent(in) :: use_restart
+	logical :: band_xv_found, ok_restart
 	logical :: foundxv, foundvat !control for coordinates restart
 	integer :: replica_number !auxiliar
 	double precision :: BAND_slope(3), BAND_const(3)
 	integer :: i, k !auxiliars
 	integer :: middle_point
+	ok_restart=.false.
+	if (use_restart) call NEB_restart(1, ok_restart)
 	
+	if (.not. ok_restart) then
 	band_xv_found=.true.
 	do replica_number = 1, NEB_Nimages
 	  call ioxv( 'read', natot, ucell, rclas, vat, foundxv, foundvat,'X',replica_number)
 	  band_xv_found=band_xv_found .and. foundxv
 	  if (foundxv) then
 	    rclas_BAND(1:3,1:natot,replica_number)=rclas(1:3,1:natot)
+	    vclas_BAND(1:3,1:natot,replica_number)=vat(1:3,1:natot)
 	  end if
 	end do
 	
@@ -420,6 +425,7 @@
 	    end if
 	  end do
 	end if
+	end if
 	return
 	end subroutine NEB_make_initial_band
 
@@ -477,7 +483,60 @@
  346  format(2x, f10.6, 2x, 3(f10.6,2x))
 	end subroutine NEB_save_traj_energy
 
-
+	subroutine NEB_restart(read_write, ok_restart)
+	use scarlett, only: NEB_move_method, rclas_BAND, vclas_BAND,  &
+	aclas_BAND_old, NEB_time_steep, NEB_Ndescend, NEB_alpha, slabel
+	implicit none
+	integer, intent(in) :: read_write
+	logical, intent(inout) :: ok_restart
+	character*24 :: fname, paste
+	integer :: NEB_move_method_read
+	logical :: hay_restart
+	external :: paste
+	fname = paste(slabel,'.NEB')
+	if(read_write .eq. 1) then !read 
+	  INQUIRE(FILE=fname, EXIST=hay_restart)
+	  if (hay_restart) then
+	    ok_restart=.true.
+	    write(*,*) "using NEB restart ", fname
+	    open(unit=935, file=fname, STATUS='UNKNOWN', ACCESS='STREAM')
+	    write(935) NEB_move_method_read
+	    if (NEB_move_method_read .eq. NEB_move_method)  &
+	    STOP ("NEB_move_method differs from restart")
+	
+	    read(935) rclas_BAND
+	    if (NEB_move_method .eq.2 .or. NEB_move_method .eq.3) then
+	      read(935) vclas_BAND
+	      read(935) aclas_BAND_old
+	      if (NEB_move_method .eq.3) then
+	        read(935) NEB_time_steep
+	        read(935) NEB_Ndescend
+	        read(935) NEB_alpha
+	      end if
+	    end if
+	    close(935)
+	  else 
+	    write(*,*) "WARNING ", fname, " not found"
+	    ok_restart=.false.
+	  end if
+	elseif(read_write .eq. 2) then !write
+	  open(unit=935, file=fname, STATUS='UNKNOWN', ACCESS='STREAM')
+	    write(935) NEB_move_method
+	    write(935) rclas_BAND
+	    if (NEB_move_method .eq.2 .or. NEB_move_method .eq.3) then
+	      write(935) vclas_BAND
+	      write(935) aclas_BAND_old
+	      if (NEB_move_method .eq.3) then
+	        write(935) NEB_time_steep
+	        write(935) NEB_Ndescend
+	        write(935) NEB_alpha
+	      end if
+	    end if
+	  close(935)
+	else
+	  stop "wrong number in read_write"
+	end if
+	end subroutine NEB_restart
 
 
 
