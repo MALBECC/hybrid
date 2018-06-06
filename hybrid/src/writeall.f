@@ -31,7 +31,7 @@ c cambiado para E de lio
       open( unit, file=fname, form = 'formatted', position='append',
      .      status='unknown')
 
-	if(idyn .eq. 0) then
+	if(idyn .ne. 1) then
 	  write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
 	endif
 
