@@ -13,10 +13,6 @@
 	integer, intent(inout) :: Ndescend
 	integer :: i,j
 	logical :: damp
-! 	write(*,*) "FIRE params", time_steep, Ndescend, time_steep_max, alpha
-!	do i=1, 11
-!	  write(975,*) i, pos(1:3,i), Force(1:3,i), acel(1:3,i), vel(1:3,i), time_steep
-!	end do
    	damp=.false.
 	Fmod=0.d0
 	do i=1, natot
