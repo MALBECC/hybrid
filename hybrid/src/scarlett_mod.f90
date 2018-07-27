@@ -37,9 +37,10 @@
 	integer, dimension(:), allocatable, save:: blocklist,blockqmmm,listqmmm
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
-
-
-
+!Dynamics
+	double precision :: Ekinion ! Kinectic energy
+	double precision :: tempion ! Actual Temperature of system
+	double precision :: tempinit ! Starting Temperature
 
 
 
@@ -218,7 +219,7 @@
 	integer, dimension(:), allocatable :: NEB_Ndescend !number of consecutive steps in which F·v >= 0 for image i in FIRE NEB
 !outputs
 	integer :: writeRF ! force integration
-
+	integer :: traj_frec ! Frecuency to write trayectory and Energy in .rcg and .rce files
 ! Conversion factors
 	real(dp) :: Ang !r_in_bohr=r_in_ang * Ang
 	real(dp) :: eV !E_in_Hartree=E_in_eV * eV
@@ -227,4 +228,7 @@
 ! Others that need check
 	real(dp) :: ucell(3,3)
 
+! Nuevos jota
+	double precision :: Nav !Avogadro Number
+	double precision :: pi  
 	end module scarlett

@@ -22,6 +22,7 @@ C *******************************************************************
 
       use ionew
       use fdf
+      use scarlett, only: Ang, eV
 
       implicit          none
       integer           na, ia1, ia2
@@ -32,7 +33,7 @@ c     Internal variables and arrays
       character fname*33, sname*30, line*132, paste*33
       logical   frstme
       integer   i, ix, unit1, nwritten, n
-      double precision Ang, eV, rdummy
+      double precision rdummy
       double precision, dimension(:,:), allocatable, save :: fres
 
       save      frstme, fname, nwritten
@@ -45,9 +46,9 @@ c     Allocate local array for storing residual forces
       endif
 
 c     Define conversion factors
-      Ang = 1.d0 / 0.529177d0
+c      Ang = 1.d0 / 0.529177d0
 c      eV  = 1.d0 / 13.60580d0
-      eV     = 1.d0 / 27.211396132d0
+c      eV     = 1.d0 / 27.211396132d0
 c     Find file name
       if (frstme) then
         sname = fdf_string('SystemLabel','siesta')

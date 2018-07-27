@@ -211,7 +211,7 @@ c adding fnew to fdummy
         fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)      
 
 c test write de fuerzas
-	write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
+c write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
 
 
@@ -251,7 +251,7 @@ c adding fnew to fdummy
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
 
 
-        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
+c        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
       elseif(typeconstr(iconstr).eq.3) then
         
@@ -440,7 +440,7 @@ c adding fnew to fdummy
         fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)
 
 c test write de fuerzas
-        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
+c       write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
       elseif (typeconstr(iconstr).eq.6) then
 
@@ -721,19 +721,18 @@ c change units
 
 c**************************************************************
       subroutine subconstr3(ro,rt,dr,E)
-
+      use scarlett, only: Ang,eV
         implicit none
-        double precision ro,rt,dr,E,eV,Ang
+        double precision ro,rt,dr,E
 c        data eV /13.60580d0/
-        data eV / 27.211396132d0/
-        data Ang /0.529177d0/
-        save eV,Ang 
-
+c        data eV / 27.211396132d0/
+c        data Ang /0.529177d0/     igual Ang no lo usa... jota
+c        save eV,Ang 
 	ro=ro+dr
 	write(6,*)
 	write(6,'(a)') 'constr opt: Optimized Reaction Coordinate'
 	write(6,'(a,F10.5)') 'Reaction Coordinate (Ang) : ',rt
-	write(6,'(a,F12.5)') 'Total Energy (eV) : ',E*eV
+	write(6,'(a,F12.5)') 'Total Energy (eV) : ',E/eV
         end
 c**************************************************************
 
