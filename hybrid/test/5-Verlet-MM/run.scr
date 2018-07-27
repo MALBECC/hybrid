@@ -1,0 +1,10 @@
+#!/bin/bash
+. /home/jota/1-Doc/3-GIT/lio/liohome.sh
+name=GCG
+rm -rf $name.rc* $name.XV $name.xyz $name.out $name.init.pdb  $name.last.pdb $name.ene  $name.FA fort.*  INPUT_TMP.*  out.fdf  qm.xyz fort.* || true
+/home/jota/1-Doc/3-GIT/lio/hybrid/bin/hybrid < $name.fdf >> $name.out
+
+
+
+
+
