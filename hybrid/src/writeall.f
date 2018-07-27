@@ -3,6 +3,7 @@ c subroutine that writes the energy
       subroutine wriene(istp,slabel,idyn,Etots,cfmax)  
 
       use ionew
+      use scarlett, only: Ang,eV
       implicit          none
       character         slabel*20, paste*24
       integer           istp,idyn
@@ -12,16 +13,15 @@ c subroutine that writes the energy
       character         fname*24 
       logical           frstme
       integer           unit
-      double precision  eV,Ang
-      save              frstme,Ang,eV,unit,fname
+      save              frstme,unit,fname
       data              frstme /.true./
 
 c -------------------------------------------------------------------
 
       if ( frstme ) then
         fname = paste(slabel,'.ene')
-        Ang  = 1.d0 / 0.529177d0
-        eV  = 1.d0 / 27.211396132d0
+c        Ang  = 1.d0 / 0.529177d0
+c        eV  = 1.d0 / 27.211396132d0
 c        eV  = 1.d0 / 13.60580d0
 c cambiado para E de lio
         frstme = .false.
@@ -47,6 +47,8 @@ c subroutine that writes the coordinates in PDB/CRD format
      .                  aaname,aanum,nesp,atsym,isa,list,block)
 
       use ionew
+      use scarlett, only: Ang,eV
+
       implicit          none
       character         slabel*20, paste*24
       integer           na,nac,natot,istp,wricoord
@@ -60,8 +62,7 @@ c subroutine that writes the coordinates in PDB/CRD format
       character*1       chain(natot)
       logical           frstme,foundc
       integer           unitp,unitc,unitl
-      double precision  eV,Ang
-      save              frstme,Ang,eV,unitc,fnamec,unitl,fnamel
+      save              frstme,unitc,fnamec,unitl,fnamel
       data              frstme /.true./
 
 c Varibles added to write a pdb file
@@ -77,9 +78,9 @@ c -------------------------------------------------------------------
       enddo
 
       if ( frstme ) then
-        Ang  = 1.d0 / 0.529177d0
-        eV  = 1.d0 / 27.211396132d0
-!        eV  = 1.d0 / 13.60580d0
+c        Ang  = 1.d0 / 0.529177d0
+c        eV  = 1.d0 / 27.211396132d0
+c        eV  = 1.d0 / 13.60580d0
       fnamep = paste(slabel,'.init.pdb')
 c      fnamec = paste(slabel,'.crd')
       fnamel = paste(slabel,'.last.pdb')
@@ -152,7 +153,7 @@ c subrutine that writes the reaction coordinate and its PDB
      .                   rclas,atname,aaname,aanum,nesp,atsym,isa)
 
       use ionew
-      use scarlett, only: kcal, eV
+      use scarlett, only: kcal, Ang, eV
       implicit          none
       character         slabel*20, paste*24
       integer           na,nac,natot,istp,wricoord
@@ -165,8 +166,7 @@ c subrutine that writes the reaction coordinate and its PDB
       character         fnamee*24,fnamec*24 
       logical           frstme
       integer           i,j,ia,unite,unitc
-      double precision  Ang
-      save              frstme,Ang,unite,fnamee,unitc,fnamec
+      save              frstme,unite,fnamee,unitc,fnamec
       data              frstme /.true./
       integer           aanum(nac),constrpaso
       character*4       aaname(nac),atname(nac)
@@ -174,7 +174,7 @@ c subrutine that writes the reaction coordinate and its PDB
 c -------------------------------------------------------------------
 
       if ( frstme ) then
-        Ang  = 1.d0 / 0.529177d0
+c        Ang  = 1.d0 / 0.529177d0
 c        eV  = 1.d0 / 27.211396132d0
       fnamec = paste(slabel,'.rcg')
       fnamee = paste(slabel,'.rce')
@@ -189,9 +189,11 @@ c writes .rce file
      .      status='unknown')
        write(unite,'(F10.4,2x,F20.7)') rtot, Etots*kcal/eV
 c
-      call io_close(unite)
+      call io_close(unite) 
 
-c wirtes .rcg file
+
+
+c wirtes ircg file
       call io_assign(unitc)
       open( unitc, file=fnamec, form = 'formatted', position='append',
      .      status='unknown')
@@ -432,14 +434,14 @@ c*******************************************************************************
 
         subroutine write_xyz(natot, na_u, iza, pc, rclas)
         use precision, only: dp
+        use scarlett, only: Ang
         implicit none
         integer, intent(in) :: natot, na_u
         integer, intent(in), dimension(na_u) :: iza
         double precision, intent(in), dimension(natot-na_u) :: pc
         double precision, intent(in), dimension(3,natot) :: rclas
         integer :: inick
-        real(dp) :: Ang
-        Ang    = 1._dp / 0.529177_dp
+c        Ang    = 1._dp / 0.529177_dp
         write(34,*) natot
         write(34,*)
         do inick=1,natot
