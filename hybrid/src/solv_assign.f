@@ -88,7 +88,6 @@ C read solvent coordinates by atom
          read(iunit,err=10,end=10,fmt='(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      .      atom, j, atname(i), aaname(i),
      .      ch, resnum(i), rclas(1:3,na_u+i)
-
 	 ivalue(j)=i
          enddo
 	else
@@ -152,6 +151,7 @@ c read cutoff radious
       read(iunit,*,err=30,end=30) exp, radbloqmmm
       read(iunit,*,err=30,end=30) exp, radblommbond
 C      read(iunit,*,err=30,end=30) exp, sfc
+
       else
       write(6,'(/a)') 'solvent: Cut-off radius will be the standard'
       endif
@@ -413,7 +413,7 @@ c si funciona como subrutina asigna las cargas y attypeas seguna amber
           do j=1,atxres(i)
             pc(k)=qaa(i,j)
 !		write(6,*) k, attypea(i,j)
-	    if(qaa(i,j).eq.0.0) then !report error
+	    if(qaa(i,j).eq. 0.d0) then !report error mejorar este criterio de lectura
 	      write(6,'(a,i5)') 'solvent: Wrong atom name  :',k           
 	      k2=k
 
@@ -427,7 +427,6 @@ c si funciona como subrutina asigna las cargas y attypeas seguna amber
                 do j2=1,j-1
                   k=k-1
                 end do
-
 
 	        do i2=i-1, i
 	          do j2=1,atxres(i2)
@@ -456,6 +455,8 @@ c si funciona como subrutina asigna las cargas y attypeas seguna amber
                   k=k+1
                 end do
 	      end if
+
+
 	      kill=.true.
 	      k=k2
 	    endif
@@ -664,7 +665,7 @@ c subrutina q asigna los 1eros vecinos
         search=.false.
         endif
         enddo
-        call io_close(ui)
+	call io_close(ui)
 
 c asigna los 1eros vecinos de cada atomo      
          do i=1,nroaa

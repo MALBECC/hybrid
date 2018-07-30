@@ -123,6 +123,7 @@ else ifeq ($(intel),2)
   LC      = ifort
   FFLAGS += -fpp -module $(OBJPATH)
   LFLAGS += -L$(MKLROOT)/lib/intel64 -I$(MKLROOT)/include
+  HFLAGS += -L$(MKLROOT)/lib/intel64 -I$(MKLROOT)/include
   LIBS   += -lmkl_blas95_lp64 -lmkl_lapack95_lp64
   LIBS   += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   LIBS   += -liomp5 -lpthread
