@@ -105,54 +105,19 @@ c  pasa a las unidades de Amber
       ramber(1:3,i)=ramber(1:3,i)/Ang   !ramber queda en angstroms
       enddo
 
-c     write(2222,*) "antes de amber bonds",radblommbond
 c  llama a subrutina q calcula la energia y fuerzas de bonds
-c        write(666,*) "Antes de amber_bonds" 
-c        write(666,*) "fce_amber:" 
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fcebond_amber:"
-c        write(666,*) fcebond_amber(1:3,1:2)
-
 
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
      .       ng1type,paso,nparm,radblommbond)
 
-c        write(666,*) "Después de amber_bonds"
-c        write(666,*) "fce_amber:" 
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fcebond_amber:"
-c        write(666,*) fcebond_amber(1:3,1:2)
-
-
-
-
 c  llama a subrutina q calcula la energia y fuerzas de angles
-
-c        write(666,*) "Antes de amber_angles"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fceangle_amber:" 
-c        write(666,*) fceangle_amber(1:3,1:2)
-
 
         call amber_angles(nac,ng1,ramber,Eangle_amber,attype,
      .       nangle,kangle,angleeq,angletype,angexat,angmxat,atange,
      .       atangm,fceangle_amber,angetype,angmtype,paso,nparm)
 
-c        write(666,*) "Después de amber_angles"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fceangle_amber:"
-c        write(666,*) fceangle_amber(1:3,1:2)
-
 c  llama a subrutina q calcula la energia y fuerzas de dihedros     
-
-c        write(666,*) "Antes de amber_dihes"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fcedihe_amber:" 
-c        write(666,*) fcedihe_amber(1:3,1:2)
         
         perdihe2=perdihe  
         call amber_dihes(nac,ng1,ramber,Edihe_amber,
@@ -161,42 +126,13 @@ c        write(666,*) fcedihe_amber(1:3,1:2)
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
      .            evaldihmlog,evaldihm,dihmty,paso,nparm) 
 
-c        write(666,*) "Después de amber_dihes"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fcedihe_amber:"
-c        write(666,*) fcedihe_amber(1:3,1:2)
-
-
 c  llama a subrutina q calcula la energia y fuerzas de impropers
-
-c        write(666,*) "Antes de amber_improper"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fceimp_amber:"
-c        write(666,*) fceimp_amber(1:3,1:2)
 
         call amber_improper(nac,ng1,ramber,Eimp_amber,attype,
      .       nimp,kimp,impeq,perimp,multiimp,imptype,impxat,atimp,
      .       fceimp_amber,impty,paso,nparm)
 
-c        write(666,*) "Después de amber_improper"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fceimp_amber:"
-c        write(666,*) fceimp_amber(1:3,1:2)
-
-
 c  llama a subrutina q calcula la energia y fuerzas de terminos non-bonded
-
-c        write(666,*) "Antes de amber_nonbonded"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fcelj_amber:"
-c        write(666,*) fcelj_amber(1:3,1:2)
-c        write(666,*) "fceelec_amber:"
-c        write(666,*) fceelec_amber(1:3,1:2)
-
 
         call amber_nonbonded(nac,ng1,ramber,Elj_amber,
      .       Eelec_amber,Elj_amber14,Eelec_amber14,attype,
@@ -209,36 +145,9 @@ c        write(666,*) fceelec_amber(1:3,1:2)
      .       noat,noaa,sfc,timestep,
      .       na_u,natot,rclas,water,masst,ewat,fwat)       
 
-c        write(666,*) "Después de amber_nonbonded"
-c        write(666,*) "fce_amber:"
-c        write(666,*) fcetot_amber(1:3,1:2)
-c        write(666,*) "fcelj_amber:"
-c        write(666,*) fcelj_amber(1:3,1:2)
-c        write(666,*) "fceelec_amber:"
-c        write(666,*) fceelec_amber(1:3,1:2)
-
 c  calcula la energia total de amber
        Etot_amber=Ebond_amber+Eangle_amber+Edihe_amber+Eimp_amber+
      .    Elj_amber+Eelec_amber+Elj_amber14+Eelec_amber14+ewat
-
-
-c  calcula la energia total de amber sin dihe
-
-c       Etot_amber=Ebond_amber+Eangle_amber+Eimp_amber+
-c     .    Elj_amber+Eelec_amber+Elj_amber14+Eelec_amber14+ewat
-
-
-c       write (666,*) "Ebond_amber:", Ebond_amber
-c       write (666,*) "Eangle_amber:", Eangle_amber
-c       write (555,*)   Edihe_amber
-c       write (666,*) "Eimp_amber:", Eimp_amber
-c       write (666,*) "Elj_amber:", Elj_amber
-c       write (666,*) "Elj_amber14:", Elj_amber14
-c       write (666,*) "Eelec_amber:", Eelec_amber
-c       write (666,*) "Eelec_amber14:", Eelec_amber14
-c       write (666,*) "ewat:", ewat
-c       write (666,*) "Etot_amber (sin Coul ni imp):", Etot_amber
- 
 
 c  calcula la fuerza total de amber
 	do i=1,nac
@@ -249,37 +158,6 @@ c  calcula la fuerza total de amber
        fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)     
        fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
 	enddo
-
-c  calcula la fuerza total de amber sin dihe
-c        do i=1,nac
-
-c        fcetot_amber(1:3,i)=fcebond_amber(1:3,i)+fceangle_amber(1:3,i)
-c     .  +fceimp_amber(1:3,i)+
-c     .  fcelj_amber(1:3,i)+fceelec_amber(1:3,i)+fwat(1:3,i)
-c       fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)
-c       fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
-c        enddo
-     
- 
-c      write (666,*) "Suma de f (sin Coul ni imp):"
-c      write (666,*) fcetot_amber(1:3,1:2)
-c      write (666,*) "fcebond_amber"
-c      write (666,*) fcebond_amber(1:3,1:2)
-c      write (666,*) "fceangle_amber"
-c      write (666,*) fceangle_amber(1:3,1:2)
-c      write (666,*) "fcedihe_amber"
-c      write (666,*) fcedihe_amber(1:3,1:4)
-c      write (666,*) "fceimp_amber"
-c      write (666,*) fceimp_amber(1:3,1:24)
-c      write (666,*) "fcelj_amber"
-c      write (666,*) fcelj_amber(1:3,1:2)
-c      write (666,*) "fwat"
-c      write (666,*) fwat(1:3,1:2)
-
-
-c        write(55559,*) "Fuerza total de amber"
-c        write(55559,*) fcetot_amber(1:3,1:nac)
-
 
       return
       end
@@ -328,8 +206,6 @@ c barre todos los bonds leidos en el amber.parm
           ty1=tybond(1:2)
           ty2=tybond(4:5)
 
-!	write(*,*) "asigno tipo", attype(i), attype(ng1(i,j)), ng1(i,j)
-
           if(attype(i).eq.ty1.and.attype(ng1(i,j)).eq.ty2) then
             ng1type(i,j)=k
           elseif(attype(i).eq.ty2.and.attype(ng1(i,j)).eq.ty1) then
@@ -365,8 +241,6 @@ c	write(456789,*) "bonds por atomo", i, bondxat(i)
      .            ramber(1,ng1(i,j)),ramber(2,ng1(i,j)),
      .            ramber(3,ng1(i,j)))
 
-c          write(99999,*) "i",i,"j",j,"rij",rij,"radblommbond"
-c     .,radblommbond
           if (rij .lt. radblommbond) then
           Ebond_amber= Ebond_amber+kbond(ng1type(i,j))*
      .    (rij-bondeq(ng1type(i,j)))**2d0       
@@ -635,10 +509,6 @@ c Comienza asignación
 	        ty2=tydihe(4:5)    ! Acá se fija entre qué tipo de átomos se da el dihedro
 	        ty3=tydihe(7:8)    !
 	        ty4=tydihe(10:11)  ! 
-c	write (787878,*) ty1, ty2, ty3, ty4
-c	write (787878,*) i, j, atdihe(i,j,1:3)
-c	write (787878,*) attype(atdihe(i,j,1)),attype(atdihe(i,j,2)),
-c     . attype(atdihe(i,j,3))
 
 c Ahora asigna tipo de átomo a cada átomo del dihedro
 	        if(ty1.eq.'X ') then   ! Caso en que el dihedro empieza con X         
@@ -691,23 +561,7 @@ c	endif
 	        ty3=tydihe(7:8)
 	        ty4=tydihe(10:11)
 
-c        write (8787878,*) ty1, ty2, ty3, ty4
-c        write (8787878,*) i, j, atdihm(i,j,1:3)
-c        write (8787878,*) attype(atdihm(i,j,1)),attype(atdihm(i,j,2)),
-c     . attype(atdihm(i,j,3))
-
-c	write (6666,*) "flag1", i, j, ty1, ty1.eq.'X '
-
-
 	        if(ty1.eq.'X ') then
-
-
-c	write (6666,*) "flag2", attype(i).eq.ty2.and.
-c     .              attype(atdihm(i,j,2)).eq.ty3, attype(i).eq.ty3.and.
-c     .              attype(atdihm(i,j,2)).eq.ty2
-
-
-
 	          if(attype(i).eq.ty2.and.
      .              attype(atdihm(i,j,2)).eq.ty3)  then
 	            dihmty(i,j)=k
@@ -717,27 +571,15 @@ c     .              attype(atdihm(i,j,2)).eq.ty2
 	          endif
 	        elseif(ty1.ne.'X ') then
 
-
-c	write (6666,*) "flag3", attype(atdihm(i,j,1)).eq.ty1.and.attype(i).eq.
-c     .              ty2.and.attype(atdihm(i,j,2)).eq.ty3.and.
-c     .              attype(atdihm(i,j,3)).eq.ty4, attype(atdihm(i,j,1))
-c     .              .eq.ty4.and.attype(i).eq.
-c     .              ty3.and.attype(atdihm(i,j,2)).eq.ty2.and.
-c     .              attype(atdihm(i,j,3)).eq.ty1
-
 	          if(attype(atdihm(i,j,1)).eq.ty1.and.attype(i).eq.
      .              ty2.and.attype(atdihm(i,j,2)).eq.ty3.and.
      .              attype(atdihm(i,j,3)).eq.ty4) then
 	            dihmty(i,j)=k
-c	write (6666,*) "flag3.1", i, j, k, perdihe(k)
-	            if(perdihe(k).lt.0.d0) then
+		    if(perdihe(k).lt.0.d0) then
 	              evaldihmlog(i,j)=.true.
 	              m=m+1
 	              evaldihm(i,j,m)=k
 	              evaldihm(i,j,m+1)=k+1  
-
-c	write (6666,*) i, j, m, evaldihm(i,j,m), evaldihm(i,j,m+1)
-  
 	            endif
 	          elseif(attype(atdihm(i,j,1)).eq.ty4.and.attype(i).eq.
      .              ty3.and.attype(atdihm(i,j,2)).eq.ty2.and.
@@ -798,14 +640,8 @@ c      k=evaldihe(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))    !multidihe explota (0)
 
-c	write(1111,*) "E1=",E1,"m=",m,"k=",k,"kdihe=",kdihe(k),"multidihe="
-c     . ,multidihe(k),"perdihe=",perdihe(k),"diheeq=",diheeq(k)
-c	write(1111,*) "dihedral", dihedral, "Edihe_amber=", Edihe_amber
-
 	Edihe_amber=Edihe_amber+E1
 
-c	write(7777,*) "Energía dihedro l1", Edihe_amber, "i=",i,"j=",j !Hasta acá parece todo bien	
-	
 	call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
      .		       kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)    
@@ -822,9 +658,6 @@ c	write(7777,*) "Energía dihedro l1", Edihe_amber, "i=",i,"j=",j !Hasta acá pa
        E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
-
-c	write(7777,*) "E1 dihedro l2", E1
-c        write(7777,*) "Energía dihedro l2", Edihe_amber, "i=",i,"j=",j !No pasa por acá
 
         call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
@@ -852,23 +685,16 @@ c para los dihes en el medio
      .   ramber(3,atdihm(i,j,3)))
 
 
-c	write (7777,*) i, j, dihedral
 c si el dihedro es 500 es error y sale
 	if(dihedral.lt.500.1.and.dihedral.gt.499.9) then
 	write(*,*) 'ERROR EN EL DIHEDRO(dihm)',i,j
 	STOP
 	endif
 
-c        write (465456,*) i, j, evaldihmlog(i,j)
-
       if(evaldihmlog(i,j)) then
         do m=1,5
 
        k=evaldihm(i,j,m)
-c        k=evaldihe(i,j,m)
-
-c        write (9999,*) i, j, m, k, evaldihm(i,j,m)
-
 
          if(k.ne.0.and.multidihe(k).ne.0) then
 c       if(evaldihm(i,j,m).ne.0) then
@@ -876,10 +702,6 @@ c       k=evaldihm(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
-
-c        write (465456,*) E1
-
-c	write(7777,*) "Energía dihedro l3", Edihe_amber, "i=",i,"j=",j
 
         call diheforce(nac,ramber,
      .                 atdihm(i,j,1),i,atdihm(i,j,2),atdihm(i,j,3),2,
@@ -899,10 +721,6 @@ c	write(7777,*) "Energía dihedro l3", Edihe_amber, "i=",i,"j=",j
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
 
-c        write (1212121212,*) E1, k
-
-
-c	write(7777,*) "Energía dihedro l4", Edihe_amber, "i=",i,"j=",j
 
         call diheforce(nac,ramber,
      .                 atdihm(i,j,1),i,atdihm(i,j,2),atdihm(i,j,3),2,
@@ -918,9 +736,6 @@ c	write(7777,*) "Energía dihedro l4", Edihe_amber, "i=",i,"j=",j
        enddo
 
       Edihe_amber=Edihe_amber/4.d0 !4 porque cuenta 4 energias (una por atomo del dihe)
-	
-c       write(7777,*) "Energía dihedro l5", Edihe_amber, "i=",i,"j=",j
-
 
       do i=1,nac
       fcedihe_amber(1,i)=fesq(1,i)+fmedio(1,i)
