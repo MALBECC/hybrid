@@ -19,7 +19,7 @@
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
-	NEB_move_method, Ndamped
+	NEB_move_method, Ndamped, tempion, Nav, pi
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -118,11 +118,13 @@
 	  Ndescend=0
 	  alpha=0.1d0
 	  Ndamped=0
+	  tempion=0.d0
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
-	  kcal   = 1.602177E-19_dp * 6.02214E23_dp / 4184.0_dp
-	
+	  kcal   = 1.602177E-19_dp * 6.022140857E23_dp / 4184.0_dp
+	  pi     = DACOS(-1.d0)
+	  Nav    = 6.022140857d23
 	
 	elseif ( init_type == 'NEB') then !initialize Nudged elastic band variables
 	  if (NEB_Nimages .lt. 3) STOP 'Runing NEB with less than 3 images'

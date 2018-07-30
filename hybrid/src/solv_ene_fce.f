@@ -12,9 +12,12 @@ c this subroutine calculates the solvent energy
      .    evaldihelog,evaldihmlog,paso,nparm,
      .    actualiz,listcut,
      .    noat,noaa,sfc,timestep,
-     .    water,masst,radblommbond)         
+     .    water,masst,radblommbond)     
 
+c     use precision, only: dp
+      use scarlett, only: eV, Ang, kcal
         implicit none
+
 c      vbles grales
        integer   i,j,k,l,na_u,natot,nac,ng1(nac,6),paso 
        double precision  pcA(nac),rclas(3,natot),ramber(3,nac),
@@ -53,8 +56,7 @@ c	vbles q faltaban
      .          nonbondedxat(nac),scalexat(nac)
        logical  evaldihelog(nac,100),evaldihmlog(nac,100),actualiz
 c parche para omitir interaccion entre extremos terminales
-      double precision :: radblommbond
-
+      double precision, intent(in) :: radblommbond
 
 c inicializa las energias y fuerzas
       Etot_amber=0.d0
@@ -97,23 +99,26 @@ c cambia variables
  
 c  pasa a las unidades de Amber
       do i=1,nac
-      RmA(i) = RmA(i)*(2.d0**(1.d0/6.d0))*0.529177d0/2.d0
-      EmA(i) = EmA(i)*627.5108d0
-      ramber(1:3,i)=ramber(1:3,i)*0.529177d0
+      RmA(i) = RmA(i)*(2.d0**(1.d0/6.d0))/(2.d0*Ang) ! revisar jota
+      EmA(i) = EmA(i)*kcal/eV !627.5108d0 
+      ramber(1:3,i)=ramber(1:3,i)/Ang   !ramber queda en angstroms
       enddo
 
 c  llama a subrutina q calcula la energia y fuerzas de bonds
+
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
      .       ng1type,paso,nparm,radblommbond)
 
 c  llama a subrutina q calcula la energia y fuerzas de angles
+
         call amber_angles(nac,ng1,ramber,Eangle_amber,attype,
      .       nangle,kangle,angleeq,angletype,angexat,angmxat,atange,
      .       atangm,fceangle_amber,angetype,angmtype,paso,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de dihedros     
-	perdihe2=perdihe  
+        
+        perdihe2=perdihe  
         call amber_dihes(nac,ng1,ramber,Edihe_amber,
      .            attype,ndihe,kdihe,diheeq,perdihe2,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
@@ -121,11 +126,13 @@ c  llama a subrutina q calcula la energia y fuerzas de dihedros
      .            evaldihmlog,evaldihm,dihmty,paso,nparm) 
 
 c  llama a subrutina q calcula la energia y fuerzas de impropers
+
         call amber_improper(nac,ng1,ramber,Eimp_amber,attype,
      .       nimp,kimp,impeq,perimp,multiimp,imptype,impxat,atimp,
      .       fceimp_amber,impty,paso,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de terminos non-bonded
+
         call amber_nonbonded(nac,ng1,ramber,Elj_amber,
      .       Eelec_amber,Elj_amber14,Eelec_amber14,attype,
      .       EmA,RmA,pcA,bondxat,
@@ -136,7 +143,6 @@ c  llama a subrutina q calcula la energia y fuerzas de terminos non-bonded
      .       listcut,
      .       noat,noaa,sfc,timestep,
      .       na_u,natot,rclas,water,masst,ewat,fwat)       
-
 
 c  calcula la energia total de amber
        Etot_amber=Ebond_amber+Eangle_amber+Edihe_amber+Eimp_amber+
@@ -199,8 +205,6 @@ c barre todos los bonds leidos en el amber.parm
           ty1=tybond(1:2)
           ty2=tybond(4:5)
 
-!	write(*,*) "asigno tipo", attype(i), attype(ng1(i,j)), ng1(i,j)
-
           if(attype(i).eq.ty1.and.attype(ng1(i,j)).eq.ty2) then
             ng1type(i,j)=k
           elseif(attype(i).eq.ty2.and.attype(ng1(i,j)).eq.ty1) then
@@ -234,7 +238,6 @@ c calculo de la E y F de bond
          rij=dist(ramber(1,i),ramber(2,i),ramber(3,i),
      .            ramber(1,ng1(i,j)),ramber(2,ng1(i,j)),
      .            ramber(3,ng1(i,j)))
-
 
           if (rij .lt. radblommbond) then
           Ebond_amber= Ebond_amber+kbond(ng1type(i,j))*
@@ -485,119 +488,123 @@ c      vbles de asignacion
        fmedio=0.d0
 
 c asignacion de los tipos de dihedros
-      if(first) then
-       evaldihelog=.false.
-       evaldihmlog=.false.
+	if(first) then
+	  evaldihelog=.false.
+	  evaldihmlog=.false.
+	
+! Para los dihedros del extremo
+	  do i=1,nac            
+	    do j=1,dihexat(i)    ! Barre todos los átomos, y en cada átomo, todos sus dihedros en extremo (?
+	      dihety(i,j)=1        ! Dihety es una matriz de dimensión nac x 100 (100 porque es
+                                   ! un número seguramente más grande que dihexat máximo). Tiene,
+                                   ! para cada átomo, cuántos dihedros tiene
+	      m=0
+c Comienza asignación
+	      do k=1,ndihe       ! Barre TODOS los dihedros: ndihe es el número total de dihedros 
+                             ! definidos en el amber.parm 
+ 	        tydihe=dihetype(k) ! Cada uno de los dihedros tiene asignado un tipo
+	        ty1=tydihe(1:2)    !
+	        ty2=tydihe(4:5)    ! Acá se fija entre qué tipo de átomos se da el dihedro
+	        ty3=tydihe(7:8)    !
+	        ty4=tydihe(10:11)  ! 
 
-       do i=1,nac
-        do j=1,dihexat(i)
-	dihety(i,j)=1
-         m=0
-         do k=1,ndihe
-         tydihe=dihetype(k)
-         ty1=tydihe(1:2)
-         ty2=tydihe(4:5)   
-         ty3=tydihe(7:8)    
-         ty4=tydihe(10:11)   
-         if(ty1.eq.'X ') then
-	 if(attype(atdihe(i,j,1)).eq.ty2.and.
-     .      attype(atdihe(i,j,2)).eq.ty3)  then
-         dihety(i,j)=k
-         elseif(attype(atdihe(i,j,1)).eq.ty3.and.
-     .      attype(atdihe(i,j,2)).eq.ty2)  then
-         dihety(i,j)=k
-         endif
-         elseif(ty1.ne.'X ') then
-         if(attype(i).eq.ty1.and.attype(atdihe(i,j,1)).eq.
-     .   ty2.and.attype(atdihe(i,j,2)).eq.ty3.and.
-     .   attype(atdihe(i,j,3)).eq.ty4) then
-         dihety(i,j)=k            
-	  if(perdihe(k).lt.0) then
-          evaldihelog(i,j)=.true.
-          m=m+1
- 	  evaldihe(i,j,m)=k
-          evaldihe(i,j,m+1)=k+1
-          endif
-         elseif(attype(i).eq.ty4.and.attype(atdihe(i,j,1)).eq.
-     .   ty3.and.attype(atdihe(i,j,2)).eq.ty2.and.
-     .   attype(atdihe(i,j,3)).eq.ty1) then
-         dihety(i,j)=k
-          if(perdihe(k).lt.0) then
-          evaldihelog(i,j)=.true.
-          m=m+1
-          evaldihe(i,j,m)=k
-          evaldihe(i,j,m+1)=k+1    
-          endif
-         endif
-         endif
-         enddo
+c Ahora asigna tipo de átomo a cada átomo del dihedro
+	        if(ty1.eq.'X ') then   ! Caso en que el dihedro empieza con X         
+	          if(attype(atdihe(i,j,1)).eq.ty2.and.   
+     .              attype(atdihe(i,j,2)).eq.ty3)  then
+	            dihety(i,j)=k
+	          elseif(attype(atdihe(i,j,1)).eq.ty3.and.
+     .              attype(atdihe(i,j,2)).eq.ty2)  then
+	            dihety(i,j)=k
+	          endif
+	        elseif(ty1.ne.'X ') then ! Caso en que el dihedro no empieza con X
+	          if(attype(i).eq.ty1.and.attype(atdihe(i,j,1)).eq.
+     .              ty2.and.attype(atdihe(i,j,2)).eq.ty3.and.
+     .              attype(atdihe(i,j,3)).eq.ty4) then
+	            dihety(i,j)=k            
+	            if(perdihe(k).lt.0) then
+	              evaldihelog(i,j)=.true.
+	              m=m+1
+ 	              evaldihe(i,j,m)=k
+	              evaldihe(i,j,m+1)=k+1
+	            endif
+	          elseif(attype(i).eq.ty4.and.attype(atdihe(i,j,1)).eq.
+     .              ty3.and.attype(atdihe(i,j,2)).eq.ty2.and.
+     .              attype(atdihe(i,j,3)).eq.ty1) then
+	            dihety(i,j)=k
+	            if(perdihe(k).lt.0) then
+	              evaldihelog(i,j)=.true.
+	              m=m+1
+	              evaldihe(i,j,m)=k
+	              evaldihe(i,j,m+1)=k+1    
+	            endif
+	          endif
+	        endif  
+	      enddo
+	    enddo
+	  enddo
+! Para los dihedros del medio 
+	  do i=1,nac
+	    do j=1,dihmxat(i)
+	      dihmty(i,j)=1
+	      m=0
+	      do k=1,ndihe
+	        tydihe=dihetype(k)
+	        ty1=tydihe(1:2)
+	        ty2=tydihe(4:5)
+	        ty3=tydihe(7:8)
+	        ty4=tydihe(10:11)
 
-	if(dihety(i,j).eq.1) then
-C	write(*,*) 'dihety: ',i,j,'sin parametro'
-	endif
+	        if(ty1.eq.'X ') then
+	          if(attype(i).eq.ty2.and.
+     .              attype(atdihm(i,j,2)).eq.ty3)  then
+	            dihmty(i,j)=k
+	          elseif(attype(i).eq.ty3.and.
+     .              attype(atdihm(i,j,2)).eq.ty2)  then
+	            dihmty(i,j)=k
+	          endif
+	        elseif(ty1.ne.'X ') then
 
-        enddo
-       enddo
+	          if(attype(atdihm(i,j,1)).eq.ty1.and.attype(i).eq.
+     .              ty2.and.attype(atdihm(i,j,2)).eq.ty3.and.
+     .              attype(atdihm(i,j,3)).eq.ty4) then
+	            dihmty(i,j)=k
+		    if(perdihe(k).lt.0.d0) then
+	              evaldihmlog(i,j)=.true.
+	              m=m+1
+	              evaldihm(i,j,m)=k
+	              evaldihm(i,j,m+1)=k+1  
+	            endif
+	          elseif(attype(atdihm(i,j,1)).eq.ty4.and.attype(i).eq.
+     .              ty3.and.attype(atdihm(i,j,2)).eq.ty2.and.
+     .              attype(atdihm(i,j,3)).eq.ty1) then
+	            dihmty(i,j)=k
+	            if(perdihe(k).lt.0.d0) then
+	              evaldihmlog(i,j)=.true.
+	              m=m+1
+	              evaldihm(i,j,m)=k
+	              evaldihm(i,j,m+1)=k+1
+	            endif
+	          endif
+	        endif
+	      enddo
+	    enddo
+	  enddo
+	first=.false.
+	endif !asignacion
 
-       do i=1,nac
-        do j=1,dihmxat(i)
-	dihmty(i,j)=1
-         m=0
-         do k=1,ndihe
-         tydihe=dihetype(k)
-         ty1=tydihe(1:2)
-         ty2=tydihe(4:5)
-         ty3=tydihe(7:8)
-         ty4=tydihe(10:11)
-         if(ty1.eq.'X ') then
-         if(attype(i).eq.ty2.and.
-     .      attype(atdihm(i,j,2)).eq.ty3)  then
-         dihmty(i,j)=k
-         elseif(attype(i).eq.ty3.and.
-     .      attype(atdihm(i,j,2)).eq.ty2)  then
-         dihmty(i,j)=k
-         endif
-         elseif(ty1.ne.'X ') then
-         if(attype(atdihm(i,j,1)).eq.ty1.and.attype(i).eq.
-     .   ty2.and.attype(atdihm(i,j,2)).eq.ty3.and.
-     .   attype(atdihm(i,j,3)).eq.ty4) then
-         dihmty(i,j)=k
-          if(perdihe(k).lt.0.d0) then
-          evaldihmlog(i,j)=.true.
-          m=m+1
-          evaldihm(i,j,m)=k
-          evaldihm(i,j,m+1)=k+1    
-          endif
-         elseif(attype(atdihm(i,j,1)).eq.ty4.and.attype(i).eq.
-     .   ty3.and.attype(atdihm(i,j,2)).eq.ty2.and.
-     .   attype(atdihm(i,j,3)).eq.ty1) then
-         dihmty(i,j)=k
-          if(perdihe(k).lt.0.d0) then
-          evaldihmlog(i,j)=.true.
-          m=m+1
-          evaldihm(i,j,m)=k
-          evaldihm(i,j,m+1)=k+1    
-          endif
-         endif
-         endif
-         enddo
-        if(dihmty(i,j).eq.1) then
-C        write(*,*) 'dihmty: ',i,j,'sin parametro'
-        endif
-        enddo
-       enddo
-      first=.false.
-      endif !asignacion
+C Terminó asignación 
 
 c calcula la E y F de dihedros 
 c para los dihes en la esquina
-        do i=1,ndihe
-        if(perdihe(i).lt.0.d0) then
+        do i=1,ndihe       !ndihe es el número total de dihedros
+        if(perdihe(i).lt.0.d0) then   ! perdihe(i) es el 
         perdihe(i)=-perdihe(i)
         endif
         enddo
         do i=1,nac
          do j=1,dihexat(i)
+c     .   atdihe(i,j,3)
          dihedral=dihedro(ramber(1,i),ramber(2,i),ramber(3,i),
      .   ramber(1,atdihe(i,j,1)),ramber(2,atdihe(i,j,1)),
      .   ramber(3,atdihe(i,j,1)),
@@ -614,12 +621,16 @@ c si el dihedro es 500 es error y sale
 
        if(evaldihelog(i,j)) then
 	do m=1,5
-	 if(evaldihe(i,j,m).ne.0) then
-
        k=evaldihe(i,j,m)
-       E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
+
+	 if(k.ne.0.and.multidihe(k).ne.0) then
+
+c      k=evaldihe(i,j,m)
+       E1=(kdihe(k)/dble(multidihe(k)))*
+     .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))    !multidihe explota (0)
+
 	Edihe_amber=Edihe_amber+E1
+
 	call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
      .		       kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)    
@@ -633,9 +644,10 @@ c si el dihedro es 500 es error y sale
 	enddo
 	else
        k=dihety(i,j)
-       E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
+       E1=(kdihe(k)/dble(multidihe(k)))*
+     .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
+
         call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
      .                 kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)
@@ -661,6 +673,7 @@ c para los dihes en el medio
      .   ramber(1,atdihm(i,j,3)),ramber(2,atdihm(i,j,3)),
      .   ramber(3,atdihm(i,j,3)))
 
+
 c si el dihedro es 500 es error y sale
 	if(dihedral.lt.500.1.and.dihedral.gt.499.9) then
 	write(*,*) 'ERROR EN EL DIHEDRO(dihm)',i,j
@@ -669,11 +682,16 @@ c si el dihedro es 500 es error y sale
 
       if(evaldihmlog(i,j)) then
         do m=1,5
-         if(evaldihm(i,j,m).ne.0) then
+
        k=evaldihm(i,j,m)
-       E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
+
+         if(k.ne.0.and.multidihe(k).ne.0) then
+c       if(evaldihm(i,j,m).ne.0) then
+c       k=evaldihm(i,j,m)
+       E1=(kdihe(k)/dble(multidihe(k)))*
+     .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
+
         call diheforce(nac,ramber,
      .                 atdihm(i,j,1),i,atdihm(i,j,2),atdihm(i,j,3),2,
      .                 kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)
@@ -688,9 +706,11 @@ c si el dihedro es 500 es error y sale
         else
 
        k=dihmty(i,j)
-       E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
+       E1=(kdihe(k)/dble(multidihe(k)))*
+     .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
+
+
         call diheforce(nac,ramber,
      .                 atdihm(i,j,1),i,atdihm(i,j,2),atdihm(i,j,3),2,
      .                 kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)
@@ -704,7 +724,8 @@ c si el dihedro es 500 es error y sale
         enddo
        enddo
 
-      Edihe_amber=Edihe_amber/4
+      Edihe_amber=Edihe_amber/4.d0 !4 porque cuenta 4 energias (una por atomo del dihe)
+
       do i=1,nac
       fcedihe_amber(1,i)=fesq(1,i)+fmedio(1,i)
       fcedihe_amber(2,i)=fesq(2,i)+fmedio(2,i)
@@ -827,8 +848,8 @@ c si el dihedro es 500 es error y sale
         endif
 
        k=impty(i,j)
-       Eimp_amber=Eimp_amber+(kimp(k)/multiimp(k))*
-     .  (1+COS((pi/180)*(perimp(k)*dihedral-impeq(k))))
+       Eimp_amber=Eimp_amber+(kimp(k)/dble(multiimp(k)))*
+     .  (1+dCOS((pi/180)*(perimp(k)*dihedral-impeq(k))))
 
 c busca que atomo del impropio es el i	
 	if (i.eq.atimp(i,j,1)) atom=1
@@ -846,7 +867,7 @@ c busca que atomo del impropio es el i
       fimp(3,i)=fimp(3,i)+dz
         enddo
        enddo
-      Eimp_amber=Eimp_amber/4d0
+      Eimp_amber=Eimp_amber/4.d0
 
       end
 c *******************************************************
@@ -898,8 +919,9 @@ c variables de la lista de vecinos
       data              first /.true./    
 
 	pi=DACOS(-1.d0)
-        unidades=((1.602177d-19**2d0)*6.02d23)/(1.0d-10*4d0*
+        unidades=((1.602177d-19**2d0)*6.022140857d23)/(1.0d-10*4d0*
      .     pi*8.8541878d-12*4.184d0*1000d0)
+
         fel=0.d0
 	flj=0.d0
 	felec=0.d0
@@ -907,7 +929,7 @@ c variables de la lista de vecinos
         fljtot=0.d0
         epsilon=1.d0
         factorlj=2.d0
-        factorelec=1.2d0
+        factorelec=1.2d0  !No sé qué es Jota
 	acs=200	
 	ewat=0.d0
 	fwat=0.d0
@@ -1064,7 +1086,7 @@ c test Nick
                 E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.d0)
 		E1=E1/factorlj
                 Elj_amber14=Elj_amber14+E1
-	fel = -12.d0*Eij*Rij6/distancia2**4d0*(Rij6/distancia2_3 - 1.d0)
+	fel = -12.d0*Eij*Rij6/distancia2**4d0*(Rij6/distancia2_3 - 1.d0) !LJ
                 fel = fel/factorlj
                 dx2=-dx1
                 dy2=-dy1
@@ -1076,8 +1098,8 @@ c test Nick
                 flj(2,j)=flj(2,j)+dy2*fel
                 flj(3,j)=flj(3,j)+dz2*fel
 c		write(*,*) "E2 callc", i,j,pc(i),pc(j)
-                E2=((pc(i)*pc(j))/distancia)*unidades/epsilon
-              	E2=E2/factorelec 
+                E2=((pc(i)*pc(j))/distancia)*unidades/epsilon !Coulomb, cargas en e
+              	E2=E2/factorelec     !No sé qué es factorelec
 		Eelec_amber14=Eelec_amber14+E2
                 fel=-E2/distancia2
 		dx2=-dx1
@@ -1210,7 +1232,7 @@ c subrutina q calcula el water restarin potential
         mdist=0.d0
 
 c calcula el masscenter del sistema y el rwat
-        ramber(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0
+        ramber(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !ramber ya viene en Angstroms!!!!! REVISAR jota
         masscenter=0.d0 
         do i=1,natot
         masscenter(1:3)=masscenter(1:3)+masst(i)*ramber(1:3,i)
@@ -1228,7 +1250,7 @@ c calcula el masscenter del sistema y el rwat
 
 c calculo la matrix con las aguas xa los at MM
         ramber=0.d0
-        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0
+        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0 !rclas esta en Bohr, ramber queda en Angstroms
         k=1
         do i=1,nac
         if(noaa(i).eq.'HOH'.and.noat(i).eq.'O') then

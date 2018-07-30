@@ -11,6 +11,7 @@ c real*8  fa(3,na)     : Forces on the atoms
 c *******************************************************************
       use ionew
       use fdf
+      use scarlett, only: eV, Ang
 
       implicit          none
       character         paste*33
@@ -22,15 +23,16 @@ c Internal
       character         sname*30, fname*33
       integer           ia, iu, ix
       logical           frstme
-      double precision  Ang, eV
-      save              frstme, fname, eV, Ang
+c     double precision  Ang
+c saque eV jota
+      save              frstme, fname
       data frstme        /.true./
 c -------------------------------------------------------------------
 
       if (frstme) then
-        Ang    = 1.d0 / 0.529177d0
+c        Ang    = 1.d0 / 0.529177d0
 c        eV     = 1.d0 / 13.60580d0
-        eV     = 1.d0 / 27.211396132d0
+c        eV     = 1.d0 / 27.211396132d0
         sname  = fdf_string( 'SystemLabel', 'siesta' )
         fname  = paste( sname, '.FA' )
         frstme = .false.
