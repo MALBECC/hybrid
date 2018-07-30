@@ -724,10 +724,6 @@ c**************************************************************
       use scarlett, only: Ang,eV
         implicit none
         double precision ro,rt,dr,E
-c        data eV /13.60580d0/
-c        data eV / 27.211396132d0/
-c        data Ang /0.529177d0/     igual Ang no lo usa... jota
-c        save eV,Ang 
 	ro=ro+dr
 	write(6,*)
 	write(6,'(a)') 'constr opt: Optimized Reaction Coordinate'

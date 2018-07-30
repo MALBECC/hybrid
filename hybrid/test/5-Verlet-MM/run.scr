@@ -1,3 +1,4 @@
+. ../../../liohome.sh
 ../../bin/hybrid < GCG.fdf >> GCG.out
 
 

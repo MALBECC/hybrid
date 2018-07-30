@@ -565,8 +565,6 @@ c return forces to fullatom arrays
 	    end if
           end do
         endif !qm    termino el if(qm)
-c	write(55559,*) "Fuerzas originales de Lio"
-c	write(55559,*) fdummy(1:3,1:natot)
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
 ! Start MMxQM loop
@@ -583,9 +581,6 @@ c	write(55559,*) fdummy(1:3,1:natot)
             if((qm.and.mm)) then
               call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
             endif !qm & mm
-c        write(55559,*) "Fuerzas de Lio post LJ"
-c        write(55559,*) fdummy(1:3,1:natot)
-
 
 ! LinkAtom: set again linkmm atoms parameters
             if(qm.and.mm) then
@@ -598,11 +593,7 @@ c        write(55559,*) fdummy(1:3,1:natot)
             endif !qm & mm
 
 ! Calculate pure Solvent energy and forces
-c     write(2222,*) "Antes de solv_ene",radblommbond 
             if(mm) then
-
-c	write(666,*) "Antes de solv_ene_fce, paso:", istp
-c	write(666,*) fce_amber(1:3,1:2)
 
       call solv_ene_fce(natot,na_u,nac,ng1,rclas,Em,Rm,pc(1:nac),
      .    Etot_amber,fce_amber,attype,
@@ -619,20 +610,8 @@ c	write(666,*) fce_amber(1:3,1:2)
      .    water,masst,radblommbond)
             endif !mm
 
-
-c        write(666,*) "Después de solv_ene_fce","paso", istp
-c        write(666,*) fce_amber(1:3,1:2)
-
-c        write(55559,*) "Fuerzas originales de fuerzas MM"
-c        write(55559,*) fdummy(1:3,1:natot)
-
-
 ! converts fdummy to Kcal/mol/Ang  
             fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
-
-c        write(55559,*) "Fuerzas de Lio convertidas a kcal/molA"
-c        write(55559,*) fdummy(1:3,1:natot)
-
 
 ! here Etot in Hartree, fdummy in kcal/mol Ang
 
@@ -641,10 +620,6 @@ c        write(55559,*) fdummy(1:3,1:natot)
               fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
      .        +0.5d0*fce_amber(1:3,1:nac)
             endif !mm
-
-c        write(55559,*) "Fuerzas de Lio + las de amber en kcal/molA"
-c        write(55559,*) fdummy(1:3,1:natot)
-
 
 ! Calculation of LinkAtom Energy and Forces
             if(qm.and.mm ) then
@@ -665,9 +640,6 @@ c        write(55559,*) fdummy(1:3,1:natot)
               endif ! LA
             endif !qm & mm
 
-c        write(55559,*) "Fuerzas después del Link Atom"
-c        write(55559,*) fdummy(1:3,1:natot)
-
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
 ! Calculation of Constrained Optimization Energy and Forces 
@@ -679,18 +651,9 @@ c        write(55559,*) fdummy(1:3,1:natot)
           endif 
         endif !imm
 
-c        write(55559,*) "Fuerzas después del constraint"
-c        write(55559,*) fdummy(1:3,1:natot)
-
-
 ! Converts fdummy Hartree/bohr. 
         fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 ! here Etot in Hartree, fdummy in Hartree/bohr
-
-c       write(55559,*) "Fuerzas de Lio en Hartree/Bohr"
-c       write(55559,*) fdummy(1:3,1:natot)
-
-
 
 ! Writes final energy decomposition
 	Etots=Etot+0.5d0*(Elj+((Etot_amber+Elink)/kcal*eV))
@@ -725,9 +688,6 @@ c       write(55559,*) fdummy(1:3,1:natot)
 ! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat)
-
-c        write(55559,*) "Fuerzas después de fixed2"
-c        write(55559,*) fdummy(1:3,1:natot)
 
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
@@ -823,25 +783,11 @@ C Write atomic forces
 	  if (.not. relaxd) call FIRE(natot, rclas,cfdummy, aat, vat, 
      .    masst, time_steep,Ndescend, time_steep_max, alpha)
 	elseif (idyn .eq. 4) then
-c	rclas(1:3,2)=0.d0
-c	rclas(1:3,3)=0.d0
-c	rclas(1,3)=Ang*1.45d0
-c	rclas(1,1)=Ang*1.45d0*DCOS(109.46d0*pi/180.d0)
-c	rclas(2,1)=Ang*-1.45d0*DSIN(109.46d0*pi/180.d0)
-c	rclas(3,1)=0.d0
-c	rclas(1,4)=Ang*1.45d0*(1-DCOS(109.46d0*pi/180.d0))
-c	rclas(2,4)=Ang*1.45d0*DSIN(109.46d0*pi/180.d0)*
-c     .  DCOS(dble(istp)*0.01d0*pi/180.d0)
-c	rclas(3,4)=Ang*1.45d0*
-c     .  DSIN(dble(istp)*0.01d0*pi/180.d0)
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
      .        masst, 0, vat, rclas, Ekinion, tempion, nfree)
 !iquench lo dejamos como 0, luego cambiar
 !ntcon lo dejamos como 0, luego agregar
 !iunit fijado en 3
-
-c        write(55559,*) "Fuerzas después de verlet"
-c        write(55559,*) fdummy(1:3,1:natot)
 
 	else
 	  STOP "Wrong idyn value"
