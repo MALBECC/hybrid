@@ -85,11 +85,9 @@ C nullify some solvent vbles
 C read solvent coordinates by atom
       if ( fdf_block('SolventInput',iunit) ) then
 	do i=1,nac
-c	write(*,*) "leo",i
          read(iunit,err=10,end=10,fmt='(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      .      atom, j, atname(i), aaname(i),
      .      ch, resnum(i), rclas(1:3,na_u+i)
-c	write(*,*) "lei",i
 	 ivalue(j)=i
          enddo
 	else
@@ -154,7 +152,6 @@ c read cutoff radious
       read(iunit,*,err=30,end=30) exp, radblommbond
 C      read(iunit,*,err=30,end=30) exp, sfc
 
-c	write(22222,*) rcorteqm,rcorteqmmm,rcortemm,radbloqmmm,radblommbond
       else
       write(6,'(/a)') 'solvent: Cut-off radius will be the standard'
       endif
@@ -668,9 +665,6 @@ c subrutina q asigna los 1eros vecinos
         search=.false.
         endif
         enddo
-	do i=1,5
-c	write(654654564,*) png1(1,i,1), png1(1,i,2)
-        enddo
 	call io_close(ui)
 
 c asigna los 1eros vecinos de cada atomo      
@@ -1120,7 +1114,6 @@ c diherdrals
         	do i=1,ndihe
         	read(ui,30,err=300,end=300) dihetype(i),multidihe(i),kdihe(i),
      .                      diheeq(i),perdihe(i)
-c	write(88888,*) i,dihetype(i),multidihe(i),kdihe(i),diheeq(i),perdihe(i)
         	enddo
         search=.false.
         endif

@@ -58,7 +58,6 @@ c	vbles q faltaban
 c parche para omitir interaccion entre extremos terminales
       double precision, intent(in) :: radblommbond
 
-c	write(2222,*) "despues de definir variables",radblommbond
 c inicializa las energias y fuerzas
       Etot_amber=0.d0
       Ebond_amber=0.d0
@@ -235,7 +234,6 @@ c barre todos los bonds leidos en el amber.parm
 
 c calculo de la E y F de bond
        do i=1,nac
-c	write(456789,*) "bonds por atomo", i, bondxat(i)
         do j=1,bondxat(i)
          rij=dist(ramber(1,i),ramber(2,i),ramber(3,i),
      .            ramber(1,ng1(i,j)),ramber(2,ng1(i,j)),
@@ -543,10 +541,6 @@ c Ahora asigna tipo de átomo a cada átomo del dihedro
 	          endif
 	        endif  
 	      enddo
-
-c	if(dihety(i,j).eq.1) then
-C	write(*,*) 'dihety: ',i,j,'sin parametro'
-c	endif
 	    enddo
 	  enddo
 ! Para los dihedros del medio 
@@ -594,9 +588,6 @@ c	endif
 	          endif
 	        endif
 	      enddo
-c        if(dihmty(i,j).eq.1) then
-C        write(*,*) 'dihmty: ',i,j,'sin parametro'
-c        endif
 	    enddo
 	  enddo
 	first=.false.
@@ -622,8 +613,6 @@ c     .   atdihe(i,j,3)
      .   ramber(1,atdihe(i,j,3)),ramber(2,atdihe(i,j,3)),
      .   ramber(3,atdihe(i,j,3)))
 
-
-c	write (444,*) i, j, dihedral 
 c si el dihedro es 500 es error y sale
         if(dihedral.lt.500.1.and.dihedral.gt.499.9) then
         write(*,*) 'ERROR EN EL DIHEDRO(esq)',i,j
