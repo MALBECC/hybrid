@@ -175,5 +175,14 @@ c      parameter rmintsol=16.0D0
 !for properties calculation control
       logical :: calc_propM
 
+! rho linear search
+      logical :: rholinearsearch
+      double precision, dimension(:), allocatable :: rho_lambda1
+      double precision, dimension(:), allocatable :: rho_lambda0
+      double precision, dimension(:), allocatable :: rho_lambda1_alpha
+      double precision, dimension(:), allocatable :: rho_lambda0_alpha
+      double precision, dimension(:), allocatable :: rho_lambda1_betha
+      double precision, dimension(:), allocatable :: rho_lambda0_betha
+      double precision :: Pstepsize
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
       end module
