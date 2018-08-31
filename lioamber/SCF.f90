@@ -36,7 +36,7 @@ subroutine SCF(E)
                           nuc, doing_ehrenfest, first_step, RealRho,           &
                           total_time, MO_coef_at, MO_coef_at_b, Smat, good_cut,&
                           ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN, nshell, &
-                          Nuc, a, c, d, NORM
+                          Nuc, a, c, d, NORM, rholinearsearch
    use ECP_mod, only : ecpmode, term1e, VAAA, VAAB, VBAC, &
                        FOCK_ECP_read,FOCK_ECP_write,IzECP
    use field_data, only: field, fx, fy, fz
@@ -169,6 +169,8 @@ subroutine SCF(E)
    real*8              :: ocupF
    integer             :: NCOa, NCOb
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
+   real*8 :: traza ! variable
+   integer :: Rposition
    call g2g_timer_start('SCF_full')
 
 
@@ -533,6 +535,8 @@ subroutine SCF(E)
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
+	if (rholinearsearch .and. (niter.eq.0)) call P_linearsearch_init()
+
         if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
 !       Escribe los criterios de convergencia y el valor del paso de dinamica
 
@@ -688,6 +692,18 @@ subroutine SCF(E)
         call g2g_timer_sum_start('SCF - Fock Diagonalization (sum)')
         call fock_aop%Diagon_datamat( morb_coefon, morb_energy )
         call g2g_timer_sum_pause('SCF - Fock Diagonalization (sum)')
+
+
+        traza=0.d0
+        do jj=1,M
+          kk=jj
+          Rposition=kk+(M2-jj)*(jj-1)/2
+          traza=traza+(RMM(Rposition))
+        enddo
+        write(*,*) "traza SCF 00", traza
+
+
+
 !
 !
 !------------------------------------------------------------------------------!
@@ -836,20 +852,32 @@ subroutine SCF(E)
           end if
         end if
 
+
+
 !------------------------------------------------------------------------------!
 ! TODO: convergence criteria should be a separated subroutine...
-        good = 0.0d0
-        do jj=1,M
-        do kk=jj,M
-          del=xnano(jj,kk)-(RMM(kk+(M2-jj)*(jj-1)/2))
-          del=del*sq2
-          good=good+del**2
-          RMM(kk+(M2-jj)*(jj-1)/2)=xnano(jj,kk)
-        enddo
-        enddo
-        good=sqrt(good)/float(M)
-        deallocate ( xnano )
+          good = 0.0d0
+          do jj=1,M
+          do kk=jj,M
+            del=xnano(jj,kk)-(RMM(kk+(M2-jj)*(jj-1)/2))
+            del=del*sq2
+            good=good+del**2
+            RMM(kk+(M2-jj)*(jj-1)/2)=xnano(jj,kk)
+          enddo
+          enddo
+          good=sqrt(good)/float(M)
+	  deallocate ( xnano )
 
+	traza=0.d0
+        do jj=1,M
+          kk=jj
+          Rposition=kk+(M2-jj)*(jj-1)/2
+          traza=traza+(RMM(Rposition))
+        enddo
+        write(*,*) "traza SCF", traza
+
+
+	if (rholinearsearch) call P_linear_calc(niter, En, good)
 
 ! TODO: what is this doing here???
         call g2g_timer_stop('dens_GPU')
@@ -865,7 +893,7 @@ subroutine SCF(E)
 !        E=E+Es
 !
         call g2g_timer_stop('otras cosas')
-
+	write(*,*) E1,E2,En,Ex
 !       write energy at every step
         if (verbose) call WRITE_E_STEP(niter, E+Ex)
 
