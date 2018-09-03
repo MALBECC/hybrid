@@ -25,7 +25,7 @@ subroutine read_options(inputFile, charge)
                            print_coeffs, number_restr, Dbug, steep, Force_cut, &
                            Energy_cut, minimzation_steep, n_min_steeps,        &
                            lineal_search, n_points, timers, spinpop, IGRID,    &
-                           IGRID2, rholinearsearch
+                           IGRID2, rholinearsearch, P_oscilation_analisis
     use field_data, only : field, a0, epsilon, Fx, Fy, Fz, field_iso_file,     &
                            field_aniso_file, nfields_iso, nfields_aniso
     use field_subs, only : read_fields
@@ -100,7 +100,7 @@ subroutine read_options(inputFile, charge)
                    ! Variables for translation
                    gaussian_convert,                                           &
                    ! linear search for rho
-                   rholinearsearch
+                   rholinearsearch, P_oscilation_analisis
 
     inquire(file = inputFile, exist = fileExists)
     if(fileExists) then
