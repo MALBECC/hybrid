@@ -184,5 +184,8 @@ c      parameter rmintsol=16.0D0
       double precision, dimension(:), allocatable :: rho_lambda1_betha
       double precision, dimension(:), allocatable :: rho_lambda0_betha
       double precision :: Pstepsize
+      logical :: P_oscilation_analisis
+      double precision, dimension(:,:), allocatable :: P_hist
+      double precision :: Elast
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
       end module

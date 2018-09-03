@@ -535,7 +535,7 @@ subroutine SCF(E)
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
-	if (rholinearsearch .and. (niter.eq.0)) call P_linearsearch_init()
+	if (rholinearsearch .and. (niter.eq.0)) call P_linearsearch_init(En)
 
         if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
 !       Escribe los criterios de convergencia y el valor del paso de dinamica
@@ -856,25 +856,28 @@ subroutine SCF(E)
 
 !------------------------------------------------------------------------------!
 ! TODO: convergence criteria should be a separated subroutine...
-          good = 0.0d0
-          do jj=1,M
-          do kk=jj,M
-            del=xnano(jj,kk)-(RMM(kk+(M2-jj)*(jj-1)/2))
-            del=del*sq2
-            good=good+del**2
-            RMM(kk+(M2-jj)*(jj-1)/2)=xnano(jj,kk)
-          enddo
-          enddo
-          good=sqrt(good)/float(M)
+!          good = 0.0d0
+!          do jj=1,M
+!          do kk=jj,M
+!            del=xnano(jj,kk)-(RMM(kk+(M2-jj)*(jj-1)/2))
+!            del=del*sq2
+!            good=good+del**2
+!            RMM(kk+(M2-jj)*(jj-1)/2)=xnano(jj,kk)
+!          enddo
+!          enddo
+!          good=sqrt(good)/float(M)
+
+	call P_fluctuation(niter,good, xnano)
+
 	  deallocate ( xnano )
 
-	traza=0.d0
-        do jj=1,M
-          kk=jj
-          Rposition=kk+(M2-jj)*(jj-1)/2
-          traza=traza+(RMM(Rposition))
-        enddo
-        write(*,*) "traza SCF", traza
+!	traza=0.d0
+!        do jj=1,M
+!          kk=jj
+!          Rposition=kk+(M2-jj)*(jj-1)/2
+!          traza=traza+(RMM(Rposition))
+!        enddo
+!        write(*,*) "traza SCF", traza
 
 
 	if (rholinearsearch) call P_linear_calc(niter, En, good)
