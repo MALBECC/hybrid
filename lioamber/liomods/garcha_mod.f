@@ -176,7 +176,7 @@ c      parameter rmintsol=16.0D0
       logical :: calc_propM
 
 ! rho linear search
-      logical :: rholinearsearch
+      integer :: Rho_LS !linear sear in rho for convergention, 0 no LS, 1 LS only if energy increase, 2 full LS
       double precision, dimension(:), allocatable :: rho_lambda1
       double precision, dimension(:), allocatable :: rho_lambda0
       double precision, dimension(:), allocatable :: rho_lambda1_alpha

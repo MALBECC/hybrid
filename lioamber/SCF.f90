@@ -36,7 +36,7 @@ subroutine SCF(E)
                           nuc, doing_ehrenfest, first_step, RealRho,           &
                           total_time, MO_coef_at, MO_coef_at_b, Smat, good_cut,&
                           ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN, nshell, &
-                          Nuc, a, c, d, NORM, rholinearsearch
+                          Nuc, a, c, d, NORM, Rho_LS
    use ECP_mod, only : ecpmode, term1e, VAAA, VAAB, VBAC, &
                        FOCK_ECP_read,FOCK_ECP_write,IzECP
    use field_data, only: field, fx, fy, fz
@@ -535,17 +535,11 @@ subroutine SCF(E)
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
-	if (rholinearsearch .and. (niter.eq.0)) call P_linearsearch_init(En)
-
-        if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
-!       Escribe los criterios de convergencia y el valor del paso de dinamica
-
         call g2g_timer_start('Total iter')
         call g2g_timer_sum_start('Iteration')
         call g2g_timer_sum_start('Fock integrals')
         niter=niter+1
         E1=0.0D0
-
 
 !------------------------------------------------------------------------------!
 !       Fit density basis to current MO coeff and calculate Coulomb F elements
@@ -576,7 +570,6 @@ subroutine SCF(E)
         if (Dbug) call SEEK_NaN(RMM,1,MM,"RHO Ex-Corr")
         if (Dbug) call SEEK_NaN(RMM,M5-1,M5-1+MM,"FOCK Ex-Corr")
 
-
 !------------------------------------------------------------------------------!
 ! REACTION FIELD CASE
 !
@@ -600,7 +593,6 @@ subroutine SCF(E)
         endif
         call g2g_timer_start('actualiza rmm')
         call g2g_timer_sum_pause('Fock integrals')
-
 
 !------------------------------------------------------------------------------!
 ! DFTB: we extract rho and fock before conver routine
@@ -692,16 +684,6 @@ subroutine SCF(E)
         call g2g_timer_sum_start('SCF - Fock Diagonalization (sum)')
         call fock_aop%Diagon_datamat( morb_coefon, morb_energy )
         call g2g_timer_sum_pause('SCF - Fock Diagonalization (sum)')
-
-
-        traza=0.d0
-        do jj=1,M
-          kk=jj
-          Rposition=kk+(M2-jj)*(jj-1)/2
-          traza=traza+(RMM(Rposition))
-        enddo
-        write(*,*) "traza SCF 00", traza
-
 
 
 !
@@ -855,32 +837,13 @@ subroutine SCF(E)
 
 
 !------------------------------------------------------------------------------!
-! TODO: convergence criteria should be a separated subroutine...
-!          good = 0.0d0
-!          do jj=1,M
-!          do kk=jj,M
-!            del=xnano(jj,kk)-(RMM(kk+(M2-jj)*(jj-1)/2))
-!            del=del*sq2
-!            good=good+del**2
-!            RMM(kk+(M2-jj)*(jj-1)/2)=xnano(jj,kk)
-!          enddo
-!          enddo
-!          good=sqrt(good)/float(M)
-
-	call P_fluctuation(niter,good, xnano)
-
-	  deallocate ( xnano )
-
-!	traza=0.d0
-!        do jj=1,M
-!          kk=jj
-!          Rposition=kk+(M2-jj)*(jj-1)/2
-!          traza=traza+(RMM(Rposition))
-!        enddo
-!        write(*,*) "traza SCF", traza
+! Convergence criteria and lineal search in P
+	IF (OPEN) call P_conver(Rho_LS, niter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
+	IF (.not. OPEN) call P_conver(Rho_LS, niter, En, E1, E2, Ex, good, xnano, rho_a, rho_a)
+!------------------------------------------------------------------------------!
 
 
-	if (rholinearsearch) call P_linear_calc(niter, En, good)
+	deallocate ( xnano )
 
 ! TODO: what is this doing here???
         call g2g_timer_stop('dens_GPU')
@@ -891,12 +854,10 @@ subroutine SCF(E)
 
 ! Damping factor update
         DAMP=DAMP0
-
         E=E1+E2+En
 !        E=E+Es
 !
         call g2g_timer_stop('otras cosas')
-	write(*,*) E1,E2,En,Ex
 !       write energy at every step
         if (verbose) call WRITE_E_STEP(niter, E+Ex)
 
@@ -905,6 +866,9 @@ subroutine SCF(E)
 !
         call g2g_timer_stop('Total iter')
         call g2g_timer_sum_pause('Iteration')
+
+	if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
+!       Escribe los criterios de convergencia y el valor del paso de dinamica
 
  999  continue
       call g2g_timer_sum_start('Finalize SCF')
