@@ -845,8 +845,6 @@ subroutine SCF(E)
 
 !------------------------------------------------------------------------------!
 ! Convergence criteria and lineal search in P
-!	nniter=niter
-!a	IF (changed_to_LS .and. niter.eq. (NMAX/2 +1)) nniter=1 
 
 	IF (OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
 	IF (.not. OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_a)
