@@ -507,6 +507,7 @@
           Write(6,8605) EGOOD,ETOLD
           Write(6,8606)
 	else
+	  write(*,*) "WARNING: GOOD < 0"
 	  GOOD=99999d0
 	end if
  8601 FORMAT(4x,"           ╔════════════╦═════════════╗")
