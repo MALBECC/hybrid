@@ -169,8 +169,11 @@ subroutine SCF(E)
    real*8              :: ocupF
    integer             :: NCOa, NCOb
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
-   real*8 :: traza ! variable
-   integer :: Rposition
+! lineal search
+   logical :: changed_to_LS
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
+   changed_to_LS=.false.
+
    call g2g_timer_start('SCF_full')
 
 
@@ -859,6 +862,16 @@ subroutine SCF(E)
 !
         call g2g_timer_stop('otras cosas')
 !       write energy at every step
+	if (niter.eq.NMAX) then
+	  if (Rho_LS .eq.0) then
+	    write(6,*) 'NO CONVERGENCE AT ',NMAX,' ITERATIONS'
+	    write(6,*) 'trying Lineal search'
+	    Rho_LS=1
+	    NMAX=2*NMAX
+	    changed_to_LS=.true.
+	  end if
+	end if
+
         if (verbose) call WRITE_E_STEP(niter, E+Ex)
 
         Egood=abs(E+Ex-Evieja)
@@ -876,6 +889,11 @@ subroutine SCF(E)
 !------------------------------------------------------------------------------!
 !     Checks of convergence
 !
+      if (changed_to_LS) then
+	 changed_to_LS=.false.
+	 NMAX=NMAX/2
+      end if
+
       if (niter.ge.NMAX) then
          write(6,*) 'NO CONVERGENCE AT ',NMAX,' ITERATIONS'
          noconverge=noconverge + 1

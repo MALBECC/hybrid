@@ -94,10 +94,10 @@
 	M2=2*M
 	MM=M*(M+1)/2
 	if (niter .eq. 1)  then
-	Pstepsize=1.d0
-	rho_lambda0(1:MM)=RMM(1:MM)
-	if (OPEN) rho_lambda0_alpha(1:MM)=rhoalpha(1:MM)
-	if (OPEN) rho_lambda0_betha(1:MM)=rhobeta(1:MM)
+	  Pstepsize=1.d0
+	  rho_lambda0(1:MM)=RMM(1:MM)
+	  if (OPEN) rho_lambda0_alpha(1:MM)=rhoalpha(1:MM)
+	  if (OPEN) rho_lambda0_betha(1:MM)=rhobeta(1:MM)
 	end if
 
 	allocate(RMM_temp(1:MM))
@@ -118,6 +118,7 @@
 	call give_me_energy(E_lambda(10), En, E1, E2, Ex)
 
 	if (Elast.lt. E_lambda(10) .or. Rho_LS.eq.2) then
+	  write(*,*) "This step ", E_lambda(10), "last steep ", Elast
 	  write(*,*) "doing lineal interpolation in Rho"
 	  do ilambda=0, 10
 	    dlambda=Pstepsize*dble(ilambda)/10.d0
@@ -132,8 +133,9 @@
 
 	  call line_search(11,E_lambda, 1d0, Blambda )
 	  if (Blambda .ge. 1.d0) Blambda=Blambda-1.0d0
+	  write(*,*) "Best lambda", Blambda
 	  Blambda=Blambda*Pstepsize/10.d0
-	  write(*,*) "Best lambda: ", Blambda
+	  write(*,*) "Fluctuation: ", Blambda
 	else
 	  Blambda=Pstepsize
 	end if
@@ -158,20 +160,20 @@
 	rho_lambda0(1:MM)=RMM_temp(1:MM)
 
 	if(OPEN) then
-	RMM_temp(1:MM)=rhoalpha(1:MM)
-	rhoalpha(1:MM)=rho_lambda0_alpha(1:MM)
-	rho_lambda0_alpha(1:MM)=RMM_temp(1:MM)
+	  RMM_temp(1:MM)=rhoalpha(1:MM)
+	  rhoalpha(1:MM)=rho_lambda0_alpha(1:MM)
+	  rho_lambda0_alpha(1:MM)=RMM_temp(1:MM)
 	
-	RMM_temp(1:MM)=rhobeta(1:MM)
-	rhobeta(1:MM)=rho_lambda0_betha(1:MM)
-	rho_lambda0_betha(1:MM)=RMM_temp(1:MM)
+	  RMM_temp(1:MM)=rhobeta(1:MM)
+	  rhobeta(1:MM)=rho_lambda0_betha(1:MM)
+	  rho_lambda0_betha(1:MM)=RMM_temp(1:MM)
 	end if
 
 	deallocate(RMM_temp)
-	if (Blambda .le. 1.d-1*Pstepsize) Pstepsize=Pstepsize*0.5d0 
-	if (Blambda .ge. 1.d-1*Pstepsize) Pstepsize=Pstepsize*1.2d0
-	if (Pstepsize .ge. 1.d0) Pstepsize=1.d0
-	if (Blambda .le. 1.d-1*Pstepsize .and. Pstepsize .gt. 1d-4) may_conv=.false.
+	if (Blambda .le. 4.d-1*Pstepsize) Pstepsize=Pstepsize*0.5d0 
+	if (Blambda .ge. 8.d-1*Pstepsize) Pstepsize=Pstepsize*1.2d0
+	if (Pstepsize .gt. 1.d0) Pstepsize=1.d0
+	if (Blambda .le. 2.d-1*Pstepsize .and. Pstepsize .gt. 1d-4) may_conv=.false.
 	return
 	end subroutine P_linear_calc
 
