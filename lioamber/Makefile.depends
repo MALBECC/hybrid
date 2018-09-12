@@ -107,7 +107,7 @@ OBJECTS += dftb_subs.o
 OBJECTS += dftb_data.o
 
 tmplist :=
-tmplist += SCF.o TD.o Plinearsearch.o
+tmplist += SCF.o TD.o 
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/dftb_subs.mod
 
 tmplist :=
@@ -147,7 +147,7 @@ $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ehrendata.mod
 OBJECTS += transport.o
 
 tmplist :=
-tmplist += TD.o SCF.o input_read.o Plinearsearch.o
+tmplist += TD.o SCF.o input_read.o 
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/transport.mod
 
 ################################################################################
@@ -156,12 +156,6 @@ OBJECTS += TD.o
 tmplist :=
 tmplist += SCF.o input_read.o init_lio.o ehrensubs.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/TD.mod
-
-
-OBJECTS += Plinearsearch.o
-tmplist :=
-tmplist += SCF.o input_read.o init_lio.o ehrensubs.o
-$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/Plinearsearch.o
 
 
 ################################################################################
@@ -265,7 +259,7 @@ $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/initial_guess.o
 ################################################################################
 
 tmplist :=
-tmplist += SCF.o TD.o init_lio.o cublasmath.o predictor.o maskrmm.o Plinearsearch.o
+tmplist += SCF.o TD.o init_lio.o cublasmath.o predictor.o maskrmm.o 
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/field_subs.o
 
 ################################################################################
@@ -302,13 +296,13 @@ SRCDIRS += typedef_operator
 OBJECTS += typedef_operator.o
 #
 modusrs :=
-modusrs += SCF.o converger_subs.o TD.o Plinearsearch.o
+modusrs += SCF.o converger_subs.o TD.o 
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/typedef_operator.mod
 ################################################################################
 OBJECTS += mask_ecp.o
 #
 #modusrs :=
-modusrs += SCF.o TD.o Plinearsearch.o
+modusrs += SCF.o TD.o 
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/mask_ecp.mod
 
 
@@ -369,7 +363,7 @@ ifeq ($(use_cublas),1)
   $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/fortran.o
 
   tmplist :=
-  tmplist += SCF.o TD.o typedef_operator.o transport.o Plinearsearch.o
+  tmplist += SCF.o TD.o typedef_operator.o transport.o 
   tmplist += tmpaux_SCF.o
   $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/cublasmath.mod
 
