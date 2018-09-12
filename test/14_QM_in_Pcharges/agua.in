@@ -2,10 +2,6 @@
 nsol=0
 natom=3
 nsol=3
-nmax=50
-gold=0
-diis=f
-rholinearsearch=t
 charge=0
 writeforces=t
 little_cube_size=15.5 
