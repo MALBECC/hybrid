@@ -171,6 +171,7 @@ subroutine SCF(E)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 ! lineal search
    logical :: changed_to_LS
+   integer :: nniter
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
    changed_to_LS=.false.
 
@@ -841,8 +842,11 @@ subroutine SCF(E)
 
 !------------------------------------------------------------------------------!
 ! Convergence criteria and lineal search in P
-	IF (OPEN) call P_conver(Rho_LS, niter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
-	IF (.not. OPEN) call P_conver(Rho_LS, niter, En, E1, E2, Ex, good, xnano, rho_a, rho_a)
+	nniter=niter
+	IF (changed_to_LS .and. niter.eq. (NMAX/2 +1)) nniter=1 
+
+	IF (OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
+	IF (.not. OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_a)
 !------------------------------------------------------------------------------!
 
 
@@ -869,6 +873,7 @@ subroutine SCF(E)
 	    Rho_LS=1
 	    NMAX=2*NMAX
 	    changed_to_LS=.true.
+	    call P_linearsearch_init()
 	  end if
 	end if
 
@@ -889,11 +894,6 @@ subroutine SCF(E)
 !------------------------------------------------------------------------------!
 !     Checks of convergence
 !
-      if (changed_to_LS) then
-	 changed_to_LS=.false.
-	 NMAX=NMAX/2
-      end if
-
       if (niter.ge.NMAX) then
          write(6,*) 'NO CONVERGENCE AT ',NMAX,' ITERATIONS'
          noconverge=noconverge + 1
@@ -903,6 +903,11 @@ subroutine SCF(E)
          noconverge = 0
          converge=converge+1
       endif
+
+      if (changed_to_LS) then
+         changed_to_LS=.false.
+         NMAX=NMAX/2
+      end if
 
       if (noconverge.gt.4) then
          write(6,*)  'stop for not convergion 4 times'

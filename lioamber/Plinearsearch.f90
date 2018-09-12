@@ -32,7 +32,7 @@
 	call P_calc_fluctuation(good, xnano)
 	if (.not. may_conv) good=-1.d0
 	return
-	end subroutine
+	end subroutine P_conver
 
 	subroutine P_calc_fluctuation(good, xnano)
 !calculates convergence criteria in density matrix, and store new density matrix in RMM(1:MM)
@@ -60,20 +60,38 @@
 	use garcha_mod, only : M, Md, OPEN, rho_lambda1, rho_lambda0,   &
 	rho_lambda1_alpha, rho_lambda0_alpha, rho_lambda1_betha,        &
 	rho_lambda0_betha, RMM, rhoalpha, rhobeta, Elast
-	use faint_cpu77, only: int3lu
+!	use faint_cpu77, only: int3lu
 	implicit none
-	integer :: MM, MMd !, M1, M3, M5, M7, M9, M11
-	integer :: kk
-!	double precision :: E1, E2, Ex
+	integer :: MM !, MMd 
+!	integer :: kk
 	MM=M*(M+1)/2
-	MMd=Md*(Md+1)/2
-	allocate(rho_lambda1(MM), rho_lambda0(MM))
-	if(OPEN) allocate(rho_lambda1_alpha(MM), rho_lambda0_alpha(MM), &
-	rho_lambda1_betha(MM), rho_lambda0_betha(MM))
-	if(OPEN) rho_lambda0_alpha(1:MM)=rhoalpha(1:MM)
-	if(OPEN) rho_lambda0_betha(1:MM)=rhobeta(1:MM)
+!	MMd=Md*(Md+1)/2
+	if (.not. allocated(rho_lambda1)) allocate(rho_lambda1(MM))
+	if (.not. allocated(rho_lambda0)) allocate(rho_lambda0(MM))
+
+	if(OPEN) then
+	  if (.not. allocated(rho_lambda1_alpha)) allocate(rho_lambda1_alpha(MM))
+	  if (.not. allocated(rho_lambda0_alpha)) allocate(rho_lambda0_alpha(MM))
+	  if (.not. allocated(rho_lambda1_betha)) allocate(rho_lambda1_betha(MM))
+	  if (.not. allocated(rho_lambda0_betha)) allocate(rho_lambda0_betha(MM))
+	  rho_lambda0_alpha(1:MM)=rhoalpha(1:MM)
+	  rho_lambda0_betha(1:MM)=rhobeta(1:MM)
+	end if
 	return
 	end subroutine P_linearsearch_init
+
+	subroutine P_linearsearch_fin()
+	use garcha_mod, only : OPEN, rho_lambda1, rho_lambda0,   &
+        rho_lambda1_alpha, rho_lambda0_alpha, rho_lambda1_betha,        &
+        rho_lambda0_betha, RMM, rhoalpha, rhobeta, Elast
+	if (allocated(rho_lambda1)) deallocate(rho_lambda1)
+	if (allocated(rho_lambda0)) deallocate(rho_lambda0)
+	if (allocated(rho_lambda1_alpha)) deallocate(rho_lambda1_alpha)
+	if (allocated(rho_lambda0_alpha)) deallocate(rho_lambda0_alpha)
+	if (allocated(rho_lambda1_betha)) deallocate(rho_lambda1_betha)
+	if (allocated(rho_lambda0_betha)) deallocate(rho_lambda0_betha)
+	end subroutine P_linearsearch_fin
+
 
 	subroutine P_linear_calc(Rho_LS, niter, En, E1, E2, Ex, xnano,  &
 	may_conv, rho_a, rho_b)
