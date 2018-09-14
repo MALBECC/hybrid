@@ -69,6 +69,7 @@ end subroutine converger_init
 #endif
    use converger_data, only: damping_factor, hagodiis, fockm, FP_PFm, ndiis,  &
                           &  fock_damped, bcoef, EMAT2, conver_criter
+   use garcha_mod, only : changed_to_LS
    use typedef_operator, only: operator
    implicit none
    integer, intent(in)            :: niter
@@ -179,7 +180,7 @@ end subroutine converger_init
 
       case(3)
 !        Damping until good enaugh, diis afterwards
-         if (good < good_cut) then
+         if (good < good_cut .and. .not. changed_to_LS) then
             if ( .not. hagodiis ) then
                write(6,*)
                write(6,*)
@@ -195,6 +196,8 @@ end subroutine converger_init
          stop
 
     endselect
+
+    if (changed_to_LS) hagodiis=.false. !turn off diis is calculation when change to lineal search, Nick
 !
 !
 !
