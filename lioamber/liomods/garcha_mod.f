@@ -187,5 +187,6 @@ c      parameter rmintsol=16.0D0
       logical :: P_oscilation_analisis
       double precision, dimension(:,:), allocatable :: P_hist
       double precision :: Elast
+      logical :: changed_to_LS
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
       end module

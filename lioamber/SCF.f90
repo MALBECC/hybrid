@@ -36,7 +36,7 @@ subroutine SCF(E)
                           nuc, doing_ehrenfest, first_step, RealRho,           &
                           total_time, MO_coef_at, MO_coef_at_b, Smat, good_cut,&
                           ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN, nshell, &
-                          Nuc, a, c, d, NORM, Rho_LS
+                          Nuc, a, c, d, NORM, Rho_LS, changed_to_LS
    use ECP_mod, only : ecpmode, term1e, VAAA, VAAB, VBAC, &
                        FOCK_ECP_read,FOCK_ECP_write,IzECP
    use field_data, only: field, fx, fy, fz
@@ -170,7 +170,6 @@ subroutine SCF(E)
    integer             :: NCOa, NCOb
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 ! lineal search
-   logical :: changed_to_LS
    integer :: nniter
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
    changed_to_LS=.false.
@@ -543,6 +542,10 @@ subroutine SCF(E)
         call g2g_timer_sum_start('Iteration')
         call g2g_timer_sum_start('Fock integrals')
         niter=niter+1
+
+        nniter=niter
+        IF (changed_to_LS .and. niter.eq. (NMAX/2 +1)) nniter=1 !first steep of damping after NMAX steeps without convergence
+
         E1=0.0D0
 
 !------------------------------------------------------------------------------!
@@ -671,10 +674,10 @@ subroutine SCF(E)
 !CLOSE SHELL OPTION |
 !%%%%%%%%%%%%%%%%%%%%
 #       ifdef CUBLAS
-           call conver(niter, good, good_cut, M_in, rho_aop, fock_aop,         &
+           call conver(nniter, good, good_cut, M_in, rho_aop, fock_aop,         &
                        dev_Xmat, dev_Ymat, 1)
 #       else
-           call conver(niter, good, good_cut, M_in, rho_aop, fock_aop, Xmat,   &
+           call conver(nniter, good, good_cut, M_in, rho_aop, fock_aop, Xmat,   &
                        Ymat, 1)
 #       endif
 
@@ -731,10 +734,10 @@ subroutine SCF(E)
 !OPEN SHELL OPTION  |
 !%%%%%%%%%%%%%%%%%%%%
 #       ifdef CUBLAS
-           call conver(niter, good, good_cut, M_in, rho_bop, fock_bop,         &
+           call conver(nniter, good, good_cut, M_in, rho_bop, fock_bop,         &
                        dev_Xmat, dev_Ymat, 2)
 #       else
-           call conver(niter, good, good_cut, M_in, rho_bop, fock_bop, Xmat,     &
+           call conver(nniter, good, good_cut, M_in, rho_bop, fock_bop, Xmat,     &
                        Ymat, 2)
 #       endif
 
@@ -842,8 +845,6 @@ subroutine SCF(E)
 
 !------------------------------------------------------------------------------!
 ! Convergence criteria and lineal search in P
-	nniter=niter
-	IF (changed_to_LS .and. niter.eq. (NMAX/2 +1)) nniter=1 
 
 	IF (OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
 	IF (.not. OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_a)
