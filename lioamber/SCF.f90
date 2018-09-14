@@ -908,6 +908,7 @@ subroutine SCF(E)
       if (changed_to_LS) then
          changed_to_LS=.false.
          NMAX=NMAX/2
+         Rho_LS=0
       end if
 
       if (noconverge.gt.4) then
