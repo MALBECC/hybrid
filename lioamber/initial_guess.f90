@@ -121,8 +121,10 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
    double precision, intent(inout) :: Rhovec(:), rhoalpha(:), rhobeta(:)
    double precision :: ocupF
 
+
    call g2g_timer_start('initial guess')
    call g2g_timer_sum_start('initial guess')
+
 
    select case (initial_guess)
    case (0)
@@ -136,11 +138,14 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
          Rhovec   = rhoalpha + rhobeta
       end if
    case (1)
+
       call initial_guess_aufbau(M, MM, Rhovec, rhoalpha, rhobeta, natom, NCO,&
                                 NCOb, Iz, nshell, Nuc, openshell)
    case default
       write(*,*) "ERROR - Initial guess: Wrong value for input initial_guess."
    end select
+
+
 
    call g2g_timer_stop('initial guess')
    call g2g_timer_sum_stop('initial guess')
@@ -159,13 +164,17 @@ subroutine initial_guess_aufbau(M, MM, RMM, rhoalpha, rhobeta, natom, NCO, &
    logical         , intent(in)  :: openshell
    double precision, intent(out) :: RMM(MM), rhoalpha(MM), rhobeta(MM)
 
-   double precision :: start_dens(M,M), start_dens_alpha(M,M), &
-                       start_dens_beta(M,M)
+   double precision, dimension(:,:), allocatable :: start_dens, start_dens_alpha, &
+                       start_dens_beta
    integer          :: icount, total_iz
    integer          :: n_elecs(natom,3), atom_id
 
+
+   allocate(start_dens(M,M), start_dens_alpha(M,M), start_dens_beta(M,M))
+
    call initialise_eec()
    start_dens(:,:) = 0.0D0
+
 
    total_iz = 0
    do icount = 1, natom
@@ -219,6 +228,8 @@ subroutine initial_guess_aufbau(M, MM, RMM, rhoalpha, rhobeta, natom, NCO, &
          n_elecs(atom_id,3) = 0
       endif
    enddo
+
+
 
    if (openshell) then
       start_dens_alpha(:,:) = start_dens(:,:) * dble(NCO ) / dble(total_iz)
