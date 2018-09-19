@@ -175,6 +175,13 @@ subroutine init_lio_common(natomin, Izin, nclatom, charge, callfrom)
     ng2 = 5*ngDyn*(ngDyn+1)/2 + 3*ngdDyn*(ngdDyn+1)/2 + &
           ngDyn  + ngDyn*norbit + Ngrid
 
+    if (ng2 .le. 0) then
+      write(*,*) "Error in ng2"
+      write(*,*) "dimension for RMM is greater than max integer representaion"
+      write(*,*) "should break RMM into smaller arrays"
+      stop 
+    end if
+
     allocate( RMM_save(ng2) ) ! TODO: delete after use (FFR)
     allocate(RMM(ng2)    , d(natom, natom), c(ngDyn,nl)   , a(ngDyn,nl)     ,&
              Nuc(ngDyn)  , ncont(ngDyn)   , cx(ngdDyn,nl) , ax(ngdDyn,nl)   ,&

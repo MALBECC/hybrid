@@ -515,6 +515,8 @@ subroutine SCF(E)
       if (igpu.gt.2) then
         call aint_coulomb_init()
       endif
+	write(*,*) "flag 10.1, Nick"
+
       if (igpu.eq.5) MEMO = .false.
       !MEMO=.true.
       if (MEMO) then
@@ -523,7 +525,11 @@ subroutine SCF(E)
 !        Large elements of t_i put into double-precision cool here
 !        Size criteria based on size of pre-factor in Gaussian Product Theorem
 !        (applied to MO basis indices)
+	write(*,*) "flag 10.2, Nick"
+
          call int3mem()
+	write(*,*) "flag 10.3, Nick"
+
 !        Small elements of t_i put into single-precision cools here
 !        call int3mems()
          call g2g_timer_stop('int3mem')
