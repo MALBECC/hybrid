@@ -30,6 +30,7 @@ OBJECTS += steep.o
 OBJECTS += TD.o
 OBJECTS += liomain.o
 OBJECTS += dip.o
+OBJECTS += jarz.o
 OBJECTS += magnus.o
 OBJECTS += predictor.o
 OBJECTS += dft_get_mm_forces.o
@@ -51,11 +52,15 @@ OBJECTS += test_subs.o
 OBJECTS += esp_funct.o
 OBJECTS += readECP.o
 OBJECTS += intECP.o
+OBJECTS += extras.o
 OBJECTS += fterm_biaspot.o
 OBJECTS += elec.o
 OBJECTS += properties.o
+OBJECTS += write_output.o
 OBJECTS += errlog.o
 OBJECTS += field_subs.o
+OBJECTS += Plinearsearch.o
+
 
 
 ################################################################################
@@ -64,8 +69,8 @@ TD.o : properties.o
 
 ################################################################################
 tmplist := SCF.o readECP.o drive.o intECP.o init.o init_lio.o
-tmplist += input_read.o liomain.o properties.o
-tmplist += mask_ecp.o, lionml_data.o
+tmplist += extras.o input_read.o liomain.o properties.o
+tmplist += mask_ecp.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ECP_mod.mod
 
 tmplist := SCF.o
@@ -83,7 +88,7 @@ $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/esp_funct.mod
 OBJECTS += lionml_data.o
 OBJECTS += lionml_subs.o
 
-tmplist := init_lio.o input_read.o
+tmplist := init_lio.f90
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/lionml_subs.mod
 
 tmplist := lionml_subs.o
@@ -98,22 +103,15 @@ tmplist += liomain.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/build_info.mod
 
 ################################################################################
-SRCDIRS +=
-OBJECTS += ghost_atoms.o
-tmplist :=
-tmplist += drive.o lionml_data.o
-$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ghost_atoms.mod
-
-################################################################################
 OBJECTS += dftb_subs.o
 OBJECTS += dftb_data.o
 
 tmplist :=
-tmplist += SCF.o TD.o
+tmplist += SCF.o TD.o 
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/dftb_subs.mod
 
 tmplist :=
-tmplist += SCF.o dftb_subs.o input_read.o lionml_data.o
+tmplist += SCF.o dftb_subs.o input_read.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/dftb_data.mod
 
 tmplist :=
@@ -142,30 +140,31 @@ tmplist :=
 tmplist += SCF.o SCF_exter.o liomain.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ehrensubs.mod
 
-tmplist := ehrensubs.o init_lio.o lionml_data.o dft_get_qm_forces.o
+tmplist := ehrensubs.o init_lio.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ehrendata.mod
-
 
 ################################################################################
 OBJECTS += transport.o
 
 tmplist :=
-tmplist += TD.o SCF.o input_read.o lionml_data.o
+tmplist += TD.o SCF.o input_read.o 
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/transport.mod
 
 ################################################################################
 OBJECTS += TD.o
 
 tmplist :=
-tmplist += SCF.o input_read.o init_lio.o ehrensubs.o lionml_data.o drive.o
+tmplist += SCF.o input_read.o init_lio.o ehrensubs.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/TD.mod
+
+
 ################################################################################
 OBJECTS += fockbias_data.o
 OBJECTS += fockbias_subs.o
 $(OBJPATH)/fockbias_subs.o: $(OBJPATH)/fockbias_data.mod
 
 tmplist :=
-tmplist += SCF.f90 TD.f90 cublasmath.o predictor.o
+tmplist += SCF.f90
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/fockbias_subs.mod
 
 ###############################################################################
@@ -197,7 +196,7 @@ OBJECTS += faint_cpu77.o
 #
 modusrs :=
 modusrs += cublasmath.o ehrensubs.o liomain.o maskrmm.o
-modusrs += predictor.o SCF.o TD.o field_subs.o
+modusrs += predictor.o SCF.o TD.o field_subs.o Plinearsearch.o
 modusrs += dft_get_mm_forces.o dft_get_qm_forces.o
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/faint_cpu77.mod
 
@@ -205,7 +204,7 @@ include liotemp/liotemp.mk
 SRCDIRS += liotemp
 OBJECTS += liotemp.o
 #
-modusrs := faint_cpu77.o faint_cpu.o
+modusrs := faint_cpu77.o
 modusrs += subm_int1.o subm_int1G.o subm_int2.o subm_int2G.o
 modusrs += subm_int3lu.o subm_int3mem.o subm_int3G.o
 modusrs += subm_intSG.o subm_intfld.o subm_intsol.o subm_intsolG.o
@@ -219,9 +218,20 @@ OBJECTS += faint_cpu.o
 #
 modusrs :=
 modusrs += cublasmath.o ehrensubs.o liomain.o maskrmm.o
-modusrs += predictor.o SCF.o SCFop.o TD.o field_subs.o
+modusrs += predictor.o SCF.o SCFop.o TD.o field_subs.o Plinearsearch.o
 modusrs += dft_get_mm_forces.o dft_get_qm_forces.o
+$(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/faint_cpu77.mod
+
+include liotemp/liotemp.mk
+SRCDIRS += liotemp
+OBJECTS += liotemp.o
+#
+modusrs :=
+modusrs += subm_int1.o subm_int1G.o subm_int2.o subm_int2G.o
+modusrs += subm_int3lu.o subm_int3mem.o subm_int3G.o
+modusrs += subm_intSG.o subm_intfld.o subm_intsol.o subm_intsolG.o
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/faint_cpu.mod
+
 
 ################################################################################
 include fileio/fileio.mk
@@ -229,9 +239,7 @@ SRCDIRS += fileio
 OBJECTS += fileio.o
 
 tmplist :=
-tmplist += converger_subs.o drive.o init_lio.o
-tmplist += get_restrain_energy_forces.o lio_finalize.o liomain.o lionml_subs.o
-tmplist += steep.o TD.o
+tmplist += drive.o liomain.o TD.o Plinearsearch.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/fileio.mod
 
 ################################################################################
@@ -245,14 +253,13 @@ $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/shape_data.mod
 OBJECTS += initial_guess.o
 
 tmplist :=
-tmplist += SCF.o lionml_data.o
+tmplist += SCF.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/initial_guess.o
 
 ################################################################################
 
 tmplist :=
-tmplist += SCF.o TD.o init_lio.o cublasmath.o predictor.o maskrmm.o
-tmplist += lionml_data.o
+tmplist += SCF.o TD.o init_lio.o cublasmath.o predictor.o maskrmm.o 
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/field_subs.o
 
 ################################################################################
@@ -283,18 +290,19 @@ modusrs :=
 modusrs += SCF.o
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/typedef_sop.mod
 ################################################################################
+
 include typedef_operator/typedef_operator.mk
 SRCDIRS += typedef_operator
 OBJECTS += typedef_operator.o
 #
 modusrs :=
-modusrs += SCF.o converger_subs.o TD.o
+modusrs += SCF.o converger_subs.o TD.o 
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/typedef_operator.mod
 ################################################################################
 OBJECTS += mask_ecp.o
 #
 #modusrs :=
-modusrs += SCF.o TD.o
+modusrs += SCF.o TD.o 
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/mask_ecp.mod
 
 
@@ -355,7 +363,7 @@ ifeq ($(use_cublas),1)
   $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/fortran.o
 
   tmplist :=
-  tmplist += SCF.o TD.o typedef_operator.o transport.o
+  tmplist += SCF.o TD.o typedef_operator.o transport.o 
   tmplist += tmpaux_SCF.o
   $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/cublasmath.mod
 
@@ -377,12 +385,12 @@ SRCDIRS += liomods
 tmplist := dft_get_mm_forces.o dft_get_qm_forces.o
 tmplist += get_restrain_energy_forces.o
 tmplist += dip.o dipmem.o drive.o grid.o init_amber.o init.o
-tmplist += lio_finalize.o predictor.o
+tmplist += jarz.o lio_finalize.o predictor.o
 tmplist += SCF.o SCF_in.o TD.o cubegen.o
-tmplist += maskrmm.o SCF_exter.o
+tmplist += maskrmm.o write_output.o SCF_exter.o
 tmplist += intECP.o elec.o func.o tmpaux_SCF.o
 tmplist += faint_cpu77.o steep.o transport.o
-tmplist += liotemp.o lionml_subs.o
+tmplist += liotemp.o Plinearsearch.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/garcha_mod.mod
 
 
@@ -436,7 +444,7 @@ $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/general_module.mod
 OBJECTS += translation.o
 
 tmplist :=
-tmplist += SCF.o lionml_data.o
+tmplist += SCF.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/translation.mod
 ###############################################################################
 
@@ -445,5 +453,5 @@ $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/translation.mod
 ################################################################################
 OBJECTS += constants_mod.o
 #
-modusrs := subm_int1.o subm_int1G.o subm_int2.o subm_int3mem.o subm_int3lu.o
+modusrs := subm_int1.o
 $(modusrs:%.o=$(OBJPATH)/%.o) : ${OBJPATH}/constants_mod.mod

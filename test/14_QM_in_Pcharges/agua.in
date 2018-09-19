@@ -11,3 +11,5 @@ sphere_radius=0.5
 energy_all_iterations=t
 free_global_memory=0.6
 &end
+
+

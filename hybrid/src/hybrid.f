@@ -42,9 +42,9 @@
      . dihety,dihmty,impty, evaldihelog, evaldihmlog,
      . atange, atangm,
      . atdihe,atdihm,atimp,
-     . rclas, vat, izs, evaldihe,evaldihm, 
+     . rclas, vat, aat, izs, evaldihe,evaldihm, 
      . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, parametro,
-     . linkqmtype, Elink, distl, pclinkmm, Emlink,
+     . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, pi,
 !cutoff
      . r_cut_list_QMMM,blocklist,blockqmmm,
      . listqmmm,MM_freeze_list, natoms_partial_freeze, 
@@ -55,13 +55,18 @@
      . aclas_BAND_old,
      . rclas_BAND,
      . vclas_BAND, fclas_BAND, Energy_band,
+     . NEB_distl,
      . ucell,
      . ftol,
      . Ang, eV, kcal, 
+!Dynamics
+     . Ekinion, tempion, tempinit,
+!FIRE
+     . time_steep, Ndescend, time_steep_max, alpha,
 !Lio
      . charge, spin,
 !outputs
-     . writeRF
+     . writeRF, slabel, traj_frec
 
       implicit none
 ! General Variables
@@ -84,7 +89,6 @@
       logical :: usesavecg !control for restart CG
       logical :: varcel !true if variable cell optimization
       logical :: relaxd ! True when CG converged
-      character :: slabel*20 ! system label, name of outputs
       character :: paste*25
       external :: paste
       logical :: actualiz!MM interaction list control
@@ -120,6 +124,7 @@
       double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
+      logical ::  recompute_cuts
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
       logical :: do_properties !control for lio properties calculation
@@ -155,6 +160,7 @@
       integer  :: nfce !number of atoms for whom the forces will be writen, wrifces=0,1,2 => nfce = 0, na, nat
       integer ::  wricoord !number of steps for write coordinates
       logical :: writeipl
+
 
 ! Auxiliars
       integer :: i, ia, imm, iunit, ix, j, k, inick, jnick, itest
@@ -202,6 +208,7 @@
       do_properties=.false.
       Nick_cent=.false.
       foundxv=.false.
+      recompute_cuts=.true.
 
 ! Initialize IOnode
       call io_setup   
@@ -277,7 +284,7 @@
 ! Read simulation data 
       call read_md( idyn, nmove, dt, dxmax, ftol, 
      .              usesavecg, usesavexv , Nick_cent, na_u,  
-     .              natot, nfce, wricoord, mmsteps)
+     .              natot, nfce, wricoord, mmsteps, tempinit)
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
@@ -288,7 +295,7 @@
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
       else 
 	call init_hybrid("NEB")
-	call NEB_make_initial_band()
+	call NEB_make_initial_band(usesavecg)
       end if
 
 
@@ -322,15 +329,18 @@
      .               natot,na_u,nac,distl)
             xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 	  else !NEB case
-
+	    NEB_distl=1.09
 	    do replica_number = NEB_firstimage, NEB_lastimage 
 	      rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
+	      distl(1:15)=NEB_distl(1:15,replica_number)
+	      frstme=.true.
 	      call link3(numlink,linkat,linkqm,linkmm,rclas,
      .               natot,na_u,nac,distl)
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
+	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do
-	  
-	  end if
+	   end if
+
 	  ! Sets to zero pc and Em for MMLink 
             do i=1,numlink
               pclinkmm(i,1:4)=pc(linkmm(i,1:4))
@@ -399,6 +409,15 @@
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
      .            atname,aaname,aanum,water)
 
+! Build initial velocities according to Maxwell-Bolzmann distribution
+        if (idyn .eq. 4 .and. (.not. foundvat))
+     .  call vmb(natot,tempinit,masst,rclas,0,vat)
+
+!tempinit
+
+
+
+
 !########################################################################################
 !#####################################  MAIN LOOPS  #####################################
 !########################################################################################
@@ -426,7 +445,7 @@
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .eq. 0 .or. idyn .eq. 1) then
+        if (idyn .lt. 5 ) then ! case 0 1 2 3
           inicoor = 0
           fincoor = nmove
         endif
@@ -441,10 +460,10 @@
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ne. 0 .and. idyn .ne. 1)
-     .    STOP 'only CG or BAND minimization avalable'
+          if (idyn .ge. 5) 
+     .    STOP 'only CG, QM, FIRE or NEB minimization available'
 
-          write(6,'(28(" "),a,i6)') 'Begin CG move = ',istep
+          write(6,'(28(" "),a,i6)') 'Begin move = ',istep
           write(6,'(2a)') '                        ',
      .                    '=============================='
           write(6,*) "Optimization level: ", optimization_lvl
@@ -459,7 +478,11 @@
 ! Calculate Energy and Forces using Lio as Subroutine
           if(qm) then 
 
-	  if (istep.eq.inicoor) then ! define lista de interacciones en el primer paso de cada valor del restrain
+	  recompute_cuts=.false.
+	  if (istep.eq.inicoor) recompute_cuts=.true.
+	  if (replica_number.gt.1) recompute_cuts=.false.
+
+	  if (recompute_cuts) then ! define lista de interacciones en el primer paso de cada valor del restrain
 	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
 	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
 	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
@@ -527,7 +550,6 @@
               Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
             end if
           end do
-
 	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
      .     F_cut_QMMM,
      .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
@@ -542,8 +564,7 @@ c return forces to fullatom arrays
      .        F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
 	    end if
           end do
-        endif !qm
-
+        endif !qm    termino el if(qm)
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
 ! Start MMxQM loop
@@ -555,7 +576,7 @@ c return forces to fullatom arrays
               write(6,'(A,i5)') '   MM x QM Step : ', imm 
               write(6,'(A)')    '*******************************'
             endif
-
+	
 ! Calculation of last QM-MM interaction: LJ Energy and Forces only 
             if((qm.and.mm)) then
               call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
@@ -571,8 +592,9 @@ c return forces to fullatom arrays
               endif !LA
             endif !qm & mm
 
-! Calculate pure Solvent energy and forces 
+! Calculate pure Solvent energy and forces
             if(mm) then
+
       call solv_ene_fce(natot,na_u,nac,ng1,rclas,Em,Rm,pc(1:nac),
      .    Etot_amber,fce_amber,attype,
      .    nbond,nangle,ndihe,nimp,multidihe, multiimp,kbond,bondeq,
@@ -588,25 +610,16 @@ c return forces to fullatom arrays
      .    water,masst,radblommbond)
             endif !mm
 
-
-
 ! converts fdummy to Kcal/mol/Ang  
             fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
- 
-
-
 
 ! here Etot in Hartree, fdummy in kcal/mol Ang
-
 
 ! add famber to fdummy  
             if(mm) then
               fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
-     .        +fce_amber(1:3,1:nac)
+     .        +0.5d0*fce_amber(1:3,1:nac)
             endif !mm
-
-
-
 
 ! Calculation of LinkAtom Energy and Forces
             if(qm.and.mm ) then
@@ -627,7 +640,6 @@ c return forces to fullatom arrays
               endif ! LA
             endif !qm & mm
 
-
         if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
 ! Calculation of Constrained Optimization Energy and Forces 
@@ -639,27 +651,23 @@ c return forces to fullatom arrays
           endif 
         endif !imm
 
-
-
 ! Converts fdummy Hartree/bohr. 
         fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
-
-
-
 ! Writes final energy decomposition
-        Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
-        Etots=0.5d0*Etots
-
+	Etots=Etot+0.5d0*(Elj+((Etot_amber+Elink)/kcal*eV))
+!        Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
+!        Etots=0.5d0*Etots
        write(6,*)
-       write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
-       if(qm) write(6,'(a,2x,F16.6)')           'Elio :',Etot/eV      
-       if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Elj:    ',Elj/eV       
-       if(mm) write(6,'(a,2x,F16.6)')      'Esolv:  ',Etot_amber/kcal   
-       if(Elink.ne.0.0) write(6,'(a,2x,F16.6)') 'Elink:  ',Elink/kcal
-       if(qm.and.mm) write(6,'(a,2x,F16.6)')    'Etots:  ',Etots/eV
+	write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
+	if(qm) write(6,999)           'Elio :',Etot/eV      
+	if(qm.and.mm) write(6,999)    'Elj:    ',Elj*0.5d0/eV       
+	if(mm) write(6,999)      'Esolv:  ',Etot_amber*0.5d0/kcal   
+	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink*0.5d0/kcal
+	write(6,999)    'Etots:  ',Etots/eV
        call flush(6)
+! saque if para Etots
 
 ! Sets fdummy to zero inside mmxqm step
        if(qm.and.mm) then
@@ -680,6 +688,7 @@ c return forces to fullatom arrays
 ! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat)
+
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
@@ -696,11 +705,13 @@ c return forces to fullatom arrays
         end if
 
 ! freeze MM atom
+	if (qm) then
         do inick=1, natot
           if(MM_freeze_list(inick)) then
             cfdummy(1:3,inick) = 0.d0
           end if
         end do
+	endif !jota
 
 ! partial freeze
 	do inick=1,natoms_partial_freeze
@@ -713,7 +724,7 @@ c return forces to fullatom arrays
 
 
 ! write xyz, hay q ponerle un if para escribir solo cuando se necesita
-	call write_xyz(natot, na_u, iza, pc, rclas)
+c	call write_xyz(natot, na_u, iza, pc, rclas)
 
 C Write atomic forces 
       fmax = 0.0_dp
@@ -749,7 +760,7 @@ C Write atomic forces
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
-      if (idyn .eq. 0 ) then !Move atoms with a CG algorithm
+      if (idyn .ne. 1 ) then !Move atoms with a CG algorithm
 
         if (writeRF .eq. 1) then!save coordinates and forces for integration 
            do itest=1, natot
@@ -757,11 +768,47 @@ C Write atomic forces
      .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
            end do
         end if
+
+	Ekinion=0.d0
  
-
-
-       call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
+	if (idyn .eq. 0) then !Conjugated Gradient
+	  call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
+	elseif (idyn .eq. 2) then !Quick Minimization
+	  call check_convergence(relaxd, cfdummy)
+	  if (.not. relaxd) call quick_min(natot, rclas, cfdummy, aat,
+     .    vat, masst)
+	elseif (idyn .eq. 3) then !FIRE
+	  call check_convergence(relaxd, cfdummy)
+	  if (.not. relaxd) call FIRE(natot, rclas,cfdummy, aat, vat, 
+     .    masst, time_steep,Ndescend, time_steep_max, alpha)
+	elseif (idyn .eq. 4) then
+	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
+     .        masst, 0, vat, rclas, Ekinion, tempion, nfree)
+!iquench lo dejamos como 0, luego cambiar
+!ntcon lo dejamos como 0, luego agregar
+!iunit fijado en 3
+
+	else
+	  STOP "Wrong idyn value"
+	end if
+
+
+       if(idyn .eq. 4) then
+        write(6,999)
+     .  'hybrid: Kinetic Energy (eV):',Ekinion/eV
+        write(6,999)
+     .  'hybrid: Total Energy + Kinetic (eV):',(Etots+Ekinion)/eV
+        write(6,999)
+     .  'hybrid: System Temperature:', tempion, ' K'
+!      if(qm) call centerdyn(na_u,rclas,ucell,natot)
+c	if (MOD((istp - inicoor),traj_frec) .eq. 1) 
+      call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
+     .      rclas,atname,aaname,aanum,nesp,atsym,isa)
+
+       endif
+
+
 
 !Nick center
         if (qm .and. .not. mm .and. Nick_cent) then
@@ -837,9 +884,11 @@ C Write atomic forces
           if(linkatom) then
 	    do replica_number = NEB_firstimage, NEB_lastimage
               rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
+	      distl(1:15)=NEB_distl(1:15,replica_number)
 	      call link3(numlink,linkat,linkqm,linkmm,rclas,
      .               natot,na_u,nac,distl)
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
+	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do
 	  endif !LA
 	endif !qm & mm
@@ -873,19 +922,18 @@ C Write atomic forces
 	   do replica_number = 1, NEB_Nimages
 		Etots=Energy_band(replica_number) -Energy_band(1) ! Hartree
 		rclas=rclas_BAND(1:3,1:natot,replica_number)
+		vat=vclas_BAND(1:3,1:natot,replica_number)
 !guardo en rce y rcg.
            call wrirtc(slabel,Etots,dble(replica_number),replica_number,
      .             na_u,nac,
      .             natot,
      .             rclas,atname,aaname,aanum,nesp,atsym,isa)
            call ioxvconstr(natot,ucell,rclas,vat,replica_number)
-
            end do
-
+	  call NEB_restart(2, .false.) !write restart full precision
 	else
 	  write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal,
      .  Elink/kcal, Etots/eV
-
           if(constropt) then
            call subconstr3(ro(1),rt(1),dr,Etots)
 ! write .rce 
@@ -899,7 +947,7 @@ C Write atomic forces
 
 
 ! properties calculation in lio for optimized geometry
-      if (idyn .ne. 1) then
+      if (idyn .ne. 1 .and. qm) then
       do_properties=.true.
       call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
      .     F_cut_QMMM,
@@ -940,6 +988,7 @@ C Write atomic forces
  956  format(2x, "Econtribution", 7(f18.6,2x))
  423  format(2x, I6,2x, 6(f20.10,2x))
  444  format(2x, I6,2x, 3(f20.10,2x))
+ 999  format(a,2x,F30.18)
       end program HYBRID
 
 
