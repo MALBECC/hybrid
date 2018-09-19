@@ -34,20 +34,28 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
 
 !  Returns the appropriate basis matrix (note: Ytrp = Xinv)
 !------------------------------------------------------------------------------!
-   call this%Gets_orthog_2m( method_id, maxval_ld, Xmat, Ymat )
 
+	write(*,*) "flag 1 Gets_orthog_4m"
+   call this%Gets_orthog_2m( method_id, maxval_ld, Xmat, Ymat )
+	write(*,*) "flag 2 Gets_orthog_4m"
    select case (method_id)
       case (0)
 !        Use last method saved inside the object
+	write(*,*) "flag 2.1 Gets_orthog_4m"
+
          Xtrp = this%Xtrp
          Ytrp = this%Ytrp
 
       case (1,3)
+	write(*,*) "flag 2.2 Gets_orthog_4m"
+
 !        Cholesky Decomposition
          Xtrp = transpose( Xmat )
          Ytrp = transpose( Ymat )
 
       case (2)
+	write(*,*) "flag 2.3 Gets_orthog_4m"
+
 !        Symetric/Lowdin Orthogonalization
          Xtrp = Xmat
          Ytrp = Ymat

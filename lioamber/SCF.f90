@@ -389,11 +389,14 @@ subroutine SCF(E)
 
 	  write(*,*) "flag 4, Nick"
         call overop%Sets_smat( Smat )
+	  write(*,*) "flag 4.1, Nick"
         if (lowdin) then
 !          TODO: inputs insuficient; there is also the symetric orthog using
 !                3 instead of 2 or 1. Use integer for onbasis_id
+	  write(*,*) "flag 4.2, Nick"
            call overop%Gets_orthog_4m( 2, 0.0d0, X_min, Y_min, X_min_trans, Y_min_trans)
         else
+	  write(*,*) "flag 4.3, Nick"
            call overop%Gets_orthog_4m( 1, 0.0d0, X_min, Y_min, X_min_trans, Y_min_trans)
         end if
 
@@ -797,10 +800,6 @@ subroutine SCF(E)
         call rho_bop%Gets_data_AO(rho_b)
         call messup_densmat( rho_b )
 
-!carlos: Beta Energy storage in RMM
-        do kk=1,M
-          RMM(M22+kk-1) = morb_energy(kk)
-        end do
 !carlos: Storing autovectors to create the restart
         i0 = 0
         if (dftb_calc) i0=MTB

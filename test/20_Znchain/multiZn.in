@@ -1,6 +1,6 @@
 &lio
 nsol=0
-natom=23
+natom=100
 OPEN=t
 nmax=2
 initial_guess=1
