@@ -19,13 +19,9 @@
 
 !------------------------------------------------------------------------------!
   allocate(Emat(size(Bmat,1),size(Bmat,2)))
-	write(*,*) "flag 1 matmul3"
   Emat = matmul( Amat, Bmat )
-	write(*,*) "flag 2 matmul3"
   Dmat = matmul( Emat, Cmat )
   deallocate(Emat)
-!a  Dmat=Emat
-	write(*,*) "flag 3 matmul3"
 
 !end function matmul3_ddd
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
