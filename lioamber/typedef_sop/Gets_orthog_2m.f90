@@ -46,14 +46,14 @@ subroutine Gets_orthog_2m( this, method_id, maxval_ld, Xmat, Ymat )
       case (1)
 !        Cholesky Decomposition
 !        S = Y * Yt = L * Lt
-         Xmat = matmul3( this%Umat, Ginv_li, this%Vtrp )
-         Ymat = matmul3( this%Umat, Gmat_li, this%Vtrp )
+         call matmul3( this%Umat, Ginv_li, this%Vtrp, Xmat )
+         call matmul3( this%Umat, Gmat_li, this%Vtrp, Ymat )
 
       case (2)
 !        Symetric/Lowdin Orthogonalization
 !        S = Y * Yt = (U*sq*Ut)*(U*sq*Ut)
-         Xmat = matmul3( this%Umat, Ginv_li, this%Utrp )
-         Ymat = matmul3( this%Umat, Gmat_li, this%Utrp )
+         call matmul3( this%Umat, Ginv_li, this%Utrp, Xmat )
+         call matmul3( this%Umat, Gmat_li, this%Utrp, Ymat )
 
       case (3)
 !        Canonical Orthogonalization
