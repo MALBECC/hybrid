@@ -60,12 +60,9 @@
 	use garcha_mod, only : M, Md, OPEN, rho_lambda1, rho_lambda0,   &
 	rho_lambda1_alpha, rho_lambda0_alpha, rho_lambda1_betha,        &
 	rho_lambda0_betha, RMM, rhoalpha, rhobeta, Elast
-!	use faint_cpu77, only: int3lu
 	implicit none
 	integer :: MM !, MMd 
-!	integer :: kk
 	MM=M*(M+1)/2
-!	MMd=Md*(Md+1)/2
 	if (.not. allocated(rho_lambda1)) allocate(rho_lambda1(MM))
 	if (.not. allocated(rho_lambda0)) allocate(rho_lambda0(MM))
 
@@ -197,15 +194,24 @@
 
 	subroutine give_me_energy(E, En, E1, E2, Ex)
 !return Energy components for a density matrix stored in RMM(1:MM)
-	use garcha_mod, only : M,Md, RMM
-	use faint_cpu77, only: int3lu
+	use garcha_mod, only : M,Md, RMM, OPEN
+	use faint_cpu, only: int3lu
 	implicit none
 	double precision, intent(out) :: E
 	double precision, intent(in) :: En
 	double precision, intent(out) :: E1, E2, Ex
-	integer :: kk, MM, MMd, M11
+	integer :: kk, MM, MMd, M1, M3, M5, M7, M9, M11
 	MM=M*(M+1)/2
 	MMd=Md*(Md+1)/2
+
+	M1=1 ! first P
+	M3=M1+MM ! now Pnew
+	M5=M3+MM! now S, F also uses the same position after S was used
+	M7=M5+MM! now G
+	M9=M7+MMd ! now Gm
+	M11=M9+MMd! now H
+
+
 	E=0.d0
 	E1=0.D0
 	E2=0.d0
@@ -215,7 +221,9 @@
 	do kk=1,MM
 	  E1=E1+RMM(kk)*RMM(M11+kk-1) !Computes 1e energy
 	enddo
-	call int3lu(E2) ! Computes Coulomb part of Fock, and energy on E2
+	! Computes Coulomb part of Fock, and energy on E2
+	call int3lu(E2, RMM(1:MM), RMM(M3:M3+MM), RMM(M5:M5+MM), RMM(M7:M7+MMd), &
+	     RMM(M9:M9+MMd), RMM(M11:M11+MMd), OPEN)
 	call g2g_solve_groups(0,Ex,0) ! Computes XC integration / Fock elements
 	E=E1+E2+En+Ex
 	return
