@@ -14,4 +14,5 @@ use_libxc=f
 ex_functional_id=101
 ec_functional_id=130
 timers=2
+style=t
 &end

@@ -220,6 +220,7 @@ end subroutine write_orbitals_op
 ! analysis performed (0=Mulliken, 1=Löwdin) and UID is the output file UID.    !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 subroutine write_population(N, q0, q, pop, UID)
+
    use fileio_data, only : style
    implicit none
    integer         , intent(in) :: UID, N, q0(N), pop
@@ -233,6 +234,7 @@ subroutine write_population(N, q0, q, pop, UID)
       write(UID,300)
       if (pop.eq.0) write(UID,301)
       if (pop.eq.1) write(UID,309)
+      if (pop.eq.2) write(UID,310)
       write(UID,302); write(UID,303); write(UID,304)
       do icount = 1, N
          qtotal = qtotal + q(icount)
@@ -244,6 +246,7 @@ subroutine write_population(N, q0, q, pop, UID)
    else
       if (pop.eq.0) write(UID,402) "# Mulliken Population Analysis"
       if (pop.eq.1) write(UID,402) "# Löwdin Population Analysis"
+      if (pop.eq.2) write(UID,402) "# Spin Population Analysis"
       write(UID,402) "# Atom   Type   Population"
       do icount = 1, N
          qtotal = qtotal + q(icount)
@@ -265,6 +268,7 @@ subroutine write_population(N, q0, q, pop, UID)
 307 FORMAT(8x,"         ║   TOTAL   ║",1x,F10.7,1x,"║")
 308 FORMAT(8x,"         ╚═══════════╩════════════╝")
 309 FORMAT(8x,"║    LÖWDIN POPULATION ANALYSIS   ║")
+310 FORMAT(8x,"║     SPIN POPULATION ANALYSIS    ║")
 400 FORMAT(2x,i3,4x,i3,5x,F10.7)
 401 FORMAT(2x,"Total Charge = ", F10.7)
 402 FORMAT(A)

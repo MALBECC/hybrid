@@ -99,22 +99,32 @@ subroutine write_energy_convergence(step, energy, good, told, egood, etold)
 
    implicit none
    integer         , intent(in) :: step
-   double precision, intent(in) :: energy, good, told, egood, etold
+   double precision, intent(in) :: energy, told, egood, etold
+   double precision, intent(inout) :: good
 
    if (verbose .lt. 2) return;
+
    if (style) then
-      write(*, 8500)
-      write(*, 8501) step, energy
-      write(*, 8502)
-      write(*, 8601)
-      write(*, 8602)
-      write(*, 8603)
-      write(*, 8604) good , told
-      write(*, 8605) egood, etold
-      write(*, 8606)
+     write(*, 8500)
+     write(*, 8501) step, energy
+     write(*, 8502)
+     if (GOOD .gt. 0.d0) then
+       write(*, 8601)
+       write(*, 8602)
+       write(*, 8603)
+       write(*, 8604) good , told
+       write(*, 8605) egood, etold
+       write(*, 8606)
+     end if
    else
-      write(*, 8700) step, energy, good, told, egood, etold
+     if (GOOD .gt. 0.d0) then
+       write(*, 8700) step, energy, good, told, egood, etold
+     else
+       write(*, 8701) step, energy
+     end if
    endif
+
+   if (GOOD .lt. 0.d0) GOOD=99999d0
 
    return;
 8500 FORMAT(4x,"╔════════╦═════════════╦══════════", &
@@ -134,4 +144,6 @@ subroutine write_energy_convergence(step, energy, good, told, egood, etold)
 8700 FORMAT(2x, "Step = ", I6, 1x, " - QM Energy = ", F12.5, 1x,        &
             "- Rho diff (crit) = ", ES8.2, " (",ES8.2, &
             ") - Energy diff (crit) = ", ES8.2, " (",ES8.2,")")
+
+8701 FORMAT(2x, "Step = ", I6, 1x, " - QM Energy = ", F12.5, 1x)
 end subroutine write_energy_convergence

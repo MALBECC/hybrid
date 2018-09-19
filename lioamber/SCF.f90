@@ -910,8 +910,6 @@ subroutine SCF(E)
 	  end if
 	end if
 
-        if (verbose) call WRITE_E_STEP(niter, E+Ex)
-
         Egood=abs(E+Ex-Evieja)
         Evieja=E+Ex
 !
