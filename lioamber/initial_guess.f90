@@ -121,12 +121,9 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
    double precision, intent(inout) :: Rhovec(:), rhoalpha(:), rhobeta(:)
    double precision :: ocupF
 
-	write(*,*) "flag 1 ig, Nick"
 
    call g2g_timer_start('initial guess')
    call g2g_timer_sum_start('initial guess')
-
-        write(*,*) "flag 2 ig, Nick"
 
 
    select case (initial_guess)
@@ -141,7 +138,6 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
          Rhovec   = rhoalpha + rhobeta
       end if
    case (1)
-	 write(*,*) "flag 3.1 ig, Nick"
 
       call initial_guess_aufbau(M, MM, Rhovec, rhoalpha, rhobeta, natom, NCO,&
                                 NCOb, Iz, nshell, Nuc, openshell)
@@ -149,7 +145,6 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
       write(*,*) "ERROR - Initial guess: Wrong value for input initial_guess."
    end select
 
-	write(*,*) "flag 3 ig, Nick"
 
 
    call g2g_timer_stop('initial guess')
@@ -174,14 +169,12 @@ subroutine initial_guess_aufbau(M, MM, RMM, rhoalpha, rhobeta, natom, NCO, &
    integer          :: icount, total_iz
    integer          :: n_elecs(natom,3), atom_id
 
-	write(*,*) "flag iguess 1, Nick"
 
    allocate(start_dens(M,M), start_dens_alpha(M,M), start_dens_beta(M,M))
 
    call initialise_eec()
    start_dens(:,:) = 0.0D0
 
-	write(*,*) "flag iguess 2, Nick"
 
    total_iz = 0
    do icount = 1, natom
@@ -237,22 +230,17 @@ subroutine initial_guess_aufbau(M, MM, RMM, rhoalpha, rhobeta, natom, NCO, &
    enddo
 
 
-	write(*,*) "flag iguess 3, Nick"
 
    if (openshell) then
       start_dens_alpha(:,:) = start_dens(:,:) * dble(NCO ) / dble(total_iz)
       start_dens_beta(:,:)  = start_dens(:,:) * dble(NCOb) / dble(total_iz)
       start_dens(:,:)       = start_dens_alpha(:,:) + start_dens_beta(:,:)
-	write(*,*) "flag iguess 3.1, Nick"
       call sprepack('L', M, rhoalpha, start_dens_alpha)
-	write(*,*) "flag iguess 3.2, Nick"
       call sprepack('L', M, rhobeta , start_dens_beta)
    else
-	write(*,*) "flag iguess 3.3, Nick"
       start_dens(:,:) = start_dens(:,:) * dble(NCO*2) / dble(total_iz)
    endif
 
-	write(*,*) "flag iguess 4, Nick"
    call sprepack('L', M, RMM, start_dens)
    return
 end subroutine initial_guess_aufbau
