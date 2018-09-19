@@ -28,15 +28,16 @@ subroutine SCF(E)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
    use ehrensubs , only: ehrendyn_init
    use garcha_mod, only : M,Md, NCO,natom,Nang, number_restr, hybrid_converg,  &
-                          MEMO, npas, verbose, RMM, X, SHFT, GRAD, npasw,      &
+                          MEMO, npas, RMM, X, npasw,                           &
                           igrid, energy_freq, converge, noconverge, lowdin,    &
                           cubegen_only, VCINP, primera, Nunp, GOLD, igrid2,    &
                           predcoef, nsol, r, pc, DIIS, told, Etold, Enucl,     &
-                          Eorbs, kkind,kkinds,cool,cools,NMAX,Dbug, idip, Iz,  &
+                          Eorbs, kkind,kkinds,cool,cools,NMAX,Dbug, Iz,        &
                           nuc, doing_ehrenfest, first_step, RealRho,           &
                           total_time, MO_coef_at, MO_coef_at_b, Smat, good_cut,&
-                          ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN, nshell, &
-                          Nuc, a, c, d, NORM
+                          ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN,nshell,&
+                          Nuc, a, c, d, NORM, ntatom, Eorbs_b, ad, cd, ncontd, &
+                          nucd, nshelld
    use ECP_mod, only : ecpmode, term1e, VAAA, VAAB, VBAC, &
                        FOCK_ECP_read,FOCK_ECP_write,IzECP
    use field_data, only: field, fx, fy, fz
@@ -44,8 +45,7 @@ subroutine SCF(E)
    use td_data, only: timedep, tdrestart, tdstep
    use transport_data, only : generate_rho0
    use time_dependent, only : TD
-   use faint_cpu, only: int1
-   use faint_cpu77, only: int2, intsol, int3mem, int3lu
+   use faint_cpu, only: int1, intsol, int2, int3mem, int3lu
    use dftb_data, only : dftb_calc, MDFTB, MTB, chargeA_TB, chargeB_TB,        &
                          rho_aDFTB, rho_bDFTB, TBsave, TBload
    use dftb_subs, only : dftb_init, getXY_DFTB, find_TB_neighbors,             &
@@ -67,6 +67,9 @@ subroutine SCF(E)
       use cublasmath , only: cumxp_r
 #  endif
    use initial_guess_subs, only: get_initial_guess
+   use fileio       , only: write_energies, write_energy_convergence, &
+                            write_final_convergence
+   use fileio_data  , only: verbose
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 
@@ -171,6 +174,10 @@ subroutine SCF(E)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
    call g2g_timer_start('SCF_full')
 
+   if (verbose > 1) then
+      write(*,*)
+      write(*,'(A)') "Starting SCF cycles."
+   endif
 
 !------------------------------------------------------------------------------!
 !DFTB: initialisation of DFTB variables
@@ -308,6 +315,19 @@ subroutine SCF(E)
 !
       call neighbor_list_2e()
 
+! Goes straight to TD if a restart is used.
+      if ((timedep.eq.1).and.(tdrestart)) then
+        call g2g_timer_sum_stop('Initialize SCF')
+        call g2g_timer_sum_start('TD')
+        if(OPEN) then
+           call TD(fock_aop, rho_aop, fock_bop, rho_bop)
+        else
+           call TD(fock_aop, rho_aop)
+        endif
+        call g2g_timer_sum_stop('TD')
+        return
+      endif
+!
 ! -Create integration grid for XC here
 ! -Assign points to groups (spheres/cubes)
 ! -Assign significant functions to groups
@@ -320,17 +340,13 @@ subroutine SCF(E)
       call aint_query_gpu_level(igpu)
       if (igpu.gt.1) call aint_new_step()
 
-      if (predcoef.and.npas.gt.3) then
-        write(*,*) 'no devería estar aca!'
-      endif
-
 ! Calculate 1e part of F here (kinetic/nuc in int1, MM point charges
 ! in intsol)
 !
       call g2g_timer_sum_start('1-e Fock')
       call g2g_timer_sum_start('Nuclear attraction')
-      call int1(En, RMM, Smat, Nuc, a, c, d, r, Iz, ncont, NORM, natom, M, Md)
-
+      call int1(En, RMM(M5:M5+MM), RMM(M11:M11+MM), Smat, d, r, Iz, natom, &
+                ntatom)
       call ECP_fock( MM, RMM(M11) )
 
 ! Other terms
@@ -340,7 +356,8 @@ subroutine SCF(E)
           call g2g_timer_sum_start('QM/MM')
        if (igpu.le.1) then
           call g2g_timer_start('intsol')
-          call intsol(E1s,Ens,.true.)
+          call intsol(RMM(1:MM), RMM(M11:M11+MM), Iz, pc, r, d, natom, ntatom, &
+                      E1s, Ens, .true.)
           call g2g_timer_stop('intsol')
         else
           call aint_qmmm_init(nsol,r,pc)
@@ -411,9 +428,9 @@ subroutine SCF(E)
         if ( allocated(sqsmat) ) deallocate(sqsmat)
         if ( allocated(tmpmat) ) deallocate(tmpmat)
         allocate( sqsmat(M,M), tmpmat(M,M) )
-        call overop%Gets_orthog_2m( 3, 0.0d0, tmpmat, sqsmat )
+        call overop%Gets_orthog_2m( 2, 0.0d0, tmpmat, sqsmat )
         call fockbias_loads( natom, nuc )
-        call fockbias_setmat( tmpmat )
+        call fockbias_setmat( sqsmat )
         deallocate( sqsmat, tmpmat )
 
 
@@ -453,31 +470,15 @@ subroutine SCF(E)
       primera = .false.
    end if
 
-!##########################################################!
-! TODO: remove from here...
-!##########################################################!
-
-      if ((timedep.eq.1).and.(tdrestart)) then
-        call g2g_timer_sum_start('TD')
-        if(OPEN) then
-           call TD(fock_aop, rho_aop, fock_bop, rho_bop)
-        else
-           call TD(fock_aop, rho_aop)
-        endif
-        call g2g_timer_sum_stop('TD')
-        return
-      endif
-
-
 !----------------------------------------------------------!
 ! Precalculate two-index (density basis) "G" matrix used in density fitting
 ! here (S_ij in Dunlap, et al JCP 71(8) 1979) into RMM(M7)
 ! Also, pre-calculate G^-1 if G is not ill-conditioned into RMM(M9)
 !
       call g2g_timer_sum_start('Coulomb G matrix')
-      call int2()
+      call int2(RMM(M7:M7+MMd), RMM(M9:M9+MMd), r, d, ntatom)
       call g2g_timer_sum_stop('Coulomb G matrix')
-!
+
 ! Precalculate three-index (two in MO basis, one in density basis) matrix
 ! used in density fitting / Coulomb F element calculation here
 ! (t_i in Dunlap)
@@ -500,6 +501,9 @@ subroutine SCF(E)
          call g2g_timer_stop('int3mem')
          call g2g_timer_sum_stop('Coulomb precalc')
       endif
+
+
+
 !
 !##########################################################!
 ! TODO: ...to here
@@ -532,10 +536,6 @@ subroutine SCF(E)
 !       and condense in a single "keep_iterating" or something like that.
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
-
-        if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
-!       Escribe los criterios de convergencia y el valor del paso de dinamica
-
         call g2g_timer_start('Total iter')
         call g2g_timer_sum_start('Iteration')
         call g2g_timer_sum_start('Fock integrals')
@@ -556,7 +556,8 @@ subroutine SCF(E)
 
 !       Computes Coulomb part of Fock, and energy on E2
         call g2g_timer_sum_start('Coulomb fit + Fock')
-        call int3lu(E2)
+        call int3lu(E2, RMM(1:MM), RMM(M3:M3+MM), RMM(M5:M5+MM), &
+                    RMM(M7:M7+MMd), RMM(M9:M9+MMd), RMM(M11:M11+MMd), open)
         call g2g_timer_sum_pause('Coulomb fit + Fock')
 
 !       Test for NaN
@@ -582,7 +583,8 @@ subroutine SCF(E)
 !
         if ( generate_rho0 ) then
            if (field) call field_setup_old(1.0D0, 0, fx, fy, fz)
-           call field_calc(E1, 0.0D0)
+           call field_calc(E1, 0.0D0, RMM(M3:M3+MM), RMM(M5:M5+MM), r, d, Iz, &
+                           natom, ntatom, open)
 
            do kk=1,MM
                E1=E1+RMM(kk)*RMM(M11+kk-1)
@@ -610,12 +612,13 @@ subroutine SCF(E)
            call spunpack('L', M, RMM(M5), fock_a0)
            call spunpack_rho('L',M,rhobeta,rho_b0)
            call spunpack('L', M, RMM(M3), fock_b0)
+           call fockbias_apply( 0.0d0, fock_a0)
+           call fockbias_apply( 0.0d0, fock_b0)
         else
            call spunpack_rho('L',M,RMM(M1),rho_a0)
            call spunpack('L', M, RMM(M5), fock_a0)
+           call fockbias_apply( 0.0d0, fock_a0 )
         end if
-
-        call fockbias_apply( 0.0d0, fock_a0 )
 
 !------------------------------------------------------------------------------!
 ! DFTB: Fock and Rho for DFTB are builded.
@@ -707,8 +710,9 @@ subroutine SCF(E)
         call rho_aop%Gets_data_AO(rho_a)
         call messup_densmat( rho_a )
 
-!carlos: Alpha Energy (or Close Shell) storage in RMM
-
+!carlos: Alpha Energy (or Close Shell) is stored.
+        Eorbs = morb_energy
+!charly: RMM is storing only alpha energy when we are working with open shell
         do kk=1,M
           RMM(M13+kk-1) = morb_energy(kk)
         end do
@@ -717,7 +721,7 @@ subroutine SCF(E)
         if (dftb_calc) i0=MTB
 
         kkk = 0
-        do kk=1,NCOa
+        do kk=1,M
         do ii=1,M
           kkk = kkk+1
           MO_coef_at(kkk) = morb_coefat( i0+ii, kk )
@@ -765,16 +769,14 @@ subroutine SCF(E)
         call rho_bop%Gets_data_AO(rho_b)
         call messup_densmat( rho_b )
 
-!carlos: Beta Energy storage in RMM
-        do kk=1,M
-          RMM(M22+kk-1) = morb_energy(kk)
-        end do
+         Eorbs_b=morb_energy
+
 !carlos: Storing autovectors to create the restart
         i0 = 0
         if (dftb_calc) i0=MTB
 
         kkk = 0
-        do kk=1,NCOb
+        do kk=1,M
         do ii=1,M
           kkk = kkk+1
           MO_coef_at_b(kkk) = morb_coefat( i0+ii, kk )
@@ -850,28 +852,19 @@ subroutine SCF(E)
         good=sqrt(good)/float(M)
         deallocate ( xnano )
 
-
-! TODO: what is this doing here???
-        call g2g_timer_stop('dens_GPU')
-
 !------------------------------------------------------------------------------!
 ! TODO: finalization of the loop is a little bit messy. Also: "999 continue"??
 !       I think it is time we regularized this loop...
 
-! Damping factor update
+        ! Damping factor update
         DAMP=DAMP0
-
         E=E1+E2+En
-!        E=E+Es
-!
-        call g2g_timer_stop('otras cosas')
-
-!       write energy at every step
-        if (verbose) call WRITE_E_STEP(niter, E+Ex)
-
         Egood=abs(E+Ex-Evieja)
         Evieja=E+Ex
-!
+
+        ! Write energy at every step
+        call write_energy_convergence(niter, Evieja, good, told, egood, etold)
+
         call g2g_timer_stop('Total iter')
         call g2g_timer_sum_pause('Iteration')
 
@@ -882,17 +875,17 @@ subroutine SCF(E)
 !     Checks of convergence
 !
       if (niter.ge.NMAX) then
-         write(6,*) 'NO CONVERGENCE AT ',NMAX,' ITERATIONS'
-         noconverge=noconverge + 1
-         converge=0
+         call write_final_convergence(.false., NMAX, Evieja)
+         noconverge = noconverge + 1
+         converge   = 0
       else
-         write(6,*) 'CONVERGED AT',niter,'ITERATIONS'
+         call write_final_convergence(.true., niter, Evieja)
          noconverge = 0
-         converge=converge+1
+         converge   = converge + 1
       endif
 
       if (noconverge.gt.4) then
-         write(6,*)  'stop for not convergion 4 times'
+         write(6,'(A)')  'FATAL ERROR - No convergence achieved 4 times.'
          stop
       endif
 !------------------------------------------------------------------------------!
@@ -924,29 +917,7 @@ subroutine SCF(E)
 
 !DFTB: The last rho is stored in an output as a restart.
    if (dftb_calc.and.TBsave) call write_rhoDFTB(M_in, OPEN)
-
-!------------------------------------------------------------------------------!
-! TODO: Comments about a comented sections? Shouldn't it all of this go away?
-!
-!    CH - Why call intsol again here? with the .false. parameter,
-!    E1s is not recalculated, which would be the only reason to do
-!    this again; Ens isn't changed from before...
-! -- SOLVENT CASE --------------------------------------
-!      if (sol) then
-!      call g2g_timer_sum_start('intsol 2')
-!      if(nsol.gt.0) then
-!        call intsol(E1s,Ens,.false.)
-!        write(*,*) 'cosillas',E1s,Ens
-!        call g2g_timer_sum_stop('intsol 2')
-!      endif
-!      call mmsol(natom,Nsol,natsol,Iz,pc,r,Em,Rm,Es)
-      Es=Es+E1s+Ens
-!     endif
-
-
-      if (MOD(npas,energy_freq).eq.0) then
-      if (GRAD) then
-
+   if (MOD(npas,energy_freq).eq.0) then
 !       Resolve with last density to get XC energy
         call g2g_timer_sum_start('Exchange-correlation energy')
         call g2g_new_grid(igrid)
@@ -968,7 +939,8 @@ subroutine SCF(E)
         Es=Ens
 
 !       One electron Kinetic (with aint >3) or Kinetic + Nuc-elec (aint >=3)
-        call int1(En, RMM, Smat, Nuc, a, c, d, r, Iz, ncont, NORM, natom, M, Md)
+        call int1(En, RMM(M5:M5+MM), RMM(M11:M11+MM), Smat, d, r, Iz, natom, &
+                  ntatom)
 
 !       Computing the E1-fock without the MM atoms
         if (nsol.gt.0.and.igpu.ge.1) then
@@ -996,11 +968,10 @@ subroutine SCF(E)
 
         if (npas.gt.npasw) then
            call ECP_energy( MM, RMM(M1), Eecp, Es )
-           call WriteEnergies(E1,E2,En,Ens,Eecp,Exc,ecpmode,E_restrain)
+           call write_energies(E1, E2, En, Ens, Eecp, Exc, ecpmode, E_restrain,&
+                               number_restr, nsol)
            npasw=npas+10
         end if
-
-      endif ! GRAD
       endif ! npas
 
 
@@ -1021,7 +992,7 @@ subroutine SCF(E)
          else
             factor=4.D0
          endif
-
+!charly: as M13 doesn't store energy any more, this could be not working
          do kk=1,NCO
             RMM(M15+kkk-1)= &
             RMM(M15+kkk-1)-RMM(M13+kk-1)*factor*X(ii,M2+kk)*X(jj,M2+kk)
@@ -1030,12 +1001,6 @@ subroutine SCF(E)
       enddo
 
       call g2g_timer_sum_stop('energy-weighted density')
-
-!     Variables needed for further calculations (Populations, Dip, etc).
-      Enucl = En
-      do kkk=1, M
-          Eorbs(kkk) = RMM(M13+kkk-1)
-      enddo
 
       call cubegen_matin( M, X )
 

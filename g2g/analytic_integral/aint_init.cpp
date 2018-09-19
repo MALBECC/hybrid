@@ -45,21 +45,24 @@ extern "C" void aint_parameter_init_(const unsigned int& Md,
                                      double* ad, unsigned int* Nucd, double* af,
                                      double* RMM, const unsigned int& M9,
                                      const unsigned int& M11, double* str,
-                                     double* fac, double& rmax) {
+                                     double* fac, double& rmax, uint* atomZ_i) {
   /* DENSITY BASIS SET */
   integral_vars.s_funcs_dens = nshelld[0];
   integral_vars.p_funcs_dens = nshelld[1] / 3;
   integral_vars.d_funcs_dens = nshelld[2] / 6;
-  cout << "density basis: s: " << integral_vars.s_funcs_dens
-       << " p: " << integral_vars.p_funcs_dens
-       << " d: " << integral_vars.d_funcs_dens << endl;
-  integral_vars.spd_funcs_dens = integral_vars.s_funcs_dens +
-                                 integral_vars.p_funcs_dens +
-                                 integral_vars.d_funcs_dens;
   // Md =	# of contractions
   integral_vars.m_dens = Md;
-  cout << "density basis: m: " << integral_vars.m_dens << endl;
-  /* DENSITY BASIS SET */
+
+  if (G2G::verbose > 3) {
+     cout << "AINT initialisation." << endl;
+     cout << "  Density basis - s: " << integral_vars.s_funcs_dens
+          << " p: " << integral_vars.p_funcs_dens
+          << " d: " << integral_vars.d_funcs_dens
+          << " - Total (w/contractions): " << integral_vars.m_dens << endl;
+  }
+  integral_vars.spd_funcs_dens = integral_vars.s_funcs_dens +
+                                 integral_vars.p_funcs_dens +
+                                 integral_vars.d_funcs_dens;  /* DENSITY BASIS SET */
   integral_vars.nucleii_dens =
       G2G::FortranMatrix<uint>(Nucd, integral_vars.m_dens, 1, 1);
   integral_vars.contractions_dens =
@@ -112,6 +115,11 @@ extern "C" void aint_parameter_init_(const unsigned int& Md,
   // Maximum Gaussian argument used as basis function overlap cut-off (Coulomb
   // and QM/MM)
   integral_vars.rmax = rmax;
+  // Atomic number for each atom. It is NOT the atom type, since Ghost Atoms
+  // (basis placed but Z=0) may be used.
+
+  integral_vars.atom_Z =
+      G2G::FortranMatrix<uint>(atomZ_i, G2G::fortran_vars.atoms, 1, 1);
 
 #if GPU_KERNELS
   os_integral.load_params();
@@ -162,7 +170,6 @@ extern "C" void aint_new_step_(void) {
 extern "C" void aint_qmmm_init_(const unsigned int& nclatom, double* r_all,
                                 double* pc) {
   integral_vars.clatoms = nclatom;
-  cout << "MM point charges: " << integral_vars.clatoms << endl;
   if (integral_vars.clatoms > 0) {
     integral_vars.clatom_positions_pointer = G2G::FortranMatrix<double>(
         r_all + G2G::fortran_vars.atoms, integral_vars.clatoms, 3,

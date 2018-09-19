@@ -42,6 +42,13 @@ struct FortranVars {
   FortranMatrix<double> rmm_input_ndens1, rmm_output;
   FortranMatrix<double> rmm_dens_a, rmm_dens_b, rmm_output_a, rmm_output_b;
   FortranMatrix<double> e, e1, e2, e3, wang, wang1, wang2, wang3;
+  /////////////////////////////////////
+  // Agregado para integrar con Libxc
+  bool use_libxc; // Si usa o no libxc
+  uint ex_functional_id; // Identificador del funcional de intercambio (exchange)
+  uint ec_functional_id; // Identificador del funcional de correlacion (correlation)
+  /////////////////////////////////////
+
 };
 
 extern FortranVars fortran_vars;
@@ -60,6 +67,7 @@ extern double free_global_memory;
 
 extern bool timer_sum;
 extern bool timer_single;
+extern uint verbose;
 }
 
 #endif
