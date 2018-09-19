@@ -6,18 +6,20 @@
 	use fdf, only: fdf_integer, fdf_block
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
-	fclas_BAND, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
+	fclas_BAND, fclas_BAND_fresh, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
+	PNEB, PNEB_ini_atom, PNEB_last_atom, NEB_distl, &
 	Ang, eV, kcal, na_u, qm, mm, nesp, natoms_partial_freeze, coord_freeze, &
 	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, MM_freeze_list, &
-	masst, vat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
+	masst, vat, aat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
 	ng1, blocklist, blockqmmm, listqmmm, fce_amber, ng1type, angetype, & 
 	angmtype, evaldihe, evaldihm, dihety, dihmty, impty, nonbonded, &
 	scale, evaldihelog, evaldihmlog, scalexat, nonbondedxat, kbond,bondeq, &
 	bondtype, kangle,angleeq,angletype, kdihe,diheeq,dihetype, multidihe, &
 	perdihe, kimp,impeq, imptype,multiimp, perimp, atange, atangm, atdihe, &
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
-	xa, fa, isa, iza, atsym, charge, spin, writeRF
-	
+	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
+	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
+	NEB_move_method, Ndamped, tempion, Nav, pi
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -91,7 +93,7 @@
 	!muchos allocate tienen valores fijos. habria que reveer esto en el futuro. Nick
 	  allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
 	  allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
-	  allocate(vat(3,natot), cfdummy(3,natot), fdummy(3,natot))
+	  allocate(vat(3,natot),aat(3,natot), fdummy(3,natot),cfdummy(3,natot))
 	  allocate(qmattype(na_u), attype(nac), atname(nac))
 	  allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
 	  allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
@@ -112,12 +114,17 @@
 	
 	  writeRF=0
 	  writeRF = fdf_integer('PFIntegrationOutput',0)
-	
+	  frstme=.true.
+	  Ndescend=0
+	  alpha=0.1d0
+	  Ndamped=0
+	  tempion=0.d0
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
-	  kcal   = 1.602177E-19_dp * 6.02214E23_dp / 4184.0_dp
-	
+	  kcal   = 1.602177E-19_dp * 6.022140857E23_dp / 4184.0_dp
+	  pi     = DACOS(-1.d0)
+	  Nav    = 6.022140857d23
 	
 	elseif ( init_type == 'NEB') then !initialize Nudged elastic band variables
 	  if (NEB_Nimages .lt. 3) STOP 'Runing NEB with less than 3 images'
@@ -125,13 +132,27 @@
 	  NEB_lastimage=NEB_Nimages
 	  allocate(rclas_BAND(3,natot,NEB_Nimages), vclas_BAND(3,natot,NEB_Nimages), &
 	         fclas_BAND(3,natot,NEB_Nimages), aclas_BAND_old(3,natot,NEB_Nimages))
+	  allocate (fclas_BAND_fresh(3,natot,NEB_Nimages))
 	  allocate(Energy_band(NEB_Nimages))
+	  allocate(NEB_distl(15, NEB_Nimages))
 	  rclas_BAND=0.d0
 	  vclas_BAND=0.d0
 	  fclas_BAND=0.d0
 	  Energy_band=0.d0
+	  PNEB=fdf_integer('PNEB',0)
+
+	  if ( PNEB .eq.1 ) then
+	    PNEB_ini_atom=fdf_integer('PNEBi',1)
+	    PNEB_last_atom=fdf_integer('PNEBl',natot)
+	  end if
 	
-	
+	  if (NEB_move_method .eq.3) then
+	    allocate(NEB_time_steep(NEB_Nimages), NEB_alpha(NEB_Nimages),NEB_Ndescend(NEB_Nimages))
+	    NEB_time_steep=time_steep
+	    NEB_alpha=alpha
+	    NEB_Ndescend=0
+	  end if
+
 	else
 	  STOP "Wrong init_type"
 	end if

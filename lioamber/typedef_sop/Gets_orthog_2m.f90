@@ -10,10 +10,10 @@ subroutine Gets_orthog_2m( this, method_id, maxval_ld, Xmat, Ymat )
    real*8    , intent(out) :: Xmat(:,:)
    real*8    , intent(out) :: Ymat(:,:)
 
-   real*8    , allocatable :: Gmat_li(:,:), Ginv_li(:,:)
+   real*8    , allocatable :: Gmat_li(:,:), Ginv_li(:,:), Umat_li(:,:)
    logical                 :: error_found      
 
-
+	write(*,*) "flag 1 Gets_orthog_2m"
 !  Checks and preps
 !------------------------------------------------------------------------------!
    if ( this%Nbasis <= 0 ) then
@@ -29,37 +29,48 @@ subroutine Gets_orthog_2m( this, method_id, maxval_ld, Xmat, Ymat )
 
    allocate( Gmat_li( this%Nbasis, this%Nbasis ) )
    allocate( Ginv_li( this%Nbasis, this%Nbasis ) )
+   allocate( Umat_li( this%Nbasis, this%Nbasis ) )
 
    Gmat_li = this%Gmat
    Ginv_li = this%Ginv
-   call this%Drop_ldvals( maxval_ld, Gmat_li, Ginv_li )
+   Umat_li = this%Umat
 
+	write(*,*) "flag 2 Gets_orthog_2m"
+   call this%Drop_ldvals( maxval_ld, Gmat_li, Ginv_li )
+	write(*,*) "flag 3 Gets_orthog_2m"
 
 !  Returns the appropriate basis matrix (note: Ytrp = Xinv)
 !------------------------------------------------------------------------------!
    select case (method_id)
       case (0)
 !        Use last method saved inside the object
+	write(*,*) "flag 3.1 Gets_orthog_2m"
          Xmat = this%Xmat
          Ymat = this%Ymat
 
       case (1)
 !        Cholesky Decomposition
 !        S = Y * Yt = L * Lt
-         Xmat = matmul3( this%Umat, Ginv_li, this%Vtrp )
-         Ymat = matmul3( this%Umat, Gmat_li, this%Vtrp )
-
+	write(*,*) "flag 3.2 Gets_orthog_2m"
+         call matmul3( Umat_li, Ginv_li, this%Vtrp, Xmat )
+	write(*,*) "flag 3.2.1 Gets_orthog_2m"
+         call matmul3( Umat_li, Gmat_li, this%Vtrp, Ymat )
+	write(*,*) "flag 3.2.2 Gets_orthog_2m"
       case (2)
 !        Symetric/Lowdin Orthogonalization
 !        S = Y * Yt = (U*sq*Ut)*(U*sq*Ut)
-         Xmat = matmul3( this%Umat, Ginv_li, this%Utrp )
-         Ymat = matmul3( this%Umat, Gmat_li, this%Utrp )
+	write(*,*) "flag 3.3 Gets_orthog_2m"
+         call matmul3( Umat_li, Ginv_li, this%Utrp, Xmat )
+         call matmul3( Umat_li, Gmat_li, this%Utrp, Ymat )
 
       case (3)
 !        Canonical Orthogonalization
 !        S = Y * Yt = (U*sq)*(sq*Ut)
-         Xmat = matmul( this%Umat, Ginv_li )
-         Ymat = matmul( this%Umat, Gmat_li )
+	write(*,*) "flag 3.4 Gets_orthog_2m"
+	  Xmat = matmul( Umat_li, Ginv_li )
+	write(*,*) "flag 3.4.1 Gets_orthog_2m"
+         Ymat = matmul( Umat_li, Gmat_li )
+	write(*,*) "flag 3.4.2 Gets_orthog_2m"
 
       case default
          print*,"ERROR INSIDE Gets_orthog_2m: wrong method_id=", method_id
@@ -67,6 +78,7 @@ subroutine Gets_orthog_2m( this, method_id, maxval_ld, Xmat, Ymat )
 
    end select
 
+	write(*,*) "flag 4 Gets_orthog_2m"
    call purge_zeros_m( 1.0d-10, Xmat )
    call purge_zeros_m( 1.0d-10, Ymat )
 

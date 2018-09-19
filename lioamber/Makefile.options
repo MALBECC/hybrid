@@ -73,11 +73,12 @@ else ifeq ($(cuda),2)
   LIBS   += -lcudart -lcublas
   cublas  = 1 # This is necessary for current status of Makefile.depends but
               # should be changed in the future.
-
+  HFLAGS += -L$(CUDA_HOME)/lib64/
 else ifeq ($(cuda),3)
   DEFINE += -DCUBLAS
   LFLAGS += -L$(CUDA_HOME)/lib64/
   LIBS   += -lcudart -lcublas
+  HFLAGS += -L$(CUDA_HOME)/lib64/
   cublas  = 1 # This is necessary for current status of Makefile.depends
               # should be changed in the future.
 
@@ -103,6 +104,7 @@ ifeq ($(intel),0)
   OPTIM0P = #TODO: no flags for parallelization using gfortran?
   OPTIM0I = #TODO: no flags for precision and inlining using gfortran?
 
+
 else ifeq ($(intel),1)
   FC      = ifort
   LC      = ifort
@@ -121,6 +123,7 @@ else ifeq ($(intel),2)
   LC      = ifort
   FFLAGS += -fpp -module $(OBJPATH)
   LFLAGS += -L$(MKLROOT)/lib/intel64 -I$(MKLROOT)/include
+  HFLAGS += -L$(MKLROOT)/lib/intel64 -I$(MKLROOT)/include
   LIBS   += -lmkl_blas95_lp64 -lmkl_lapack95_lp64
   LIBS   += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   LIBS   += -liomp5 -lpthread

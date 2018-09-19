@@ -116,14 +116,14 @@ C Read the Dynamics Options
      .                   dt, dxmax, ftol,  
      .                   usesavecg, usesavexv , Nick_cent,
      .                   na, 
-     .                   nat, nfce, wricoord, mmsteps)
+     .                   nat, nfce, wricoord, mmsteps, tempinit)
 
 C  Modules
       use precision
       use fdf
       use sys
       use scarlett, only: NEB_move_method, NEB_spring_constant,
-     .   NEB_Nimages
+     .   NEB_Nimages, time_steep, time_steep_max, traj_frec
 
       implicit none
 
@@ -134,7 +134,7 @@ C  Modules
      .  wricoord, nat
 
       double precision
-     .  dt, dxmax, ftol
+     .  dt, dxmax, ftol, tempinit
 
       logical
      .    usesavecg, usesavexv, Nick_cent
@@ -156,10 +156,16 @@ C  Internal variables .................................................
      .  dt_default, dxmax_default,
      .  ftol_default,  
      .  dx_default,
-     .  NEB_spring_constant_default
+     .  NEB_spring_constant_default,
+     .  time_steep_default
 
       logical
      .  leqi, qnch, qnch_default
+
+C Temperatura inicial
+
+	tempinit = fdf_physical('MD.InitialTemperature',300.d0,'K')
+
 
 C Kind of dynamics
       dyntype_default='Jolie'
@@ -174,6 +180,29 @@ C Kind of dynamics
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
      .     usesavecg
+      elseif (leqi(dyntype,'qm')) then
+        idyn = 2
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    QM coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
+      elseif (leqi(dyntype,'fire')) then
+        idyn = 3
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    QM coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Use continuation files for CG    = ',
+     .     usesavecg
+      else if (leqi(dyntype,'verlet')) then
+        idyn = 4
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    Velocity Verlet MD run'
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
           write(6,'(a,a)')
@@ -189,7 +218,7 @@ C Kind of dynamics
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:      - CG - NEB                      '
+        write(6,'(a)') 'read:    - CG - QM - FIRE - NEB                '
         write(6,102)
         call die
       endif 
@@ -244,6 +273,13 @@ C re-Center system
 C Length of time step for MD
       dt_default = 0.1 
         dt = fdf_physical('MD.LengthTimeStep',dt_default,'fs')
+C hay qunificar los timesteeps
+      time_steep_default=1d-1
+      time_steep = fdf_double('Tstep',
+     .  time_steep_default)
+      time_steep_max=75.d0*time_steep
+C Trajectory frecuency to write coordinates and Energy 
+	traj_frec = fdf_integer('MD.TrajFrec',100)
 
 C Quench Option
       qnch_default = .false.
