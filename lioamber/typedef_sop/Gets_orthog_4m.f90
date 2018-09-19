@@ -34,20 +34,23 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
 
 !  Returns the appropriate basis matrix (note: Ytrp = Xinv)
 !------------------------------------------------------------------------------!
-   call this%Gets_orthog_2m( method_id, maxval_ld, Xmat, Ymat )
 
+   call this%Gets_orthog_2m( method_id, maxval_ld, Xmat, Ymat )
    select case (method_id)
       case (0)
 !        Use last method saved inside the object
+
          Xtrp = this%Xtrp
          Ytrp = this%Ytrp
 
       case (1,3)
+
 !        Cholesky Decomposition
          Xtrp = transpose( Xmat )
          Ytrp = transpose( Ymat )
 
       case (2)
+
 !        Symetric/Lowdin Orthogonalization
          Xtrp = Xmat
          Ytrp = Ymat

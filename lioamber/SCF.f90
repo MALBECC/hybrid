@@ -383,6 +383,7 @@ subroutine SCF(E)
         if ( allocated(Ymat) ) deallocate(Ymat)
         allocate(Xmat(M_in,M_in), Ymat(M_in,M_in))
 
+
         call overop%Sets_smat( Smat )
         if (lowdin) then
 !          TODO: inputs insuficient; there is also the symetric orthog using
@@ -422,6 +423,7 @@ subroutine SCF(E)
         deallocate( sqsmat, tmpmat )
 
 
+
 !DFTB: Dimensions of Xmat and Ymat are modified for DFTB.
 !
 ! TODO: this is nasty, a temporary solution would be to have a Msize variable
@@ -458,6 +460,8 @@ subroutine SCF(E)
       primera = .false.
    end if
 
+
+
 !##########################################################!
 ! TODO: remove from here...
 !##########################################################!
@@ -474,6 +478,7 @@ subroutine SCF(E)
       endif
 
 
+
 !----------------------------------------------------------!
 ! Precalculate two-index (density basis) "G" matrix used in density fitting
 ! here (S_ij in Dunlap, et al JCP 71(8) 1979) into RMM(M7)
@@ -482,15 +487,12 @@ subroutine SCF(E)
       call g2g_timer_sum_start('Coulomb G matrix')
       call int2()
       call g2g_timer_sum_stop('Coulomb G matrix')
-!
-! Precalculate three-index (two in MO basis, one in density basis) matrix
-! used in density fitting / Coulomb F element calculation here
-! (t_i in Dunlap)
-!
+
       call aint_query_gpu_level(igpu)
       if (igpu.gt.2) then
         call aint_coulomb_init()
       endif
+
       if (igpu.eq.5) MEMO = .false.
       !MEMO=.true.
       if (MEMO) then
@@ -499,7 +501,9 @@ subroutine SCF(E)
 !        Large elements of t_i put into double-precision cool here
 !        Size criteria based on size of pre-factor in Gaussian Product Theorem
 !        (applied to MO basis indices)
+
          call int3mem()
+
 !        Small elements of t_i put into single-precision cools here
 !        call int3mems()
          call g2g_timer_stop('int3mem')
@@ -524,6 +528,8 @@ subroutine SCF(E)
 ! only at the end of the SCF, the density matrix and the
 ! vectors are 'coherent'
 
+
+
       if (hybrid_converg) DIIS=.true. ! cambio para convergencia damping-diis
       call g2g_timer_sum_stop('Initialize SCF')
 !------------------------------------------------------------------------------!
@@ -535,6 +541,8 @@ subroutine SCF(E)
 !------------------------------------------------------------------------------!
 ! TODO: Maybe evaluate conditions for loop continuance at the end of loop
 !       and condense in a single "keep_iterating" or something like that.
+
+
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
@@ -770,10 +778,6 @@ subroutine SCF(E)
         call rho_bop%Gets_data_AO(rho_b)
         call messup_densmat( rho_b )
 
-!carlos: Beta Energy storage in RMM
-        do kk=1,M
-          RMM(M22+kk-1) = morb_energy(kk)
-        end do
 !carlos: Storing autovectors to create the restart
         i0 = 0
         if (dftb_calc) i0=MTB
