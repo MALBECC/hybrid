@@ -945,8 +945,9 @@
 
       ! Gets the number of occupied orbitals in a closed shell system (or
       ! Spin Up in an open shell system).
+	write(*,*) "charge antes", charge
       call get_nco(Iz, natom, nco, charge, NUNP, OPEN)
-
+	
       ! Allocates and initialises rhoalpha and rhobeta
       if(OPEN) then
         allocate(rhoalpha(M*(M+1)/2),rhobeta(M*(M+1)/2))
@@ -1379,30 +1380,37 @@
        ALLOCATE (ncf(nng), lt(nng))
       ENDSUBROUTINE reallocate_ncf_lt
 
-subroutine get_nco(atom_Z, n_atoms, n_orbitals, n_unpaired, charge, open_shell)
-   use ghost_atoms_subs, only: adjust_ghost_charge
-   implicit none
-   integer, intent(in)  :: n_atoms, n_unpaired, charge, atom_Z(n_atoms)
-   logical, intent(in)  :: open_shell
-   integer, intent(out) :: n_orbitals
+      subroutine get_nco(atom_Z, n_atoms, n_orbitals, charge,n_unpaired,  open_shell)
+        use ghost_atoms_subs, only: adjust_ghost_charge
+        implicit none
+        integer, intent(in)  :: n_atoms, n_unpaired, charge, atom_Z(n_atoms)
+        logical, intent(in)  :: open_shell
+        integer, intent(out) :: n_orbitals
 
-   integer :: icount, nuc_charge, electrons
+        integer :: icount, nuc_charge, electrons
 
-   nuc_charge = 0
-   do icount = 1, n_atoms
-      nuc_charge = nuc_charge + atom_Z(icount)
-   enddo
-   call adjust_ghost_charge(atom_Z, n_atoms, nuc_charge)
+        nuc_charge = 0
+        do icount = 1, n_atoms
+          nuc_charge = nuc_charge + atom_Z(icount)
+        enddo
+        call adjust_ghost_charge(atom_Z, n_atoms, nuc_charge)
 
-   electrons = nuc_charge - charge
-   if ((.not.open_shell) .and. (mod(electrons,2).ne.0)) then
-      write(*,'(A)') "  ERROR - DRIVE: Odd number of electrons in a "&
+       electrons = nuc_charge - charge
+
+
+	write(*,*) "nuc charge", nuc_charge
+	write(*,*) "charge", charge
+	write(*,*) "elec", electrons
+	write(*,*) "condit", .not.open_shell, mod(electrons,2)
+
+       if ((.not.open_shell) .and. (mod(electrons,2).ne.0)) then
+         write(*,'(A)') "  ERROR - DRIVE: Odd number of electrons in a "&
                      &"closed-shell calculation."
-      write(*,'(A)') "  Please check system charge."
-      stop
-   endif
+         write(*,'(A)') "  Please check system charge."
+         stop
+       endif
 
-   n_orbitals = ((nuc_charge - charge) - n_unpaired)/2
+       n_orbitals = ((nuc_charge - charge) - n_unpaired)/2
 
-   return
-end subroutine get_nco
+      return
+     end subroutine get_nco
