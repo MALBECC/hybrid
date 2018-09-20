@@ -156,8 +156,11 @@ c  calcula la fuerza total de amber
      .  fcelj_amber(1:3,i)+fceelec_amber(1:3,i)+fwat(1:3,i)
        fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)     
        fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
-	enddo
 
+c        write(456456,*)  i
+c        write(456456,*)  fcelj_amber(1:3,i)*eV/(Ang*kcal)
+	enddo
+c        write(456456,*)  Elj_amber*eV/kcal
       return
       end
 c****************************************************************
@@ -1215,6 +1218,8 @@ c******************************************************************
 c subrutina q calcula el water restarin potential
 
 	subroutine waters(na_u,nac,natot,rclas,masst,noaa,noat,ewat,fwat)
+	
+	use scarlett, only: eV, Ang, kcal
 	implicit none
 	integer, intent(in) :: na_u,nac,natot
 
@@ -1232,7 +1237,7 @@ c subrutina q calcula el water restarin potential
         mdist=0.d0
 
 c calcula el masscenter del sistema y el rwat
-        ramber(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !ramber ya viene en Angstroms!!!!! REVISAR jota
+        ramber(1:3,1:natot)=rclas(1:3,1:natot)/Ang
         masscenter=0.d0 
         do i=1,natot
         masscenter(1:3)=masscenter(1:3)+masst(i)*ramber(1:3,i)
@@ -1250,7 +1255,7 @@ c calcula el masscenter del sistema y el rwat
 
 c calculo la matrix con las aguas xa los at MM
         ramber=0.d0
-        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0 !rclas esta en Bohr, ramber queda en Angstroms
+        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)/Ang 
         k=1
         do i=1,nac
         if(noaa(i).eq.'HOH'.and.noat(i).eq.'O') then

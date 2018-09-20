@@ -943,9 +943,12 @@ subroutine SCF(E)
       Es=Es+E1s+Ens
 !     endif
 
+!	write(789789,*) npas, energy_freq, MOD(npas,energy_freq)
 
       if (MOD(npas,energy_freq).eq.0) then
       if (GRAD) then
+
+!	write(789789,*) "estoy calculando boludeces y un numero"
 
 !       Resolve with last density to get XC energy
         call g2g_timer_sum_start('Exchange-correlation energy')

@@ -29,7 +29,7 @@ MD.UseSaveCG   T
 LongOutput    F
 
 MD.TypeOfRun    verlet
-MD.NumCGsteps   10000
+MD.NumCGsteps   100000
 
 %block CutOffRadius
 QM  0.2
