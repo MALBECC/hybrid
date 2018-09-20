@@ -38,13 +38,13 @@
 !##############################################################################!
 module initial_guess_data
   integer :: initial_guess = 0
-  integer :: atomic_eec(54,3)
+  integer :: atomic_eec(0:54,3)
 
 contains
    subroutine initialise_eec()
       implicit none
 
-      atomic_eec(:,:)  = 0
+      atomic_eec(0:54,:) = 0
       atomic_eec(1,1)  = 1 ;                                               ! H
       atomic_eec(2,1)  = 2 ;                                               ! He
       atomic_eec(3,1)  = 3 ;                                               ! Li
@@ -121,8 +121,10 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
    double precision, intent(inout) :: Rhovec(:), rhoalpha(:), rhobeta(:)
    double precision :: ocupF
 
+
    call g2g_timer_start('initial guess')
    call g2g_timer_sum_start('initial guess')
+
 
    select case (initial_guess)
    case (0)
@@ -136,11 +138,14 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
          Rhovec   = rhoalpha + rhobeta
       end if
    case (1)
+
       call initial_guess_aufbau(M, MM, Rhovec, rhoalpha, rhobeta, natom, NCO,&
                                 NCOb, Iz, nshell, Nuc, openshell)
    case default
       write(*,*) "ERROR - Initial guess: Wrong value for input initial_guess."
    end select
+
+
 
    call g2g_timer_stop('initial guess')
    call g2g_timer_sum_stop('initial guess')
@@ -159,13 +164,18 @@ subroutine initial_guess_aufbau(M, MM, RMM, rhoalpha, rhobeta, natom, NCO, &
    logical         , intent(in)  :: openshell
    double precision, intent(out) :: RMM(MM), rhoalpha(MM), rhobeta(MM)
 
-   double precision :: start_dens(M,M), start_dens_alpha(M,M), &
-                       start_dens_beta(M,M)
+   double precision, dimension(:,:), allocatable :: start_dens, start_dens_alpha, &
+                       start_dens_beta
    integer          :: icount, total_iz
    integer          :: n_elecs(natom,3), atom_id
 
+
+   allocate(start_dens(M,M), start_dens_alpha(M,M), start_dens_beta(M,M))
+
    call initialise_eec()
    start_dens(:,:) = 0.0D0
+   n_elecs = 0
+
 
    total_iz = 0
    do icount = 1, natom
@@ -220,6 +230,8 @@ subroutine initial_guess_aufbau(M, MM, RMM, rhoalpha, rhobeta, natom, NCO, &
       endif
    enddo
 
+
+
    if (openshell) then
       start_dens_alpha(:,:) = start_dens(:,:) * dble(NCO ) / dble(total_iz)
       start_dens_beta(:,:)  = start_dens(:,:) * dble(NCOb) / dble(total_iz)
@@ -256,7 +268,8 @@ subroutine initial_guess_1e(Nmat, Nvec, NCO, ocupF, hmat_vec, Xmat, densat_vec)
    allocate( morb_coefat(Nmat, Nmat), morb_coefoc(Nmat, NCO), hmat(Nmat,Nmat) )
 
    call spunpack('L', Nmat, hmat_vec, hmat )
-   morb_coefon(:,:) = transform( hmat, Xmat )
+   call transform( hmat, Xmat, morb_coefon(:,:))
+!   morb_coefon(:,:) = transform( hmat, Xmat )
    morb_energy(:)   = 0.0d0
 
    LWORK = -1
@@ -274,7 +287,6 @@ subroutine initial_guess_1e(Nmat, Nvec, NCO, ocupF, hmat_vec, Xmat, densat_vec)
    dens_mao = ocupF * matmul( morb_coefoc, transpose(morb_coefoc) )
    call messup_densmat( dens_mao )
    call sprepack( 'L', Nmat, densat_vec, dens_mao)
-
    return
 end subroutine initial_guess_1e
 

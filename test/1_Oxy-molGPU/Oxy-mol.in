@@ -1,6 +1,7 @@
 &lio
  nsol=0
  natom=2
+ nmax=200
  charge=0
  vcinp=f
  open=t
@@ -12,3 +13,6 @@
  sphere_radius=0.5 
  energy_all_iterations=t
 &end
+
+
+~       
