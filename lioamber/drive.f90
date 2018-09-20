@@ -9,20 +9,24 @@
 !------------------------------------------------------------------------------!
 
       SUBROUTINE drive(ng2,ngDyn,ngdDyn)
-      USE garcha_mod, ONLY : a,c, isotop, basis, done, done_fit, natomc, nnps, &
+      USE garcha_mod, ONLY : a,c, basis, done, done_fit, natomc, nnps,         &
       nnpp, nnpd, nns, nnp, nnd, atmin, jatc, ncf, lt, at, ct, nnat, nshell,   &
       nuc, ncont, nlb, nshelld, cd, ad, Nucd, ncontd, nld, Nucx, indexii,      &
-      ncontx, cx, ax, indexiid, X, XX, RMM, rhoalpha,rhobeta, af,              &
-      date, basis_set, fitting_set, dens, e_, e_2, e3, exists, NORM, fcoord,   &
-      fmulliken, natom, frestart, M, FAC, Iexch, int_basis, max_func, integ,   &
-      frestartin, Md, NCO, nng, npas, Nr, used, STR, verbose, omit_bas, Nr2,   &
-      wang, wang2, wang3, VCINP, OPEN, OPEN1, whatis, Num, Iz, pi,             &
+      ncontx, cx, ax, indexiid, X, RMM, rhoalpha,rhobeta, af, charge,          &
+      basis_set, fitting_set, e_, e_2, e3, exists, NORM, fcoord,               &
+      fmulliken, natom, frestart, M, FAC, Iexch, int_basis, max_func, &
+      frestartin, Md, NCO, nng, npas, Nr, used, STR, omit_bas, Nr2,   &
+      wang, wang2, wang3, VCINP, OPEN, whatis, Num, Iz, pi,             &
       Rm2, rqm, rmax, Nunp, nl, nt, ng, ngd, restart_freq,             &
       writexyz, number_restr, restr_pairs,restr_index,restr_k,restr_w,restr_r0,&
-      mulliken, MO_coef_at, MO_coef_at_b
+      mulliken, MO_coef_at, MO_coef_at_b, use_libxc, ex_functional_id, &
+      ec_functional_id
 
       USE ECP_mod, ONLY : ecpmode, asignacion
-      USE fileio , ONLY : read_coef_restart
+      USE fileio , ONLY : read_coef_restart, read_rho_restart
+      use td_data    , only: td_do_pop
+      use fileio_data, only: verbose, rst_dens
+      use ghost_atoms_subs, only: summon_ghosts
 
       IMPLICIT NONE
       LOGICAL :: basis_check
@@ -65,13 +69,6 @@
 !
 ! NORM true , expansion in normalized gaussians, so normalization factor
 ! included in coefficients
-! default most stable isotopes, for mass asignation
-
-
-      do i = 1,54
-        isotop(i) = 1
-      enddo
-
       nopt=0
 !
 ! calls generator of table for incomplete gamma functions
@@ -105,13 +102,10 @@
       endif
 
       if (writexyz) open(unit=18,file=fcoord)
-      if (mulliken) open(unit=85,file=fmulliken)
+      if ((mulliken).or.(td_do_pop.gt.0)) open(unit=85,file=fmulliken)
       if (restart_freq.gt.0) open(unit=88,file=frestart)
 
 !-------------------------------------------------------
-      date='date'
-      write(*,*) 'JOB STARTED NOW'
-      call system(date)
       do i=1,natom
         done(i)=.false.
         done_fit(i)=.false.
@@ -264,7 +258,7 @@
           endif
         enddo
 !c
-        if (.not.used) then
+        if ( (.not.used) .and. (verbose.gt.4) ) then
           write(*,200) iatom
         endif
 !c
@@ -539,7 +533,7 @@
           endif
         enddo
 !c
-        if (.not.used.and.VERBOSE.and. .not.omit_bas) then
+        if (.not.used.and.(verbose.gt.4).and. .not.omit_bas) then
           write(*,200) iatom
         endif
 
@@ -928,24 +922,6 @@
 !c vectors of MO beta
 !c
 !c Density matrix  construction - For closed shell only <<<<=========
-!c
-!c variables defined in namelist cannot be in common ?
-      OPEN1=OPEN
-
-      if ((Iexch.ge.4).and.(.not.(integ)).and.(.not.(dens))) then
-        write(*,*) 'OPTION SELECTED NOT AVAILABLE'
-!c      pause
-      endif
-!c
-      if ((Iexch.eq.2).and.(OPEN)) then
-       write(*,*) 'OPTION SELECTED NOT AVAILABLE YET'
-!c      pause
-      endif
-!c
-!c
-
-
-
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
         if (ecpmode) then !agregadas por Nick para lectura de ECP
            call lecturaECP()   !lee parametros
@@ -957,7 +933,6 @@
 !c DIMENSION TESTS -----------------------------------------------
 !c
       Ndim=5*M*(M+1)/2+3*Md*(Md+1)/2+M+M*NCO!+M*Ngrid
-      if(verbose) write(*,*) 'en drive', M,Md,NCO
       if (Ndim.gt.ng2) then
         write(*,*) 'DIMENSION PROBLEMS WITH DYNAMICAL VECTOR NG2',Ndim,ng2
         iprob=1
@@ -967,6 +942,10 @@
          write(*,*) 'PAUSE IS A DELETED FEATURE'
 !        pause
       endif
+
+      ! Gets the number of occupied orbitals in a closed shell system (or
+      ! Spin Up in an open shell system).
+      call get_nco(Iz, natom, nco, charge, NUNP, OPEN)
 
       ! Allocates and initialises rhoalpha and rhobeta
       if(OPEN) then
@@ -983,74 +962,92 @@
       ! Then vectors are put in dynamical allocation (to be used later)
       if (VCINP) then
          call g2g_timer_start('restart_read')
-         allocate(restart_dens(M, M), restart_coef(M, NCO))
+
          open(unit=89, file=frestartin)
-
-         if (.not.OPEN) then
-            call read_coef_restart(restart_coef, restart_dens, M, NCO, 89)
-
-            kk = 0
-            do k=1, NCO
-            do i=1, M
-               kk = kk + 1
-               MO_coef_at(kk) = restart_coef(indexii(i), k)
-            enddo
-            enddo
+         if (rst_dens .gt. 0) then
+            allocate(restart_dens(M, M))
+            if (.not. OPEN) then
+               call read_rho_restart(restart_dens, M, 89)
+               call sprepack('L', M, RMM(1), restart_dens)
+            else
+               allocate(restart_adens(M,M), restart_bdens(M,M))
+               call read_rho_restart(restart_adens, restart_bdens, M, 89)
+               restart_dens = restart_adens + restart_bdens
+               call sprepack('L', M, RMM(1)  , restart_dens)
+               call sprepack('L', M, rhoalpha, restart_adens)
+               call sprepack('L', M, rhobeta , restart_bdens)
+               deallocate(restart_adens, restart_bdens)
+            endif
+            deallocate(restart_dens)
          else
-            NCOa = NCO
-            NCOb = NCO + Nunp
-            allocate(restart_coef_b(M, NCOb), restart_adens(M,M),              &
-                     restart_bdens(M,M))
+            allocate(restart_dens(M, M), restart_coef(M, NCO))
+            if (.not.OPEN) then
+               call read_coef_restart(restart_coef, restart_dens, M, NCO, 89)
 
-            call read_coef_restart(restart_coef, restart_coef_b, restart_dens, &
-                                   restart_adens, restart_bdens, M, NCOa,      &
-                                   NCOb, 89)
-            kk = 0
-            do k=1, NCOa
-            do i=1, M
-               kk = kk + 1
-               MO_coef_at(kk) = restart_coef(indexii(i), k)
+               kk = 0
+               do k=1, NCO
+               do i=1, M
+                  kk = kk + 1
+                  MO_coef_at(kk) = restart_coef(indexii(i), k)
+               enddo
+               enddo
+            else
+               NCOa = NCO
+               NCOb = NCO + Nunp
+               allocate(restart_coef_b(M, NCOb), restart_adens(M,M), &
+                        restart_bdens(M,M))
+
+               call read_coef_restart(restart_coef, restart_coef_b, &
+                                      restart_dens, restart_adens,  &
+                                      restart_bdens, M, NCOa, NCOb, 89)
+               kk = 0
+               do k=1, NCOa
+               do i=1, M
+                  kk = kk + 1
+                  MO_coef_at(kk) = restart_coef(indexii(i), k)
+               enddo
+               enddo
+
+               kk = 0
+               do k=1, NCOb
+               do i=1, M
+                  kk = kk + 1
+                  MO_coef_at_b(kk) = restart_coef_b(indexii(i), k)
+               enddo
+               enddo
+               deallocate(restart_coef_b)
+            endif
+
+            ! Reorders by s, p, d.
+            k = 0
+            do j=1, M
+            do i=j, M
+               k = k + 1
+               RMM(k)      = restart_dens(indexii(i), indexii(j))
+               if (i.ne.j) then
+                  RMM(k)      = RMM(k)*2.D0
+               endif
             enddo
             enddo
 
-            kk = 0
-            do k=1, NCOb
-            do i=1, M
-               kk = kk + 1
-               MO_coef_at_b(kk) = restart_coef_b(indexii(i), k)
-            enddo
-            enddo
-            deallocate(restart_coef_b)
+            if (OPEN) then
+               k = 0
+               do j=1, M
+               do i=j, M
+                  k = k + 1
+                  rhoalpha(k) = restart_adens(indexii(i), indexii(j))
+                  rhobeta(k)  = restart_bdens(indexii(i), indexii(j))
+                  if (i.ne.j) then
+                     rhoalpha(k) = rhoalpha(k)*2.0D0
+                     rhobeta(k)  = rhobeta(k)*2.0D0
+                  endif
+               enddo
+               enddo
+               deallocate(restart_adens, restart_bdens)
+            endif
+            deallocate(restart_dens, restart_coef)
          endif
 
-         ! Reorders by s, p, d.
-         k = 0
-         do j=1, M
-         do i=j, M
-            k = k + 1
-            RMM(k)      = restart_dens(indexii(i), indexii(j))
-            if (i.ne.j) then
-               RMM(k)      = RMM(k)*2.D0
-            endif
-         enddo
-         enddo
-
-         if (OPEN) then
-         k = 0
-         do j=1, M
-         do i=j, M
-            k = k + 1
-            rhoalpha(k) = restart_adens(indexii(i), indexii(j))
-            rhobeta(k)  = restart_bdens(indexii(i), indexii(j))
-            if (i.ne.j) then
-               rhoalpha(k) = rhoalpha(k)*2.0D0
-               rhobeta(k)  = rhobeta(k)*2.0D0
-            endif
-         enddo
-         enddo
-         endif
-
-         deallocate(restart_dens, restart_coef)
          close(89)
          call g2g_timer_stop('restart_read')
       endif
@@ -1063,14 +1060,16 @@
                              M,ncont,nshell,c,a, &
                              RMM,M5,M3,rhoalpha,rhobeta, &
                              NCO,OPEN,Nunp,nopt,Iexch, &
-                             e_, e_2, e3, wang, wang2, wang3)
+                             e_, e_2, e3, wang, wang2, wang3, &
+			                    use_libxc, ex_functional_id, ec_functional_id)
+              call summon_ghosts(Iz, natom, verbose)
 
       call aint_query_gpu_level(igpu)
       if (igpu.gt.1) then
       call aint_parameter_init(Md, ncontd, nshelld, cd, ad, Nucd, &
-      af, RMM, M9, M11, STR, FAC, rmax)
+      af, RMM, M9, M11, STR, FAC, rmax, Iz)
       endif
-      allocate(X(M,4*M),XX(Md,Md))
+      allocate(X(M,4*M))
 
 
 !--------------------------------------------------------------------------------------
@@ -1087,15 +1086,7 @@
 
 
  100  format (A8)
- 200  format ('basis set corresponding to Z ', I3,' was not used')
- 400  format ('not implemented for open shell yet')
- 401  format(4(E14.7E2,2x))
- 500  format (i3,3x,F11.6,2x,F11.6,2x,F11.6)
- 501  format (i3,3x,F11.6,2x,F11.6,2x,F11.6, ' CLASSICAL')
- 600  format (3(i2,2x))
- 650  format ('Electric response calculation F =',F7.4)
- 700  format (F15.7,3x,F9.6)
- 320  format (' Cavity Size (a.u)',F9.3,'     Dielectric Constant',F7.2)
+ 200  format ('  Basis set corresponding to Z = ', I3,' was not used.')
       return
       END SUBROUTINE drive
 
@@ -1387,3 +1378,31 @@
        DEALLOCATE (ncf, lt)
        ALLOCATE (ncf(nng), lt(nng))
       ENDSUBROUTINE reallocate_ncf_lt
+
+subroutine get_nco(atom_Z, n_atoms, n_orbitals, n_unpaired, charge, open_shell)
+   use ghost_atoms_subs, only: adjust_ghost_charge
+   implicit none
+   integer, intent(in)  :: n_atoms, n_unpaired, charge, atom_Z(n_atoms)
+   logical, intent(in)  :: open_shell
+   integer, intent(out) :: n_orbitals
+
+   integer :: icount, nuc_charge, electrons
+
+   nuc_charge = 0
+   do icount = 1, n_atoms
+      nuc_charge = nuc_charge + atom_Z(icount)
+   enddo
+   call adjust_ghost_charge(atom_Z, n_atoms, nuc_charge)
+
+   electrons = nuc_charge - charge
+   if ((.not.open_shell) .and. (mod(electrons,2).ne.0)) then
+      write(*,'(A)') "  ERROR - DRIVE: Odd number of electrons in a "&
+                     &"closed-shell calculation."
+      write(*,'(A)') "  Please check system charge."
+      stop
+   endif
+
+   n_orbitals = ((nuc_charge - charge) - n_unpaired)/2
+
+   return
+end subroutine get_nco
