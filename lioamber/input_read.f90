@@ -27,7 +27,7 @@ subroutine read_options(inputFile)
        write(*,*) 'File ', adjustl(inputFile), ' not found. Using defaults.'
     endif
 
-    if (Rho_LS .ne. 0 .and. (DIIS .or. hybrid_converg)) then
+    if (Rho_LS .gt. 0 .and. (DIIS .or. hybrid_converg)) then
       write(*,*) 
       write(*,*) "<======= WARNING ========>"
       write(*,*) "cant do Rho lineal search with DIIS"
