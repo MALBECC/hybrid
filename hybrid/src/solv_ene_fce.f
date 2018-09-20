@@ -626,7 +626,8 @@ c si el dihedro es 500 es error y sale
 	do m=1,5
        k=evaldihe(i,j,m)
 
-	 if(k.ne.0.and.multidihe(k).ne.0) then
+	 if(k.ne.0) then
+           if(multidihe(k).ne.0) then
 
 c      k=evaldihe(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
@@ -643,7 +644,8 @@ c      k=evaldihe(i,j,m)
       fesq(1,i)=fesq(1,i)+dx
       fesq(2,i)=fesq(2,i)+dy
       fesq(3,i)=fesq(3,i)+dz
-	endif
+	   endif
+        endif
 	enddo
 	else
        k=dihety(i,j)
@@ -688,7 +690,8 @@ c si el dihedro es 500 es error y sale
 
        k=evaldihm(i,j,m)
 
-         if(k.ne.0.and.multidihe(k).ne.0) then
+         if(k.ne.0) then
+           if(multidihe(k).ne.0) then
 c       if(evaldihm(i,j,m).ne.0) then
 c       k=evaldihm(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
@@ -704,6 +707,7 @@ c       k=evaldihm(i,j,m)
       fmedio(1,i)=fmedio(1,i)+dx
       fmedio(2,i)=fmedio(2,i)+dy
       fmedio(3,i)=fmedio(3,i)+dz
+          endif
         endif
         enddo
         else
