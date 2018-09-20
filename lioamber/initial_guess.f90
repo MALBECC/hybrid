@@ -268,7 +268,8 @@ subroutine initial_guess_1e(Nmat, Nvec, NCO, ocupF, hmat_vec, Xmat, densat_vec)
    allocate( morb_coefat(Nmat, Nmat), morb_coefoc(Nmat, NCO), hmat(Nmat,Nmat) )
 
    call spunpack('L', Nmat, hmat_vec, hmat )
-   morb_coefon(:,:) = transform( hmat, Xmat )
+   call transform( hmat, Xmat, morb_coefon(:,:))
+!   morb_coefon(:,:) = transform( hmat, Xmat )
    morb_energy(:)   = 0.0d0
 
    LWORK = -1
@@ -286,7 +287,6 @@ subroutine initial_guess_1e(Nmat, Nvec, NCO, ocupF, hmat_vec, Xmat, densat_vec)
    dens_mao = ocupF * matmul( morb_coefoc, transpose(morb_coefoc) )
    call messup_densmat( dens_mao )
    call sprepack( 'L', Nmat, densat_vec, dens_mao)
-
    return
 end subroutine initial_guess_1e
 

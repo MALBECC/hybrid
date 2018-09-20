@@ -4,11 +4,11 @@
 ! HEADER DESCRIPTION PENDING
 !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
-function transform_gen( Mati, Bmat ) result( Mato )
+subroutine transform_gen( Mati, Bmat, Mato )
    implicit none
    GEN_TYPE, intent(in) :: Mati(:,:)
    real*8, intent(in)   :: Bmat(:,:)
-   GEN_TYPE             :: Mato( size(Mati,1), size(Mati,2) )
+   GEN_TYPE, intent(out):: Mato( size(Mati,1), size(Mati,2) )
    integer              :: ii, jj, ki, kj
 
    do jj = 1, size(Mati,2)
@@ -23,6 +23,6 @@ function transform_gen( Mati, Bmat ) result( Mato )
    end do
 
 
-end function transform_gen
+end subroutine transform_gen
 
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
