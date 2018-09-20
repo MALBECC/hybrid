@@ -36,7 +36,7 @@ subroutine SCF(E)
                           nuc, doing_ehrenfest, first_step, RealRho,           &
                           total_time, MO_coef_at, MO_coef_at_b, Smat, good_cut,&
                           ndiis, ncont, nshell, rhoalpha, rhobeta, OPEN, nshell, &
-                          Nuc, a, c, d, NORM
+                          Nuc, a, c, d, NORM, Rho_LS, changed_to_LS
    use ECP_mod, only : ecpmode, term1e, VAAA, VAAB, VBAC, &
                        FOCK_ECP_read,FOCK_ECP_write,IzECP
    use field_data, only: field, fx, fy, fz
@@ -169,6 +169,11 @@ subroutine SCF(E)
    real*8              :: ocupF
    integer             :: NCOa, NCOb
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
+! lineal search
+   integer :: nniter
+!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
+   changed_to_LS=.false.
+
    call g2g_timer_start('SCF_full')
 
 
@@ -199,6 +204,7 @@ subroutine SCF(E)
    call g2g_timer_start('SCF')
    call g2g_timer_sum_start('SCF')
    call g2g_timer_sum_start('Initialize SCF')
+
 
    npas=npas+1
    E=0.0D0
@@ -262,6 +268,7 @@ subroutine SCF(E)
       M22 = M20 +2*MM !W ( beta eigenvalues )
    end if
 
+
 !------------------------------------------------------------------------------!
 ! TODO: I don't like ending timers inside a conditional...
        if (cubegen_only) then
@@ -308,6 +315,23 @@ subroutine SCF(E)
 !
       call neighbor_list_2e()
 
+<<<<<<< HEAD
+=======
+! Goes straight to TD if a restart is used.
+      if ((timedep.eq.1).and.(tdrestart)) then
+        call g2g_timer_sum_stop('Initialize SCF')
+        call g2g_timer_sum_start('TD')
+        if(OPEN) then
+           call TD(fock_aop, rho_aop, fock_bop, rho_bop)
+        else
+           call TD(fock_aop, rho_aop)
+        endif
+        call g2g_timer_sum_stop('TD')
+        return
+      endif
+
+!
+>>>>>>> 9b55537... fix stackoverflow in transform_gen.f90
 ! -Create integration grid for XC here
 ! -Assign points to groups (spheres/cubes)
 ! -Assign significant functions to groups
@@ -333,6 +357,7 @@ subroutine SCF(E)
 
       call ECP_fock( MM, RMM(M11) )
 
+
 ! Other terms
 !
       call g2g_timer_sum_stop('Nuclear attraction')
@@ -350,7 +375,6 @@ subroutine SCF(E)
         endif
           call g2g_timer_sum_stop('QM/MM')
       endif
-
 
 ! test
 ! TODO: test? remove or sistematize
@@ -377,6 +401,7 @@ subroutine SCF(E)
         if ( allocated(Xmat) ) deallocate(Xmat)
         if ( allocated(Ymat) ) deallocate(Ymat)
         allocate(Xmat(M_in,M_in), Ymat(M_in,M_in))
+
 
         call overop%Sets_smat( Smat )
         if (lowdin) then
@@ -417,6 +442,7 @@ subroutine SCF(E)
         deallocate( sqsmat, tmpmat )
 
 
+
 !DFTB: Dimensions of Xmat and Ymat are modified for DFTB.
 !
 ! TODO: this is nasty, a temporary solution would be to have a Msize variable
@@ -438,7 +464,6 @@ subroutine SCF(E)
 
       end if
 
-
 ! CUBLAS
    call cublas_setmat( M_in, Xmat, dev_Xmat)
    call cublas_setmat( M_in, Ymat, dev_Ymat)
@@ -452,6 +477,8 @@ subroutine SCF(E)
                              natom, Iz, nshell, Nuc)
       primera = .false.
    end if
+
+
 
 !##########################################################!
 ! TODO: remove from here...
@@ -469,6 +496,7 @@ subroutine SCF(E)
       endif
 
 
+
 !----------------------------------------------------------!
 ! Precalculate two-index (density basis) "G" matrix used in density fitting
 ! here (S_ij in Dunlap, et al JCP 71(8) 1979) into RMM(M7)
@@ -477,15 +505,13 @@ subroutine SCF(E)
       call g2g_timer_sum_start('Coulomb G matrix')
       call int2()
       call g2g_timer_sum_stop('Coulomb G matrix')
-!
-! Precalculate three-index (two in MO basis, one in density basis) matrix
-! used in density fitting / Coulomb F element calculation here
-! (t_i in Dunlap)
-!
+
       call aint_query_gpu_level(igpu)
       if (igpu.gt.2) then
         call aint_coulomb_init()
       endif
+
+
       if (igpu.eq.5) MEMO = .false.
       !MEMO=.true.
       if (MEMO) then
@@ -494,7 +520,9 @@ subroutine SCF(E)
 !        Large elements of t_i put into double-precision cool here
 !        Size criteria based on size of pre-factor in Gaussian Product Theorem
 !        (applied to MO basis indices)
+
          call int3mem()
+
 !        Small elements of t_i put into single-precision cools here
 !        call int3mems()
          call g2g_timer_stop('int3mem')
@@ -519,6 +547,8 @@ subroutine SCF(E)
 ! only at the end of the SCF, the density matrix and the
 ! vectors are 'coherent'
 
+
+
       if (hybrid_converg) DIIS=.true. ! cambio para convergencia damping-diis
       call g2g_timer_sum_stop('Initialize SCF')
 !------------------------------------------------------------------------------!
@@ -531,17 +561,18 @@ subroutine SCF(E)
 ! TODO: Maybe evaluate conditions for loop continuance at the end of loop
 !       and condense in a single "keep_iterating" or something like that.
 
-      do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
-        if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
-!       Escribe los criterios de convergencia y el valor del paso de dinamica
+      do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
         call g2g_timer_start('Total iter')
         call g2g_timer_sum_start('Iteration')
         call g2g_timer_sum_start('Fock integrals')
         niter=niter+1
-        E1=0.0D0
 
+        nniter=niter
+        IF (changed_to_LS .and. niter.eq. (NMAX/2 +1)) nniter=1 !first steep of damping after NMAX steeps without convergence
+
+        E1=0.0D0
 
 !------------------------------------------------------------------------------!
 !       Fit density basis to current MO coeff and calculate Coulomb F elements
@@ -572,7 +603,6 @@ subroutine SCF(E)
         if (Dbug) call SEEK_NaN(RMM,1,MM,"RHO Ex-Corr")
         if (Dbug) call SEEK_NaN(RMM,M5-1,M5-1+MM,"FOCK Ex-Corr")
 
-
 !------------------------------------------------------------------------------!
 ! REACTION FIELD CASE
 !
@@ -596,7 +626,6 @@ subroutine SCF(E)
         endif
         call g2g_timer_start('actualiza rmm')
         call g2g_timer_sum_pause('Fock integrals')
-
 
 !------------------------------------------------------------------------------!
 ! DFTB: we extract rho and fock before conver routine
@@ -671,10 +700,10 @@ subroutine SCF(E)
 !CLOSE SHELL OPTION |
 !%%%%%%%%%%%%%%%%%%%%
 #       ifdef CUBLAS
-           call conver(niter, good, good_cut, M_in, rho_aop, fock_aop,         &
+           call conver(nniter, good, good_cut, M_in, rho_aop, fock_aop,         &
                        dev_Xmat, dev_Ymat, 1)
 #       else
-           call conver(niter, good, good_cut, M_in, rho_aop, fock_aop, Xmat,   &
+           call conver(nniter, good, good_cut, M_in, rho_aop, fock_aop, Xmat,   &
                        Ymat, 1)
 #       endif
 
@@ -688,6 +717,7 @@ subroutine SCF(E)
         call g2g_timer_sum_start('SCF - Fock Diagonalization (sum)')
         call fock_aop%Diagon_datamat( morb_coefon, morb_energy )
         call g2g_timer_sum_pause('SCF - Fock Diagonalization (sum)')
+
 !
 !
 !------------------------------------------------------------------------------!
@@ -724,15 +754,16 @@ subroutine SCF(E)
         enddo
         enddo
 
+
     if (OPEN) then
 !%%%%%%%%%%%%%%%%%%%%
 !OPEN SHELL OPTION  |
 !%%%%%%%%%%%%%%%%%%%%
 #       ifdef CUBLAS
-           call conver(niter, good, good_cut, M_in, rho_bop, fock_bop,         &
+           call conver(nniter, good, good_cut, M_in, rho_bop, fock_bop,         &
                        dev_Xmat, dev_Ymat, 2)
 #       else
-           call conver(niter, good, good_cut, M_in, rho_bop, fock_bop, Xmat,     &
+           call conver(nniter, good, good_cut, M_in, rho_bop, fock_bop, Xmat,     &
                        Ymat, 2)
 #       endif
 
@@ -765,10 +796,6 @@ subroutine SCF(E)
         call rho_bop%Gets_data_AO(rho_b)
         call messup_densmat( rho_b )
 
-!carlos: Beta Energy storage in RMM
-        do kk=1,M
-          RMM(M22+kk-1) = morb_energy(kk)
-        end do
 !carlos: Storing autovectors to create the restart
         i0 = 0
         if (dftb_calc) i0=MTB
@@ -782,6 +809,8 @@ subroutine SCF(E)
         enddo
 
     end if!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 !------------------------------------------------------------------------------!
 !carlos: storing matrices
 !------------------------------------------------------------------------------!
@@ -836,20 +865,17 @@ subroutine SCF(E)
           end if
         end if
 
-!------------------------------------------------------------------------------!
-! TODO: convergence criteria should be a separated subroutine...
-        good = 0.0d0
-        do jj=1,M
-        do kk=jj,M
-          del=xnano(jj,kk)-(RMM(kk+(M2-jj)*(jj-1)/2))
-          del=del*sq2
-          good=good+del**2
-          RMM(kk+(M2-jj)*(jj-1)/2)=xnano(jj,kk)
-        enddo
-        enddo
-        good=sqrt(good)/float(M)
-        deallocate ( xnano )
 
+
+!------------------------------------------------------------------------------!
+! Convergence criteria and lineal search in P
+
+	IF (OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
+	IF (.not. OPEN) call P_conver(Rho_LS, nniter, En, E1, E2, Ex, good, xnano, rho_a, rho_a)
+!------------------------------------------------------------------------------!
+
+
+	deallocate ( xnano )
 
 ! TODO: what is this doing here???
         call g2g_timer_stop('dens_GPU')
@@ -860,20 +886,30 @@ subroutine SCF(E)
 
 ! Damping factor update
         DAMP=DAMP0
-
         E=E1+E2+En
 !        E=E+Es
 !
         call g2g_timer_stop('otras cosas')
-
 !       write energy at every step
-        if (verbose) call WRITE_E_STEP(niter, E+Ex)
+	if (niter.eq.NMAX) then
+	  if (Rho_LS .eq.0) then
+	    write(6,*) 'NO CONVERGENCE AT ',NMAX,' ITERATIONS'
+	    write(6,*) 'trying Lineal search'
+	    Rho_LS=1
+	    NMAX=2*NMAX
+	    changed_to_LS=.true.
+	    call P_linearsearch_init()
+	  end if
+	end if
 
         Egood=abs(E+Ex-Evieja)
         Evieja=E+Ex
 !
         call g2g_timer_stop('Total iter')
         call g2g_timer_sum_pause('Iteration')
+
+	if (verbose) call WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
+!       Escribe los criterios de convergencia y el valor del paso de dinamica
 
  999  continue
       call g2g_timer_sum_start('Finalize SCF')
@@ -890,6 +926,12 @@ subroutine SCF(E)
          noconverge = 0
          converge=converge+1
       endif
+
+      if (changed_to_LS) then
+         changed_to_LS=.false.
+         NMAX=NMAX/2
+         Rho_LS=0
+      end if
 
       if (noconverge.gt.4) then
          write(6,*)  'stop for not convergion 4 times'
