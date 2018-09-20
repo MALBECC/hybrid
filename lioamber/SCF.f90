@@ -348,16 +348,13 @@ subroutine SCF(E)
           call intsol(E1s,Ens,.true.)
           call g2g_timer_stop('intsol')
         else
-	  write(*,*) "flag 1, Nick"
           call aint_qmmm_init(nsol,r,pc)
           call g2g_timer_start('aint_qmmm_fock')
-	  write(*,*) "flag 2, Nick"
           call aint_qmmm_fock(E1s,Ens)
           call g2g_timer_stop('aint_qmmm_fock')
         endif
           call g2g_timer_sum_stop('QM/MM')
       endif
-	  write(*,*) "flag 3, Nick"
 
 
 ! test
@@ -387,20 +384,15 @@ subroutine SCF(E)
         allocate(Xmat(M_in,M_in), Ymat(M_in,M_in))
 
 
-	  write(*,*) "flag 4, Nick"
         call overop%Sets_smat( Smat )
-	  write(*,*) "flag 4.1, Nick"
         if (lowdin) then
 !          TODO: inputs insuficient; there is also the symetric orthog using
 !                3 instead of 2 or 1. Use integer for onbasis_id
-	  write(*,*) "flag 4.2, Nick"
            call overop%Gets_orthog_4m( 2, 0.0d0, X_min, Y_min, X_min_trans, Y_min_trans)
         else
-	  write(*,*) "flag 4.3, Nick"
            call overop%Gets_orthog_4m( 1, 0.0d0, X_min, Y_min, X_min_trans, Y_min_trans)
         end if
 
-	  write(*,*) "flag 5, Nick"
 ! TODO: replace X,Y,Xtrans,Ytrans with Xmat, Ymat, Xtrp, Ytrp
 !        do ii=1,M
 !        do jj=1,M
@@ -418,7 +410,6 @@ subroutine SCF(E)
            RMM(M13+kk-1) = Dvec(kk)
         end do
 
-	  write(*,*) "flag 6, Nick"
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 !
 !
@@ -433,7 +424,6 @@ subroutine SCF(E)
 
 
 
-	  write(*,*) "flag 7, Nick"
 !DFTB: Dimensions of Xmat and Ymat are modified for DFTB.
 !
 ! TODO: this is nasty, a temporary solution would be to have a Msize variable
@@ -455,13 +445,11 @@ subroutine SCF(E)
 
       end if
 
-	  write(*,*) "flag 8, Nick"
 
 ! CUBLAS
    call cublas_setmat( M_in, Xmat, dev_Xmat)
    call cublas_setmat( M_in, Ymat, dev_Ymat)
 
-	  write(*,*) "flag 9, Nick"
 
 ! Generates starting guess
 !
@@ -472,7 +460,6 @@ subroutine SCF(E)
       primera = .false.
    end if
 
-	  write(*,*) "flag 9.1, Nick"
 
 
 !##########################################################!
@@ -490,7 +477,6 @@ subroutine SCF(E)
         return
       endif
 
-	  write(*,*) "flag 9.2, Nick"
 
 
 !----------------------------------------------------------!
@@ -502,20 +488,10 @@ subroutine SCF(E)
       call int2()
       call g2g_timer_sum_stop('Coulomb G matrix')
 
-	  write(*,*) "flag 9.3, Nick"
-
-!
-! Precalculate three-index (two in MO basis, one in density basis) matrix
-! used in density fitting / Coulomb F element calculation here
-! (t_i in Dunlap)
-!
-
-	write(*,*) "flag 10, Nick"
       call aint_query_gpu_level(igpu)
       if (igpu.gt.2) then
         call aint_coulomb_init()
       endif
-	write(*,*) "flag 10.1, Nick"
 
       if (igpu.eq.5) MEMO = .false.
       !MEMO=.true.
@@ -525,10 +501,8 @@ subroutine SCF(E)
 !        Large elements of t_i put into double-precision cool here
 !        Size criteria based on size of pre-factor in Gaussian Product Theorem
 !        (applied to MO basis indices)
-	write(*,*) "flag 10.2, Nick"
 
          call int3mem()
-	write(*,*) "flag 10.3, Nick"
 
 !        Small elements of t_i put into single-precision cools here
 !        call int3mems()
@@ -555,7 +529,6 @@ subroutine SCF(E)
 ! vectors are 'coherent'
 
 
-	write(*,*) "flag 15, Nick"
 
       if (hybrid_converg) DIIS=.true. ! cambio para convergencia damping-diis
       call g2g_timer_sum_stop('Initialize SCF')
@@ -570,7 +543,6 @@ subroutine SCF(E)
 !       and condense in a single "keep_iterating" or something like that.
 
 
-	write(*,*) "flag 20, Nick"
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
