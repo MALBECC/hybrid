@@ -286,8 +286,9 @@ size_t PointGroup<scalar_type>::size_in_gpu() const {
          sizeof(scalar_type);  // size in bytes according to precision
 }
 
-template <class scalar_type>
-PointGroup<scalar_type>::~PointGroup<scalar_type>() {}
+template<class scalar_type>
+PointGroup<scalar_type>::~PointGroup<scalar_type>() {
+}
 
 template <class scalar_type>
 PointGroupCPU<scalar_type>::~PointGroupCPU<scalar_type>() {
@@ -340,7 +341,7 @@ void Partition::compute_functions(bool forces, bool gga) {
   }
 
   t1.stop_and_sync();
-  cout << "Timer functions: " << t1 << endl;
+  if (timer_single) cout << "Functions: " << t1 << endl;
 }
 
 void Partition::clear() {
@@ -589,12 +590,17 @@ void Partition::solve(Timers& timers, bool compute_rmm, bool lda,
   }
 }
 
+#if FULL_DOUBLE
 template class PointGroup<double>;
-template class PointGroup<float>;
 template class PointGroupCPU<double>;
-template class PointGroupCPU<float>;
 #if GPU_KERNELS
 template class PointGroupGPU<double>;
+#endif
+#else
+template class PointGroup<float>;
+template class PointGroupCPU<float>;
+#if GPU_KERNELS
 template class PointGroupGPU<float>;
+#endif
 #endif
 }

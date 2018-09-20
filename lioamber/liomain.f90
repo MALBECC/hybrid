@@ -205,7 +205,7 @@ subroutine do_population_analysis()
        call spunpack('L',M,rhobeta(1),RealRho_betha) !pasa vector a matriz
        q=0
        call spin_pop_calc(natom, M, RealRho_alpha, RealRho_betha, Smat, Nuc, q)
-       call write_population(85, natom, Iz, q, 2)
+       call write_population(natom, IzUsed, q, 2, 85)
    end if
 
    return
