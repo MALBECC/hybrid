@@ -110,14 +110,9 @@ C Define constants and conversion factors .....................................
       dt2   = dt**2
       dtby2 = dt/2.0d0
 
-c      Ang = 1.d0 / 0.529177d0 !Dividir una distancia en Bohr por "Ang" la pasa a Angstroms
-c      eV  = 1.d0 / 13.60580d0 !Dividir una energía en Ry por "eV" la pasa a eV
-      
       fovermp = 0.009648534d0
       if (iunit .eq. 1) then
 C  convert F/m in (eV/Amstrong)/amu  to  Amstrong/fs**2
-c        fovermp = 0.009579038d0                      !Revise la cuenta y a mi me dio 0.009648534 Jota
-c         fovermp = 0.009648534d0
       elseif (iunit .eq. 2) then
 C  convert F/m in (Ry/Bohr)/amu  to  Bohr/fs**2
         fovermp = fovermp * Ang**2 / (eV*2.d0)

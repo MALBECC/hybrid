@@ -21,180 +21,174 @@ c subroutine that read the constrained atom block
 
 c reads 'PositionConstraints' block
 	if ( fdf_block('PositionConstraints',iunit) ) then
-        read(iunit,'(A)',advance='no',err=100,end=100) exp 
-        if(exp.eq.'%') goto 50 
-	read(iunit,*,err=100,end=100) exp,nt
-	do i=1,nt
-	  read(iunit,*,err=100,end=100) exp,type(i)
-
-	if(nac.eq.0.and.type(i).gt.1) then
-	call die('fixed: constrained type for only QM atoms
-     .  must be only 1')
-	endif
-	  if(type(i).le.2) then
-
-       k=1
- 10    continue
-       if(k.gt.natot) then
-       call die('fixed: sets of constraints must not exeed natot')
-       endif
-       read(iunit,'(A)',advance='no',err=100,end=100) exp
-       if(exp.eq.'f'.or.exp.eq.'F'.or.exp.eq.'p'.or.exp.eq.'P') then
-       read(iunit,*,err=100,end=100) exp,con1(i,k),exp,con2(i,k)
-       k=k+1
-       goto 10 
-       else
-       continue
-       endif
-       ncon(i)=k-1
-
-	if(ncon(i).eq.0) then
-	call die('fixed: sets of constraints must not be zero') 
-	endif
-
-	do k=1,ncon(i)
-	if(con2(i,k).lt.con1(i,k)) then
-	call die('fixed: sets of constraints must be defined
-     .  in correct order')
-	endif
-	enddo
-
-	  elseif(type(i).eq.6) then
-            read(iunit,*,err=100,end=100) exp,aa
-            read(iunit,*,err=100,end=100) exp,cut
-	  elseif(type(i).lt.-2 .or. type(i).gt.7) then
-	  call die('fixed: Wrong type of constraint')
-	  endif !type
-	enddo !nt
-	write(6,'(/,a)') 'fixed: reading "PositionConstraints" block'
-	else 
-	goto 50
+          read(iunit,'(A)',advance='no',err=100,end=100) exp 
+          if(exp.eq.'%') goto 50 
+	  read(iunit,*,err=100,end=100) exp,nt
+	  do i=1,nt
+	    read(iunit,*,err=100,end=100) exp,type(i)
+	    if(nac.eq.0.and.type(i).gt.1) then
+	      call die('fixed: constrained type for only QM atoms
+     .        must be only 1')
+	    endif
+	    if(type(i).le.2) then
+              k=1
+ 10           continue
+              if(k.gt.natot) then
+                call die('fixed: sets of constraints must not exeed 
+     .          natot')
+	      endif
+	      read(iunit,'(A)',advance='no',err=100,end=100) exp
+	      if(exp.eq.'f'.or.exp.eq.'F'.or.exp.eq.'p'.or.exp.eq.'P') then
+	        read(iunit,*,err=100,end=100) exp,con1(i,k),exp,con2(i,k)
+	        k=k+1
+	        goto 10 
+	      else
+	      continue
+	      endif
+	      ncon(i)=k-1
+	      if(ncon(i).eq.0) then
+	        call die('fixed: sets of constraints must not be zero') 
+	      endif
+	      do k=1,ncon(i)
+	        if(con2(i,k).lt.con1(i,k)) then
+	          call die('fixed: sets of constraints must be defined
+     .            in correct order')
+	        endif
+	      enddo
+	    elseif(type(i).eq.6) then
+	      read(iunit,*,err=100,end=100) exp,aa
+	      read(iunit,*,err=100,end=100) exp,cut
+	    elseif(type(i).lt.-2 .or. type(i).gt.7) then
+	      call die('fixed: Wrong type of constraint')
+	    endif !type
+	  enddo !nt
+	  write(6,'(/,a)') 'fixed: reading "PositionConstraints" block'
+	  else 
+	  goto 50
 	endif !fdf
 
 c blocklist assignation
-      do i=1,nt
-	if(type(i).eq.1) then
-          do k=1,ncon(i)
-        if(con2(i,k).gt.natot) then
-        call die('fixed: atoms in constraint must not exeed natot')
-        endif
-            do j=con1(i,k),con2(i,k)
-            blocklist(j)=1
-            enddo
-          enddo
-	elseif(type(i).eq.-1) then
-        blocklist=1
-          do k=1,ncon(i)
-        if(con2(i,k).gt.natot) then
-        call die('fixed: atoms in constraint must not exeed natot')
-        endif
-            do j=con1(i,k),con2(i,k)
-            blocklist(j)=0
-            enddo
-          enddo
-	elseif(type(i).eq.2) then
-          do k=1,ncon(i)
-        if(con2(i,k).gt.nroaa) then
-        call die('fixed: residues in constraint must not exeed nroaa')
-        endif
-
-            do j=con1(i,k),con2(i,k)
-              do l=1,nac
-                if(j.eq.aanum(l)) then
-                blocklist(na_u+l)=1
-                endif
-              enddo
-            enddo
-          enddo
-	elseif(type(i).eq.-2) then
-        blocklist=1
-          do k=1,ncon(i)
-        if(con2(i,k).gt.nroaa) then
-        call die('fixed: residues in constraint must not exeed nroaa')
-        endif
-            do j=con1(i,k),con2(i,k)
-              do l=1,nac
-                if(j.eq.aanum(l)) then
-                blocklist(na_u+l)=0
-                endif
-              enddo
-            enddo
-          enddo
-	elseif(type(i).eq.3) then
-          do l=1,nac
-            ch4=atname(l)
-            ch1=ch4(1:1)
-            if(ch1.ne.'H') then
-            blocklist(na_u+l)=1
-            endif
-          enddo
-	elseif(type(i).eq.4) then
-          do l=1,nac
-            if(atname(l).eq.'CA'.or.
-     .         atname(l).eq.'C' .or.
-     .         atname(l).eq.'N') then
-            blocklist(na_u+l)=1
-            endif
-          enddo
-	elseif(type(i).eq.5) then
-          do l=1,nac
-            if(aaname(l).ne.'HOH') then
-            blocklist(na_u+l)=1
-            endif
-          enddo
-	elseif(type(i).eq.6) then
-        r(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0
-        cqm=0.0
-        k=0
-        do j=1,nac
-        if(aanum(j).eq.aa) then
-        k=k+1
-        cqm(1)=cqm(1)+r(1,j)
-        cqm(2)=cqm(2)+r(2,j)
-        cqm(3)=cqm(3)+r(3,j)
-        endif
-        enddo
-        cqm(1:3)=cqm(1:3)/k
-
-        mdist=0.0
-        dist=0.0
-        do j=1,nac
-        if(aanum(j).eq.aa) then
-        dist=(r(1,j)-cqm(1))**2+
-     .       (r(2,j)-cqm(2))**2+
-     .       (r(3,j)-cqm(3))**2
-        if(dist.gt.mdist) mdist=dist
-        endif
-        enddo
-        mdist=sqrt(mdist)
-        cut=cut+mdist
-
-        dist=0.0
-        dist2=cut**2
-        do j=1,nac
-        if(aaname(j).eq.'HOH'.and.atname(j).eq.'O') then
-                        dist=(r(1,j)-cqm(1))**2+
-     .                       (r(2,j)-cqm(2))**2+
-     .                       (r(3,j)-cqm(3))**2
-                        if(dist.gt.dist2) then
-                        blocklist(j+na_u)=1
-                        blocklist(j+1+na_u)=1
-                        blocklist(j+2+na_u)=1
-                        endif
-        elseif(aaname(j).ne.'HOH') then
-                        dist=(r(1,j)-cqm(1))**2+
-     .                       (r(2,j)-cqm(2))**2+
-     .                       (r(3,j)-cqm(3))**2
-                        if(dist.gt.dist2) then
-                        blocklist(j+na_u)=1
-                        endif
-        endif
-        enddo
-	elseif(type(i).eq.7) then
-	wat = .true.
-	write(6,'(/,a)') 'fixed: Running restraining water cap'
-	endif !type
-      enddo !nt
+	do i=1,nt
+	  if(type(i).eq.1) then
+	    do k=1,ncon(i)
+	      if(con2(i,k).gt.natot) then
+	        call die('fixed: atoms in constraint must not exeed natot')
+	      endif
+	      do j=con1(i,k),con2(i,k)
+	        blocklist(j)=1
+	      enddo
+	    enddo
+	  elseif(type(i).eq.-1) then
+	    blocklist=1
+	    do k=1,ncon(i)
+	      if(con2(i,k).gt.natot) then
+	        call die('fixed: atoms in constraint must not exeed natot')
+	      endif
+	      do j=con1(i,k),con2(i,k)
+	        blocklist(j)=0
+	      enddo
+	    enddo
+	  elseif(type(i).eq.2) then
+	    do k=1,ncon(i)
+	      if(con2(i,k).gt.nroaa) then
+	        call die('fixed: residues in constraint must not exeed nroaa')
+	      endif
+	      do j=con1(i,k),con2(i,k)
+	        do l=1,nac
+	          if(j.eq.aanum(l)) then
+	            blocklist(na_u+l)=1
+	          endif
+	        enddo
+	      enddo
+	    enddo
+	  elseif(type(i).eq.-2) then
+	    blocklist=1
+	      do k=1,ncon(i)
+	        if(con2(i,k).gt.nroaa) then
+	          call die('fixed: residues in constraint must not 
+     .            exeed nroaa')
+	        endif
+	        do j=con1(i,k),con2(i,k)
+	          do l=1,nac
+	            if(j.eq.aanum(l)) then
+	              blocklist(na_u+l)=0
+	            endif
+	          enddo
+	        enddo
+	      enddo
+	  elseif(type(i).eq.3) then
+	    do l=1,nac
+	      ch4=atname(l)
+	      ch1=ch4(1:1)
+	      if(ch1.ne.'H') then
+	        blocklist(na_u+l)=1
+	      endif
+	    enddo
+	  elseif(type(i).eq.4) then
+	    do l=1,nac
+	      if(atname(l).eq.'CA'.or.
+     .          atname(l).eq.'C' .or.
+     .          atname(l).eq.'N') then
+	        blocklist(na_u+l)=1
+	      endif
+	    enddo
+	  elseif(type(i).eq.5) then
+	    do l=1,nac
+	      if(aaname(l).ne.'HOH') then
+	        blocklist(na_u+l)=1
+	      endif
+	    enddo
+	  elseif(type(i).eq.6) then
+	    r(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0
+	    cqm=0.0
+	    k=0
+	    do j=1,nac
+	      if(aanum(j).eq.aa) then
+	        k=k+1
+	        cqm(1)=cqm(1)+r(1,j)
+	        cqm(2)=cqm(2)+r(2,j)
+	        cqm(3)=cqm(3)+r(3,j)
+	      endif
+	    enddo
+	    cqm(1:3)=cqm(1:3)/k
+	    mdist=0.0
+	    dist=0.0
+	    do j=1,nac
+	      if(aanum(j).eq.aa) then
+	        dist=(r(1,j)-cqm(1))**2+
+     .          (r(2,j)-cqm(2))**2+
+     .          (r(3,j)-cqm(3))**2
+	        if(dist.gt.mdist) mdist=dist
+	      endif
+	    enddo
+	    mdist=sqrt(mdist)
+	    cut=cut+mdist
+	    dist=0.0
+	    dist2=cut**2
+	    do j=1,nac
+	      if(aaname(j).eq.'HOH'.and.atname(j).eq.'O') then
+	        dist=(r(1,j)-cqm(1))**2+
+     .          (r(2,j)-cqm(2))**2+
+     .          (r(3,j)-cqm(3))**2
+	        if(dist.gt.dist2) then
+	          blocklist(j+na_u)=1
+	          blocklist(j+1+na_u)=1
+	          blocklist(j+2+na_u)=1
+	        endif
+	      elseif(aaname(j).ne.'HOH') then
+	        dist=(r(1,j)-cqm(1))**2+
+     .          (r(2,j)-cqm(2))**2+
+     .          (r(3,j)-cqm(3))**2
+	        if(dist.gt.dist2) then
+	        blocklist(j+na_u)=1
+	        endif
+	      endif
+	    enddo
+	  elseif(type(i).eq.7) then
+	    wat = .true.
+	    write(6,'(/,a)') 'fixed: Running restraining water cap'
+	  endif !type
+        enddo !nt
 
  50    continue 
 c read 'GeometryConstraints' block
@@ -277,6 +271,9 @@ c           write(182,*) "Congelé átomo MM", i
 
 c set total number of free atoms
 	if(frstme) then
+	
+c	  write (777,*) blockqmmm
+	
 	  k=0
 	  do i=1,na_u
 	    if((blocklist(i).eq.0)) k=k+1

@@ -332,6 +332,7 @@ C Subroutine to read a crd file from an Amber run
         use ionew
         use sys
         use fdf
+	use scarlett, only: Ang,eV
 
 	implicit none
 	integer i,j,na_u,nac,nat,numlink,linkat(numlink),
@@ -387,8 +388,8 @@ C Subroutine to read a crd file from an Amber run
 	endif
 	call io_close(iu)
 
-        rclas(1:3,1:natoms)=rclas(1:3,1:natoms)/0.5291772d0
-        vat(1:3,1:natoms)=vat(1:3,1:natoms)/0.5291772d0*20.455d0/1000d0
+        rclas(1:3,1:natoms)=rclas(1:3,1:natoms)*Ang
+        vat(1:3,1:natoms)=vat(1:3,1:natoms)*Ang*20.455d0/1000d0
 
       write(6,'(/a)') 
      .'readcrd: Reading Coordinates and Velocities from CRD file'

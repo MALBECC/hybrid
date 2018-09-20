@@ -10,7 +10,7 @@ c assignation of solvent atoms
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-     .  radbloqmmm,atsinres, radblommbond)
+     .  radbloqmmm,atsinres,radblommbond,radinnerbloqmm)
 
 	use precision
 	use sys
@@ -60,7 +60,7 @@ cagregue 0 apc
 ccorrecion del bug de bonds extras, Nick
 	integer :: ivalue(natot*2), inick,jnick
 c parche para q no ponga bonds entre extremos terminales
-        double precision radblommbond
+        double precision radblommbond, radinnerbloqmm
 
 	ivalue=0
 
@@ -81,6 +81,8 @@ C nullify some solvent vbles
       sfc=2.d0
       radbloqmmm=100.d0
       foundamber=.false.
+	radinnerbloqmm=0.d0
+
 
 C read solvent coordinates by atom
       if ( fdf_block('SolventInput',iunit) ) then
@@ -150,12 +152,14 @@ c read cutoff radious
       read(iunit,*,err=30,end=30) exp, rcortemm
       read(iunit,*,err=30,end=30) exp, radbloqmmm
       read(iunit,*,err=30,end=30) exp, radblommbond
+      read(iunit,*,err=50,end=50) exp, radinnerbloqmm
 C      read(iunit,*,err=30,end=30) exp, sfc
 
       else
       write(6,'(/a)') 'solvent: Cut-off radius will be the standard'
       endif
 
+ 50   continue
 c checking cut-off radius
       if(rcorteqm.le.1.e-8) then
       call die('solvent: QM cut-off radius to close to zero')
