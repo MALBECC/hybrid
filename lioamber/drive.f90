@@ -945,9 +945,7 @@
 
       ! Gets the number of occupied orbitals in a closed shell system (or
       ! Spin Up in an open shell system).
-	write(*,*) "charge antes", charge
       call get_nco(Iz, natom, nco, charge, NUNP, OPEN)
-	
       ! Allocates and initialises rhoalpha and rhobeta
       if(OPEN) then
         allocate(rhoalpha(M*(M+1)/2),rhobeta(M*(M+1)/2))
@@ -1396,12 +1394,6 @@
         call adjust_ghost_charge(atom_Z, n_atoms, nuc_charge)
 
        electrons = nuc_charge - charge
-
-
-	write(*,*) "nuc charge", nuc_charge
-	write(*,*) "charge", charge
-	write(*,*) "elec", electrons
-	write(*,*) "condit", .not.open_shell, mod(electrons,2)
 
        if ((.not.open_shell) .and. (mod(electrons,2).ne.0)) then
          write(*,'(A)') "  ERROR - DRIVE: Odd number of electrons in a "&
