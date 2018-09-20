@@ -153,8 +153,6 @@ subroutine init_lio_common(natomin, Izin, nclatom, callfrom)
                          remove_zero_weights, min_points_per_cube,            &
                          max_function_exponent, timers, verbose)
 
-	write(*,*) "C3", charge
-
     chrg_sq = charge**2
     if (callfrom.eq.1) then
         natom  = natomin
@@ -173,8 +171,6 @@ subroutine init_lio_common(natomin, Izin, nclatom, callfrom)
 
     ! Sets the dimensions for important arrays.
     call DIMdrive(ngDyn,ngdDyn)
-
-	write(*,*) "C4", charge
 
     ng2 = 5*ngDyn*(ngDyn+1)/2 + 3*ngdDyn*(ngdDyn+1)/2 + &
           ngDyn  + ngDyn*norbit + Ngrid
@@ -206,7 +202,6 @@ subroutine init_lio_common(natomin, Izin, nclatom, callfrom)
     allocate(MO_coef_at(ngDyn*ngDyn))
     if (OPEN) allocate(MO_coef_at_b(ngDyn*ngDyn))
 
-	write(*,*) "C5", charge
 
     ! Prints chosen options to output.
     call drive(ng2, ngDyn, ngdDyn)
@@ -434,8 +429,6 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
     call lio_defaults()
     charge = chargein
 
-
-	write(*,*) "C1", charge
     !select spin case
     Nunp_aux=int(spin)
     Nunp=Nunp_aux
@@ -443,7 +436,6 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
     ! Checks if input file exists and writes data to namelist variables.
     inputFile = 'lio.in'
     call read_options(inputFile)
-	write(*,*) "C21", charge
     !select spin case
     Nunp_aux=int(spin)
     if (Nunp_aux .ne. Nunp) STOP "lio.in have a different spin than *.fdf"
