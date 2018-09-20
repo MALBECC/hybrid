@@ -30,6 +30,7 @@ module td_data
    integer :: td_rst_freq = 500
    integer :: timedep   = 0
    integer :: ntdstep   = 0
+   integer :: td_do_pop = 0
    real*8  :: tdstep    = 2.0D-3
    logical :: tdrestart = .false.
    logical :: writedens = .false.
@@ -44,7 +45,7 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
    use garcha_mod    , only: M, Md, NBCH, propagator, RMM, NCO, Iz, igrid2, r, &
                              Nuc, nsol, pc, X, Smat, MEMO, sol, natom, sqsm,   &
                              Nunp, ntatom, ncont, nshell, a, c, d, NORM,OPEN, &
-                             rhoalpha, rhobeta
+                             rhoalpha, rhobeta, ad, cd, ncontd, nucd, nshelld
    use td_data       , only: td_rst_freq, tdstep, ntdstep, tdrestart, &
                              writedens, pert_time
    use field_data    , only: field, fx, fy, fz
@@ -55,11 +56,14 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
    use dftb_data     , only: dftb_calc, MDFTB, MTB
    use dftb_subs     , only: dftb_td_init, dftb_output
    use fileio        , only: write_td_restart_verlet, write_td_restart_magnus, &
-                             read_td_restart_verlet , read_td_restart_magnus
+                             read_td_restart_verlet , read_td_restart_magnus,  &
+                             write_energies
+   use fileio_data     , only: verbose
    use typedef_operator, only: operator
+   use faint_cpu       , only: int2
 
 #ifdef CUBLAS
-   use cublasmath    , only: basechange_cublas
+   use cublasmath      , only: basechange_cublas
 #endif
 
    implicit none
@@ -69,14 +73,14 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 
    real*8  :: E, En, E1, E2, E1s, Es, Ens = 0.0D0, Ex, t, dt_magnus, dt_lpfrg
    integer :: MM, MMd, M2, M3 ,M5, M13, M15, M11, LWORK, igpu, info, istep,    &
-              icount,jcount
+              icount,jcount, M9, M7
    integer :: lpfrg_steps = 200, chkpntF1a = 185, chkpntF1b = 195
-   logical :: is_lpfrg
+   logical :: is_lpfrg, fock_restart
    character(len=20) :: restart_filename
 
    real*8 , allocatable, dimension(:)   :: factorial, WORK
    real*8 , allocatable, dimension(:,:) :: Xmm, Xmat,Xtrans, Ytrans, overlap,  &
-                                           Ymat
+                                           Ymat, Smat_initial
 !carlos: the next variables have 3 dimensions, the 3th one is asociated with the
 !        spin number. This one will have the value of 1 for Close Shell and 2
 !        for Open shell. Spin=1 will always be reffered to alpha and spin=2,
@@ -123,11 +127,11 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
    ! M13 - W (matrix eigenvalues),  M15 - Aux vector for ESSL. M17 - Used
    ! in least squares, M18 - MO vectors (deprecated), M19 - weights (optional),
    ! M20 - 2e integrals if MEMO=t
-   MM  = M *(M+1) /2     ; MMd = Md*(Md+1)/2
-   M2  = 2*M             ; M5  = 1 + 2*MM
-   M3  = 1+MM
-   M11 = M5 + MM + 2*MMd ; M13 = M11 + MM
-   M15 = M13 + M
+   MM  = M *(M+1) /2 ; MMd = Md*(Md+1)/2
+   M2  = 2*M         ; M5  = 1 + 2*MM
+   M3  = 1+MM        ; M7  = 1 + 3*MM
+   M9  = M7 + MMd    ; M11 = M5 + MM + 2*MMd
+   M13 = M11 + MM    ; M15 = M13 + M
 
    call g2g_timer_start('TD')
    call g2g_timer_start('td-inicio')
@@ -157,7 +161,7 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
    ! Checks and performs allocations.
    call td_allocate_all(M_in, M, dim3, NBCH, propagator, F1a, F1b, fock, rho,  &
                         rho_aux, rhold, rhonew, rho_0, fock_0, sqsm, Xmm, Xmat,&
-                        Xtrans, Ymat, Ytrans, factorial)
+                        Xtrans, Ymat, Ytrans, factorial, Smat_initial)
 
    ! Initialises propagator-related parameters and other variables.
    call td_initialise(propagator, tdstep, NBCH, dt_lpfrg, dt_magnus, factorial,&
@@ -168,30 +172,30 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
       if (OPEN) then
          restart_filename = 'td_a_in.restart'
          if (propagator.eq.2) then
-            call read_td_restart_magnus(rho(:,:,1), F1a(:,:,1), F1b(:,:,1),    &
-                                        M_in, restart_filename)
+            call read_td_restart_magnus(rho_0(:,:,1), F1a(:,:,1), F1b(:,:,1),  &
+                                        M_in, restart_filename, fock_restart)
          else
-            call read_td_restart_verlet(rho(:,:,1), M_in, restart_filename)
+            call read_td_restart_verlet(rho_0(:,:,1), M_in, restart_filename)
          endif
          restart_filename = 'td_b_in.restart'
          if (propagator.eq.2) then
-            call read_td_restart_magnus(rho(:,:,2), F1a(:,:,2), F1b(:,:,2),    &
-                                        M_in, restart_filename)
+            call read_td_restart_magnus(rho_0(:,:,2), F1a(:,:,2), F1b(:,:,2),  &
+                                        M_in, restart_filename, fock_restart)
          else
-            call read_td_restart_verlet(rho(:,:,2), M_in, restart_filename)
+            call read_td_restart_verlet(rho_0(:,:,2), M_in, restart_filename)
          endif
-         call sprepack_ctr('L', M, rhoalpha, rho(MTB+1:MTB+M,MTB+1:MTB+M,1))
-         call sprepack_ctr('L', M, rhobeta, rho(MTB+1:MTB+M,MTB+1:MTB+M,2))
+         call sprepack_ctr('L', M, rhoalpha, rho_0(MTB+1:MTB+M,MTB+1:MTB+M,1))
+         call sprepack_ctr('L', M, rhobeta , rho_0(MTB+1:MTB+M,MTB+1:MTB+M,2))
          RMM(1:MM) = rhoalpha + rhobeta
       else
          restart_filename = 'td_in.restart'
          if (propagator.eq.2) then
-            call read_td_restart_magnus(rho(:,:,1), F1a(:,:,1), F1b(:,:,1),    &
-                                        M_in, restart_filename)
+            call read_td_restart_magnus(rho_0(:,:,1), F1a(:,:,1), F1b(:,:,1),  &
+                                        M_in, restart_filename, fock_restart)
          else
-            call read_td_restart_verlet(rho(:,:,1), M_in, restart_filename)
+            call read_td_restart_verlet(rho_0(:,:,1), M_in, restart_filename)
          endif
-         call sprepack_ctr('L', M, RMM, rho(MTB+1:MTB+M,MTB+1:MTB+M,1))
+         call sprepack_ctr('L', M, RMM, rho_0(MTB+1:MTB+M,MTB+1:MTB+M,1))
       end if
    else
       ! Read the density matrix stored in RMM(1,2,3,...,MM) into rho matrix.
@@ -214,19 +218,19 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 !carlos: storing rho AO data in Operator
 
    call rho_aop%Sets_dataC_AO(rho(:,:,1))
-
    if (OPEN) call rho_bop%Sets_dataC_AO(rho(:,:,2))
-
 !------------------------------------------------------------------------------!
 
    ! Proper TD calculation start.
-   write(*,*) 'Starting TD calculation...'
+   if (verbose .gt. 2) write(*,'(A)') 'Starting TD calculation.'
    ! Create integration grid for XC, assigning points to groups (spheres/cubes)
    ! and significant functions to groups, also calculating point weights.
    if (field) call field_setup_old(pert_time, 1, fx, fy, fz)
    call td_integration_setup(igrid2, igpu)
-   call td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM(M11), r, pc, &
-                       ntatom,natom,Smat,Nuc,a,c,d,Iz,ncont,NORM,M,Md)
+   call td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM(M5), &
+                       RMM(M11), r, pc, ntatom, natom, Smat, d, Iz, M)
+   call spunpack('L', M, RMM(M5), Smat_initial)
+
    ! Initialises transport if required.
    if (transport_calc) call transport_init(M, dim3, natom, Nuc, RMM(M5),       &
                                            overlap, rho,OPEN)
@@ -235,6 +239,7 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
    ! transposed matrices Xtrans and Ytrans
    call td_overlap_diag(M_in, M, Smat, RMM(M13), X, Xmat ,Xtrans, Ymat, Ytrans,&
                         Xmm)
+
    ! Here rho_aux is used as an auxiliar matrix for CUBLAS. Then we need to
    ! restore its original value. Rho is then transformed to the orthonormal
    ! basis with either matmul intrinsic or CUBLAS.
@@ -244,7 +249,9 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 #ifdef CUBLAS
    call td_allocate_cublas(M_in, sizeof_real, sizeof_complex, devPtrX, devPtrY,&
                           devPtrXc, Xmat, Ymat, rho_aux(:,:,1))
+   if (verbose .gt. 3) write(*,'(A)') "  TD - Using CUBLAS"
 #endif
+   rho_aux = 0.0D0
 
 !carlos: now the base changes is inside the operatros
 
@@ -257,6 +264,7 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 #endif
    ! Precalculate three-index (two in MO basis, one in density basis) matrix
    ! used in density fitting /Coulomb F element calculation here (t_i in Dunlap)
+   call int2(RMM(M7:M7+MMd), RMM(M9:M9+MMd), r, d, ntatom)
    call td_coulomb_precalc(igpu, MEMO)
 
    call g2g_timer_stop('td-inicio')
@@ -269,15 +277,20 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
       call g2g_timer_start('TD step')
       call g2g_timer_sum_start("TD - TD Step")
       ! Checks if step is a leapfrog step.
-      call td_check_prop(is_lpfrg, propagator, istep, lpfrg_steps, tdrestart)
+      call td_check_prop(is_lpfrg, propagator, istep, lpfrg_steps, &
+                         fock_restart, verbose)
       call td_get_time(t, tdstep, istep, propagator, is_lpfrg)
 
       call g2g_timer_sum_start("TD - TD Step Energy")
 
-      call td_calc_energy(E, E1, E2, En, Ex, Es, MM, RMM, RMM(M11), is_lpfrg,  &
-                          transport_calc, sol, t/0.024190D0)
+      call td_calc_energy(E, E1, E2, En, Ex, Es, MM, RMM, RMM(M11:MM),is_lpfrg,&
+                          transport_calc, sol, t/0.024190D0, M, Md, open, r, d,&
+                          Iz, natom, ntatom)
+
       call g2g_timer_sum_pause("TD - TD Step Energy")
-      write(*,*) 'TD - Step: ', istep, " Energy : ", E
+      if (verbose .gt. 2) write(*,'(A,I6,A,F12.6,A,F12.6,A)') "  TD Step: ", &
+                                istep, " - Time: ", t, " fs - Energy : ", E, &
+                                " A.U."
 
       ! Verlet or Magnus Propagation
       ! In Verlet, we obtain the Fock matrix in the molecular orbital (MO)
@@ -297,12 +310,12 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 #ifdef CUBLAS
       if (is_lpfrg) then
          call td_bc_fock_cu(M_in,M, MM, RMM(M5), fock_aop, devPtrX,natom,      &
-                            nshell,ncont, istep)
+                            nshell,ncont, istep, t/0.024190D0)
 
          if (OPEN) then
 
             call td_bc_fock_cu(M_in,M, MM, RMM(M3), fock_bop, devPtrX, natom,  &
-                               nshell,ncont, istep)
+                               nshell,ncont, istep, t/0.024190D0)
             call td_verlet_cu(M, M_in, dim3, OPEN, fock_aop, rhold, rho_aop,   &
                               rhonew, istep, Im, dt_lpfrg, transport_calc,     &
                               natom, Nuc, Iz, overlap, sqsm, devPtrY,devPtrXc, &
@@ -346,10 +359,10 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 #else
       if (is_lpfrg) then
          call td_bc_fock(M_in, M, MM, RMM(M5), fock_aop,Xmat, natom, nshell,    &
-                         ncont, istep)
+                         ncont, istep,t/0.024190D0)
          if (OPEN) then
             call td_bc_fock(M_in, M, MM, RMM(M3), fock_bop,Xmat, natom, nshell, &
-                            ncont, istep)
+                            ncont, istep,t/0.024190D0)
 
             call td_verlet(M, M_in, dim3, OPEN, fock_aop, rhold, rho_aop,      &
                            rhonew, istep, Im, dt_lpfrg, transport_calc, natom, &
@@ -416,27 +429,27 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
             restart_filename='td_a.restart'
             if (istep.eq.ntdstep) restart_filename='td_last_a.restart'
             if (propagator.eq.2) then
-               call write_td_restart_magnus(rho(:,:,1), F1a(:,:,1), F1b(:,:,1),&
-                                            M, restart_filename)
+               call write_td_restart_magnus(rho_aux(:,:,1), F1a(:,:,1), &
+                                            F1b(:,:,1), M, restart_filename)
             else
-               call write_td_restart_verlet(rho(:,:,1), M, restart_filename)
+               call write_td_restart_verlet(rho_aux(:,:,1), M, restart_filename)
             endif
             restart_filename='td_b.restart'
             if (istep.eq.ntdstep) restart_filename='td_last_b.restart'
             if (propagator.eq.2) then
-               call write_td_restart_magnus(rho(:,:,2), F1a(:,:,2), F1b(:,:,2),&
-                                            M, restart_filename)
+               call write_td_restart_magnus(rho_aux(:,:,2), F1a(:,:,2), &
+                                            F1b(:,:,2), M, restart_filename)
             else
-               call write_td_restart_verlet(rho(:,:,1), M, restart_filename)
+               call write_td_restart_verlet(rho_aux(:,:,2), M, restart_filename)
             endif
          else
             restart_filename='td.restart'
             if (istep.eq.ntdstep) restart_filename='td_last.restart'
             if (propagator.eq.2) then
-               call write_td_restart_magnus(rho(:,:,1), F1a(:,:,1), F1b(:,:,1),&
-                                            M, restart_filename)
+               call write_td_restart_magnus(rho_aux(:,:,1), F1a(:,:,1), &
+                                            F1b(:,:,1), M, restart_filename)
             else
-               call write_td_restart_verlet(rho(:,:,1), M, restart_filename)
+               call write_td_restart_verlet(rho_aux(:,:,1), M, restart_filename)
             endif
          end if
       endif
@@ -446,6 +459,8 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
 
       ! Dipole Moment calculation.
       call td_dipole(t, tdstep, Fx, Fy, Fz, istep, propagator, is_lpfrg, 134)
+      call td_population(M, natom, rho_aux, Smat_initial, sqsm, Nuc, Iz, OPEN, &
+                         istep, propagator, is_lpfrg)
 
       ! Population analysis.
       if (transport_calc) call transport_population(M, dim3, natom, Nuc, Iz,   &
@@ -453,7 +468,6 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
                                                     propagator, is_lpfrg,      &
                                                     istep, OPEN)
       ! TD step finalization.
-
       if (dftb_calc) call dftb_output(M, dim3,rho_aux, overlap, istep, Iz,     &
                                       natom, Nuc, OPEN)
 
@@ -463,11 +477,13 @@ subroutine TD(fock_aop, rho_aop, fock_bop, rho_bop)
  999  continue
 
    ! Finalization.
-   call WriteEnergies(E1, E2, En, Ens, 0, Ex, .false., 0)
+   call write_energies(E1, E2, En, Ens, 0.0D0, Ex, .false., 0.0D0, 0, nsol)
 
 #ifdef CUBLAS
    call td_finalise_cublas(devPtrX, devPtrY, devPtrXc)
 #endif
+   call td_deallocate_all(F1a, F1b, fock, rho, rho_aux, rhold, rhonew, Xmm, &
+                          Xtrans, Ymat, Ytrans, factorial, Smat_initial)
    call field_finalize()
 
    close(134)
@@ -480,13 +496,15 @@ end subroutine TD
 
 subroutine td_allocate_all(M_in,M, dim3, NBCH, propagator, F1a, F1b, fock,     &
                            rho, rho_aux, rhold, rhonew, rho_0, fock_0,sqsm,    &
-                           Xmm, Xmat, Xtrans, Ymat, Ytrans, factorial)
+                           Xmm, Xmat, Xtrans, Ymat, Ytrans, factorial,         &
+                           Smat_initial)
    implicit none
    integer, intent(in) :: M, NBCH, propagator, M_in, dim3
    real*8, allocatable, intent(inout) :: F1a(:,:,:), F1b(:,:,:), fock(:,:,:),  &
                                          sqsm(:,:), Xmm(:,:), Xmat(:,:),       &
                                          Xtrans(:,:), Ymat(:,:), Ytrans(:,:),  &
-                                         factorial(:), fock_0(:,:,:)
+                                         factorial(:), fock_0(:,:,:),          &
+                                         Smat_initial(:,:)
 #ifdef TD_SIMPLE
    complex*8 , allocatable, intent(inout) :: rho(:,:,:), rho_aux(:,:,:),       &
                                              rhold(:,:,:), rhonew(:,:,:),      &
@@ -498,45 +516,46 @@ subroutine td_allocate_all(M_in,M, dim3, NBCH, propagator, F1a, F1b, fock,     &
 #endif
 
 
-   if ( allocated(fock)     ) deallocate(fock)
-   if ( allocated(rho)      ) deallocate(rho)
-   if ( allocated(rho_aux)  ) deallocate(rho_aux)
-   if ( allocated(rhold)    ) deallocate(rhold)
-   if ( allocated(rhonew)   ) deallocate(rhonew)
-   if ( allocated(sqsm)     ) deallocate(sqsm)
-   if ( allocated(Xmm)      ) deallocate(Xmm)
-   if ( allocated(Xmat)     ) deallocate(Xmat)
-   if ( allocated(Xtrans)   ) deallocate(Xtrans)
-   if ( allocated(Ytrans)   ) deallocate(Ytrans)
-   if ( allocated(Ymat)     ) deallocate(Ymat)
-   if ( allocated(factorial)) deallocate(factorial)
-   if ( allocated(fock_0)   ) deallocate(fock_0)
-   if ( allocated(rho_0)    ) deallocate(rho_0)
+   if ( allocated(fock)        ) deallocate(fock)
+   if ( allocated(rho)         ) deallocate(rho)
+   if ( allocated(rho_aux)     ) deallocate(rho_aux)
+   if ( allocated(rhold)       ) deallocate(rhold)
+   if ( allocated(rhonew)      ) deallocate(rhonew)
+   if ( allocated(sqsm)        ) deallocate(sqsm)
+   if ( allocated(Xmm)         ) deallocate(Xmm)
+   if ( allocated(Xmat)        ) deallocate(Xmat)
+   if ( allocated(Xtrans)      ) deallocate(Xtrans)
+   if ( allocated(Ytrans)      ) deallocate(Ytrans)
+   if ( allocated(Ymat)        ) deallocate(Ymat)
+   if ( allocated(factorial)   ) deallocate(factorial)
+   if ( allocated(fock_0)      ) deallocate(fock_0)
+   if ( allocated(rho_0)       ) deallocate(rho_0)
+   if ( allocated(Smat_initial)) deallocate(Smat_initial)
 
+   allocate(sqsm(M,M), Xmm(M_in,M_in),Xtrans(M_in,M_in), Xmat(M_in,M_in), &
+            Ymat(M_in,M_in),Ytrans(M_in,M_in), factorial(NBCH), &
+            Smat_initial(M,M))
 
-   allocate(sqsm(M,M), Xmm(M_in,M_in),Xtrans(M_in,M_in), Xmat(M_in,M_in),      &
-            Ymat(M_in,M_in),Ytrans(M_in,M_in), factorial(NBCH))
-
-   allocate(fock(M_in,M_in,dim3), rho(M_in,M_in,dim3),                         &
-            rho_aux(M_in,M_in,dim3), rhold(M_in,M_in,dim3),                 &
-            rhonew(M_in,M_in,dim3), fock_0(M,M,dim3), rho_0(M,M,dim3))
+   allocate(fock(M_in,M_in,dim3), rho(M_in,M_in,dim3), rho_aux(M_in,M_in,dim3),&
+            rhold(M_in,M_in,dim3), rhonew(M_in,M_in,dim3), fock_0(M,M,dim3),   &
+            rho_0(M,M,dim3))
 
    if (propagator.eq.2) then
       if ( allocated(F1a) ) deallocate(F1a)
       if ( allocated(F1b) ) deallocate(F1b)
-
-         allocate (F1a(M_in,M_in,dim3), F1b(M_in,M_in,dim3))
+      allocate (F1a(M_in,M_in,dim3), F1b(M_in,M_in,dim3))
    endif
 
    return
 end subroutine td_allocate_all
 
-subroutine td_deallocate_all(F1a, F1b, fock, rho, rho_aux, rhold, &
-                             rhonew, Xmm, Xtrans, Ymat, Ytrans,factorial)
+subroutine td_deallocate_all(F1a, F1b, fock, rho, rho_aux, rhold, rhonew, Xmm, &
+                             Xtrans, Ymat, Ytrans, factorial, Smat_initial)
    implicit none
-   real*8, allocatable, intent(inout) :: F1a(:,:,:), F1b(:,:,:), fock(:,:,:),  &
-                                         Xmm(:,:), Xtrans(:,:), Ymat(:,:), &
-                                         Ytrans(:,:), factorial(:)
+   real*8, allocatable, intent(inout) :: F1a(:,:,:), F1b(:,:,:), fock(:,:,:), &
+                                         Xmm(:,:), Xtrans(:,:), Ymat(:,:),    &
+                                         Ytrans(:,:), factorial(:),           &
+                                         Smat_initial(:,:)
 #ifdef TD_SIMPLE
    complex*8 , allocatable, intent(inout) :: rho(:,:,:), rho_aux(:,:,:),    &
                                              rhold(:,:,:), rhonew(:,:,:)
@@ -544,18 +563,19 @@ subroutine td_deallocate_all(F1a, F1b, fock, rho, rho_aux, rhold, &
    complex*16, allocatable, intent(inout) :: rho(:,:,:), rho_aux(:,:,:),    &
                                              rhold(:,:,:), rhonew(:,:,:)
 #endif
-   if ( allocated(fock)     ) deallocate(fock)
-   if ( allocated(rho)      ) deallocate(rho)
-   if ( allocated(rho_aux)  ) deallocate(rho_aux)
-   if ( allocated(rhold)    ) deallocate(rhold)
-   if ( allocated(rhonew)   ) deallocate(rhonew)
-   if ( allocated(Xmm)      ) deallocate(Xmm)
-   if ( allocated(Xtrans)   ) deallocate(Xtrans)
-   if ( allocated(Ytrans)   ) deallocate(Ytrans)
-   if ( allocated(Ymat)     ) deallocate(Ymat)
-   if ( allocated(factorial)) deallocate(factorial)
-   if ( allocated(F1a)      ) deallocate(F1a)
-   if ( allocated(F1b)      ) deallocate(F1b)
+   if ( allocated(fock)        ) deallocate(fock)
+   if ( allocated(rho)         ) deallocate(rho)
+   if ( allocated(rho_aux)     ) deallocate(rho_aux)
+   if ( allocated(rhold)       ) deallocate(rhold)
+   if ( allocated(rhonew)      ) deallocate(rhonew)
+   if ( allocated(Xmm)         ) deallocate(Xmm)
+   if ( allocated(Xtrans)      ) deallocate(Xtrans)
+   if ( allocated(Ytrans)      ) deallocate(Ytrans)
+   if ( allocated(Ymat)        ) deallocate(Ymat)
+   if ( allocated(factorial)   ) deallocate(factorial)
+   if ( allocated(F1a)         ) deallocate(F1a)
+   if ( allocated(F1b)         ) deallocate(F1b)
+   if ( allocated(Smat_initial)) deallocate(Smat_initial)
 
    return
 end subroutine td_deallocate_all
@@ -616,42 +636,24 @@ subroutine td_integration_setup(igrid2, igpu)
    return
 end subroutine td_integration_setup
 
-subroutine td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM11, r, pc, &
-<<<<<<< HEAD
-                          ntatom, natom, Smat, Nuc, a, c, d, Iz, ncont, NORM,  &
-                          M, Md)
-    use faint_cpu77, only: intsol
-    use faint_cpu  , only: int1
-    use mask_ecp   , only: ECP_fock
-    implicit none
-
-    double precision, intent(in) :: pc(ntatom), r(ntatom,3)
-    integer         , intent(in) :: M, Md, MM, igpu, nsol, ntatom, &
-                                    Nuc(M), Iz(natom)
-    logical         , intent(in) :: NORM
-    integer         , intent(inout) :: natom
-    double precision, intent(inout) :: RMM11(MM), E1, En, E1s, Ens
-
-    double precision, allocatable, intent(in)    :: a(:,:), c(:,:), d(:,:)
-    integer         , allocatable, intent(in)    :: ncont(:)
-    double precision, allocatable, intent(inout) :: RMM(:), Smat(:,:)
-
-    integer :: icount
-=======
-                          ntatom)
-   use faint_cpu77, only: int1, intsol
-   use mask_ecp   , only: ECP_fock
+subroutine td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM5, RMM11,  &
+                          r, pc, ntatom, natom, Smat, d, Iz, M)
+   use faint_cpu, only: int1, intsol
+   use mask_ecp , only: ECP_fock
    implicit none
-   integer, intent(in)    :: MM, igpu, nsol, ntatom
-   real*8 , intent(in)    :: r(ntatom,3), pc(ntatom)
-   real*8 , intent(inout) :: RMM(MM), RMM11(MM), E1, En, E1s, Ens
+
+   double precision, intent(in) :: pc(ntatom), r(ntatom,3)
+   integer         , intent(in) :: M, MM, igpu, nsol, natom, ntatom, Iz(natom)
+   double precision, intent(inout) :: RMM5(MM), RMM11(MM), E1, En, E1s, Ens
+   double precision, allocatable, intent(in)    :: d(:,:)
+   double precision, allocatable, intent(inout) :: RMM(:), Smat(:,:)
+
    integer :: icount
->>>>>>> e4d342c49f2e4a653d81ded8d1f368b751cc403c
 
    E1 = 0.0D0 ; En = 0.0D0
    call g2g_timer_sum_start('TD - 1-e Fock')
    call g2g_timer_sum_start('TD - Nuclear attraction')
-   call int1(En, RMM, Smat, Nuc, a, c, d, r, Iz, ncont, NORM, natom, M, Md)
+   call int1(En, RMM5, RMM11, Smat, d, r, Iz, natom, ntatom)
 
    call ECP_fock(MM, RMM11)
    call g2g_timer_sum_stop('TD - Nuclear attraction')
@@ -661,7 +663,7 @@ subroutine td_integral_1e(E1, En, E1s, Ens, MM, igpu, nsol, RMM, RMM11, r, pc, &
       call g2g_timer_sum_start('TD - QM/MM')
       if (igpu.le.1) then
          call g2g_timer_start('intsol')
-         call intsol(E1s, Ens, .true.)
+         call intsol(RMM, RMM11, Iz, pc, r, d, natom, ntatom, E1s, Ens, .true.)
          call g2g_timer_stop('intsol')
       else
          call aint_qmmm_init(nsol, r, pc)
@@ -765,7 +767,7 @@ subroutine td_overlap_diag(M_in, M, Smat, eigenvalues, X_min, Xmat, Xtrans, Ymat
 end subroutine td_overlap_diag
 
 subroutine td_coulomb_precalc(igpu, MEMO)
-   use faint_cpu77, only: int3mem
+   use faint_cpu, only: int3mem
    implicit none
    integer, intent(in)    :: igpu
    logical, intent(inout) :: MEMO
@@ -805,50 +807,62 @@ subroutine td_get_time(t, tdstep, istep, propagator, is_lpfrg)
    end select
 
    t = t * 0.024190D0
-   write(*,*) 'TD - Time (fs)  =', t
    return
 end subroutine td_get_time
 
-subroutine td_check_prop(is_lpfrg, propagator, istep, lpfrg_steps, tdrestart)
+subroutine td_check_prop(is_lpfrg, propagator, istep, lpfrg_steps, fock_rst,&
+                         verbose)
    implicit none
-   integer, intent(in)  :: propagator, istep, lpfrg_steps
-   logical, intent(in)  :: tdrestart
+   integer, intent(in)  :: propagator, istep, lpfrg_steps, verbose
+   logical, intent(in)  :: fock_rst
    logical, intent(out) :: is_lpfrg
 
    is_lpfrg = ((propagator.eq.1) .or. (((propagator.eq.2) .and. &
-              (istep.lt.lpfrg_steps)) .and. (.not.tdrestart)))
+              (istep.lt.lpfrg_steps)) .and. (.not.fock_rst)))
    if ( (is_lpfrg).and.(istep.eq.1) ) then
-      write(*,*) 'TD - Starting Verlet Propagation'
+      if (verbose .gt. 2) write(*,'(A)') '  TD - Starting Verlet Propagation'
    endif
    if ( (.not.(is_lpfrg)).and.(((istep-1).eq.lpfrg_steps)) ) then
-      write(*,*) 'TD - Starting Magnus Propagation'
+      if (verbose .gt. 2) write(*,'(A)') '  TD - Starting Magnus Propagation'
    endif
    return
 end subroutine td_check_prop
 
 subroutine td_calc_energy(E, E1, E2, En, Ex, Es, MM, RMM, RMM11, is_lpfrg, &
-                          transport_calc, sol, time)
-   use faint_cpu77, only: int3lu
-   use field_subs , only: field_calc
+                          transport_calc, sol, time, M, Md, open_shell, r, d, &
+                          Iz, natom, ntatom)
+   use faint_cpu , only: int3lu
+   use field_subs, only: field_calc
    implicit none
-   integer, intent(in)    :: MM
+   integer, intent(in)    :: MM, natom, ntatom, Iz(natom)
    logical, intent(in)    :: is_lpfrg, transport_calc, sol
-   real*8 , intent(in)    :: time
-   real*8 , intent(inout) :: E, E1, E2, En, Ex, Es, RMM(MM), RMM11(MM)
-   integer :: icount
+   real*8 , intent(in)    :: time, r(ntatom,3), d(natom,natom)
+   real*8 , intent(inout) :: E, E1, E2, En, Ex, Es, RMM(:), RMM11(:)
+   integer         , intent(in) :: M, Md
+   logical         , intent(in) :: open_shell
+   integer :: icount, MMd, M3, M5, M7, M9, M11
+
+   MMd=Md*(Md+1)/2
+   M3=1+MM ! Pew
+   M5=M3+MM ! now S, also F later
+   M7=M5+MM ! G matrix
+   M9=M7+MMd ! G inverted
+   M11=M9+MMd ! Hmat
 
    E1 = 0.0D0; E = 0.0D0
    if (is_lpfrg) then
       call g2g_timer_sum_start("TD - Coulomb")
-      call int3lu(E2)
+      call int3lu(E2, RMM(1:MM), RMM(M3:M3+MM), RMM(M5:M5+MM), RMM(M7:M7+MMd), &
+                  RMM(M9:M9+MMd), RMM(M11:M11+MMd), open_shell)
       call g2g_timer_sum_pause("TD - Coulomb")
       call g2g_timer_sum_start("TD - Exc")
       call g2g_solve_groups(0,Ex,0)
       call g2g_timer_sum_pause("TD - Exc")
    endif
 
-   ! ELECTRIC FIELD CASE - Perturbation type: Gaussian.
-   if (.not.transport_calc) call field_calc(E1, time)
+   ! ELECTRIC FIELD CASE - Perturbation type: Gaussian (default).
+   call field_calc(E1, time, RMM(M3:M3+MM), RMM(M5:M5+MM), r, d, Iz, natom, &
+                   ntatom, open_shell)
 
    ! Add 1e contributions to E1.
    do icount = 1, MM
@@ -861,6 +875,7 @@ subroutine td_calc_energy(E, E1, E2, En, Ex, Es, MM, RMM, RMM11, is_lpfrg, &
 end subroutine td_calc_energy
 
 subroutine td_dipole(t, tdstep, Fx, Fy, Fz, istep, propagator, is_lpfrg, uid)
+   use fileio, only: write_dipole_td, write_dipole_td_header
    implicit none
    integer, intent(in)    :: istep, propagator, uid
    logical, intent(in)    :: is_lpfrg
@@ -887,6 +902,49 @@ subroutine td_dipole(t, tdstep, Fx, Fy, Fz, istep, propagator, is_lpfrg, uid)
    return
 end subroutine td_dipole
 
+subroutine td_population(M, natom, rho, Smat_init, sqsm, Nuc, Iz, open_shell, &
+                         nstep, propagator, is_lpfrg)
+   use td_data, only: td_do_pop
+   use fileio , only: write_population
+   implicit none
+   integer         , intent(in) :: M, natom, Nuc(M), Iz(natom), nstep, &
+                                   propagator
+   logical         , intent(in) :: open_shell, is_lpfrg
+   double precision, intent(in) :: Smat_init(M,M), sqsm(M,M)
+#ifdef TD_SIMPLE
+   complex*8       , intent(in) :: rho(:,:,:)
+#else
+   complex*16      , intent(in) :: rho(:,:,:)
+#endif
+   double precision :: real_rho(M,M), q(natom)
+   integer          :: icount, jcount
+
+   if (td_do_pop .eq. 0) return
+   if (.not. (mod(nstep, td_do_pop) .eq. 0)) return
+   if ((.not. (mod(nstep, td_do_pop*10) .eq. 0)) .and. (propagator .gt. 1) &
+       .and. (is_lpfrg)) return
+   q = Iz
+   if (open_shell) then
+      do icount = 1, M
+      do jcount = 1, M
+         real_rho(icount, jcount) = real(rho(icount, jcount, 1)) + &
+                                    real(rho(icount, jcount, 2))
+      enddo
+      enddo
+   else
+      do icount = 1, M
+      do jcount = 1, M
+         real_rho(icount, jcount) = real(rho(icount, jcount, 1))
+      enddo
+      enddo
+   endif
+
+   call mulliken_calc(natom, M, real_rho, Smat_init, Nuc, q)
+   call write_population(natom, Iz, q, 0, 85)
+
+   return
+end subroutine td_population
+
 ! CUBLAS-dependent subroutines.
 #ifdef CUBLAS
 subroutine td_allocate_cublas(M, sizeof_real, sizeof_complex, devPtrX, devPtrY,&
@@ -905,7 +963,6 @@ subroutine td_allocate_cublas(M, sizeof_real, sizeof_complex, devPtrX, devPtrY,&
    integer :: stat, icount, jcount
    stat = 0
 
-   write(*,*) 'TD: Using CUBLAS.'
    call CUBLAS_INIT()
 
 
@@ -938,7 +995,6 @@ subroutine td_allocate_cublas(M, sizeof_real, sizeof_complex, devPtrX, devPtrY,&
       call CUBLAS_SHUTDOWN
       stop
    endif
-   rho_aux = 0.0D0
 
    return
 end subroutine td_allocate_cublas
@@ -954,14 +1010,16 @@ subroutine td_finalise_cublas(devPtrX, devPtrY, devPtrXc)
 end subroutine td_finalise_cublas
 
 subroutine td_bc_fock_cu(M_in,M, MM, RMM5, fock_op, devPtrX, natom, nshell,    &
-                         ncont, istep)
+                         ncont, istep, time)
    use dftb_data,        only:dftb_calc, MTB
    use dftb_subs,        only:chimeraDFTB_evol
+   use fockbias_subs   , only: fockbias_apply
    use typedef_operator, only:operator
    implicit none
    type(operator), intent(inout) :: fock_op
    integer  , intent(in)      :: M, MM, M_in
    integer*8, intent(in)      :: devPtrX
+   real*8   , intent(in)      :: time
    real*8   , intent(inout)   :: RMM5(MM)
    real*8 :: fock_0(M,M), fock(M_in,M_in)
    real*8 :: Xtemp(M_in,M_in)
@@ -978,6 +1036,9 @@ subroutine td_bc_fock_cu(M_in,M, MM, RMM5, fock_op, devPtrX, natom, nshell,    &
    else
       fock=fock_0
    end if
+
+   call fockbias_apply(time,fock)
+
    call fock_op%Sets_data_AO(fock)
    call fock_op%BChange_AOtoON(devPtrX, M_in,'r')
    call fock_op%Gets_data_ON(fock)
@@ -1181,11 +1242,12 @@ end subroutine td_magnus_cu
 #else
 
 subroutine td_bc_fock(M_in, M, MM, RMM5, fock_op, Xmm, natom, nshell,ncont,    &
-                      istep)
+                      istep, time)
 
    use dftb_data,        only:dftb_calc,MTB
    use dftb_subs,        only:chimeraDFTB_evol
    use typedef_operator, only:operator
+   use fockbias_subs   , only: fockbias_apply
    implicit none
    type(operator), intent(inout) :: fock_op
    integer, intent(in)    :: M, MM, M_in
@@ -1197,6 +1259,7 @@ subroutine td_bc_fock(M_in, M, MM, RMM5, fock_op, Xmm, natom, nshell,ncont,    &
    integer, intent(in)  :: ncont(M)
    integer, intent(in)  :: istep
    integer, intent(in)  :: nshell (0:4)
+   real*8, intent(in)   :: time
 
    allocate(fock(M_in,M_in),Xtemp(M_in,M_in),fock_0(M,M))
 
@@ -1208,6 +1271,8 @@ subroutine td_bc_fock(M_in, M, MM, RMM5, fock_op, Xmm, natom, nshell,ncont,    &
    else
       fock=fock_0
    end if
+
+   call fockbias_apply(time,fock)
 
    call fock_op%Sets_data_AO(fock)
    call fock_op%BChange_AOtoON(Xmm, M_in,'r')
@@ -1329,7 +1394,7 @@ subroutine td_magnus(M, dim3, OPEN, fock_aop, F1a, F1b, rho_aop, rhonew,       &
    real*8   , intent(in)      :: dt_magnus, factorial(NBCH), Xtrans(M,M), time
    real*8   , intent(in)      :: Xmat(M_in, M_in), Ymat(M_in,M_in)
    real*8   , intent(inout)   :: F1a(M_in,M_in, dim3), F1b(M_in,M_in, dim3),   &
-                                 overlap(M,M), sqsm(M,M)
+                                 overlap(:,:), sqsm(M,M)
    integer, intent(in)        :: nshell (0:4)
    integer, intent(in)        :: ncont(M)
 #ifdef TD_SIMPLE
@@ -1426,5 +1491,50 @@ subroutine td_magnus(M, dim3, OPEN, fock_aop, F1a, F1b, rho_aop, rhonew,       &
 end subroutine td_magnus
 
 #endif
+
+subroutine calc_trace(matrix, msize, message)
+
+   implicit none
+   integer         , intent(in) :: msize
+   character(len=*), intent(in) :: message
+   double precision, intent(in) :: matrix(msize, msize)
+
+   integer          :: icount
+   double precision :: trace
+
+   trace = 0.0D0
+
+   do icount = 1, msize
+      trace = trace + matrix(icount, icount)
+   enddo
+
+   write(*,*) "Trace of ", message, " equals to ", trace
+   return
+end subroutine calc_trace
+
+subroutine calc_trace_c(matrix, msize, message)
+
+   implicit none
+   integer         , intent(in) :: msize
+   character(len=*), intent(in) :: message
+   integer          :: icount
+
+#ifdef TD_SIMPLE
+   complex*8, intent(in) :: matrix(msize, msize)
+   complex*8 :: trace
+   trace = (0.0E0, 0.0E0)
+#else
+   complex*16, intent(in) :: matrix(msize, msize)
+   complex*16 :: trace
+   trace = (0.0D0, 0.0D0)
+#endif
+
+   do icount = 1, msize
+      trace = trace + matrix(icount, icount)
+   enddo
+
+   write(*,*) "Trace of ", message, " equals to ", trace
+   return
+end subroutine calc_trace_c
 
 end module time_dependent

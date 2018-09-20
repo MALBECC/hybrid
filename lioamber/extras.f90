@@ -497,13 +497,18 @@
 
         SUBROUTINE WRITE_CONV_STATUS(GOOD,TOLD,EGOOD,ETOLD)
         IMPLICIT NONE
-        DOUBLE PRECISION, INTENT(IN) :: GOOD,TOLD,EGOOD,ETOLD
+        DOUBLE PRECISION, INTENT(IN) :: TOLD,EGOOD,ETOLD
+	DOUBLE PRECISION, INTENT(INOUT) :: GOOD
+	if (GOOD .gt. 0.d0) then
           Write(6,8601)
           Write(6,8602)
           Write(6,8603)
           Write(6,8604) GOOD,TOLD
           Write(6,8605) EGOOD,ETOLD
           Write(6,8606)
+	else
+	  GOOD=99999d0
+	end if
  8601 FORMAT(4x,"           ╔════════════╦═════════════╗")
  8602 FORMAT(4x,"           ║    Value   ║ Conv. Crit. ║")
  8603 FORMAT(4x,"╔══════════╬════════════╬═════════", &
