@@ -205,6 +205,7 @@ subroutine SCF(E)
    call g2g_timer_sum_start('SCF')
    call g2g_timer_sum_start('Initialize SCF')
 
+
    npas=npas+1
    E=0.0D0
    E1=0.0D0
@@ -267,6 +268,7 @@ subroutine SCF(E)
       M22 = M20 +2*MM !W ( beta eigenvalues )
    end if
 
+
 !------------------------------------------------------------------------------!
 ! TODO: I don't like ending timers inside a conditional...
        if (cubegen_only) then
@@ -313,6 +315,23 @@ subroutine SCF(E)
 !
       call neighbor_list_2e()
 
+<<<<<<< HEAD
+=======
+! Goes straight to TD if a restart is used.
+      if ((timedep.eq.1).and.(tdrestart)) then
+        call g2g_timer_sum_stop('Initialize SCF')
+        call g2g_timer_sum_start('TD')
+        if(OPEN) then
+           call TD(fock_aop, rho_aop, fock_bop, rho_bop)
+        else
+           call TD(fock_aop, rho_aop)
+        endif
+        call g2g_timer_sum_stop('TD')
+        return
+      endif
+
+!
+>>>>>>> 9b55537... fix stackoverflow in transform_gen.f90
 ! -Create integration grid for XC here
 ! -Assign points to groups (spheres/cubes)
 ! -Assign significant functions to groups
@@ -338,6 +357,7 @@ subroutine SCF(E)
 
       call ECP_fock( MM, RMM(M11) )
 
+
 ! Other terms
 !
       call g2g_timer_sum_stop('Nuclear attraction')
@@ -355,7 +375,6 @@ subroutine SCF(E)
         endif
           call g2g_timer_sum_stop('QM/MM')
       endif
-
 
 ! test
 ! TODO: test? remove or sistematize
@@ -445,7 +464,6 @@ subroutine SCF(E)
 
       end if
 
-
 ! CUBLAS
    call cublas_setmat( M_in, Xmat, dev_Xmat)
    call cublas_setmat( M_in, Ymat, dev_Ymat)
@@ -492,6 +510,7 @@ subroutine SCF(E)
       if (igpu.gt.2) then
         call aint_coulomb_init()
       endif
+
 
       if (igpu.eq.5) MEMO = .false.
       !MEMO=.true.
@@ -541,7 +560,6 @@ subroutine SCF(E)
 !------------------------------------------------------------------------------!
 ! TODO: Maybe evaluate conditions for loop continuance at the end of loop
 !       and condense in a single "keep_iterating" or something like that.
-
 
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
@@ -700,7 +718,6 @@ subroutine SCF(E)
         call fock_aop%Diagon_datamat( morb_coefon, morb_energy )
         call g2g_timer_sum_pause('SCF - Fock Diagonalization (sum)')
 
-
 !
 !
 !------------------------------------------------------------------------------!
@@ -736,6 +753,7 @@ subroutine SCF(E)
           MO_coef_at(kkk) = morb_coefat( i0+ii, kk )
         enddo
         enddo
+
 
     if (OPEN) then
 !%%%%%%%%%%%%%%%%%%%%
@@ -791,6 +809,8 @@ subroutine SCF(E)
         enddo
 
     end if!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
 !------------------------------------------------------------------------------!
 !carlos: storing matrices
 !------------------------------------------------------------------------------!
@@ -965,9 +985,12 @@ subroutine SCF(E)
       Es=Es+E1s+Ens
 !     endif
 
+!	write(789789,*) npas, energy_freq, MOD(npas,energy_freq)
 
       if (MOD(npas,energy_freq).eq.0) then
       if (GRAD) then
+
+!	write(789789,*) "estoy calculando boludeces y un numero"
 
 !       Resolve with last density to get XC energy
         call g2g_timer_sum_start('Exchange-correlation energy')

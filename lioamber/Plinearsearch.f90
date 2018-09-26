@@ -22,7 +22,7 @@
 	real*8, dimension(M,M), intent(inout) :: xnano, rho_a, rho_b ! density matrices of actual steep
 	logical :: may_conv ! true if predicted density != density of prvius steep
 	may_conv=.true.
-	if (Rho_LS.eq.0) then
+	if (Rho_LS.eq.0 .or. Rho_LS.eq.-1) then
 	else if (Rho_LS.eq.1 .or. Rho_LS.eq.2) then
 	  call P_linear_calc(Rho_LS, niter, En, E1, E2, Ex, xnano, may_conv, rho_a, rho_b)
 	else

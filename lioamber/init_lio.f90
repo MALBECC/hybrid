@@ -202,6 +202,7 @@ subroutine init_lio_common(natomin, Izin, nclatom, callfrom)
     allocate(MO_coef_at(ngDyn*ngDyn))
     if (OPEN) allocate(MO_coef_at_b(ngDyn*ngDyn))
 
+
     ! Prints chosen options to output.
     call drive(ng2, ngDyn, ngdDyn)
 
@@ -412,20 +413,21 @@ end subroutine init_lioamber_ehren
 ! Subroutine init_lio_hybrid performs Lio initialization when called from      !
 ! Hybrid software package, in order to conduct a hybrid QM/MM calculation.     !
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
-subroutine init_lio_hybrid(hyb_natom, mm_natom, charge, iza, spin)
-    use garcha_mod, only: OPEN, Nunp
+subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
+    use garcha_mod, only: OPEN, Nunp, charge
     implicit none
     integer, intent(in) :: hyb_natom !number of total atoms
     integer, intent(in) :: mm_natom  !number of MM atoms
     integer             :: dummy
     character(len=20)   :: inputFile
-    integer, intent(in) :: charge   !total charge of QM system
+    integer, intent(in) :: chargein   !total charge of QM system
     integer, dimension(hyb_natom), intent(in) :: iza  !array of charges of all QM/MM atoms
     double precision, intent(in) :: spin !number of unpaired electrons
     integer :: Nunp_aux !auxiliar
-
+   
     ! Gives default values to runtime variables.
     call lio_defaults()
+    charge = chargein
 
     !select spin case
     Nunp_aux=int(spin)
@@ -434,7 +436,6 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, charge, iza, spin)
     ! Checks if input file exists and writes data to namelist variables.
     inputFile = 'lio.in'
     call read_options(inputFile)
-
     !select spin case
     Nunp_aux=int(spin)
     if (Nunp_aux .ne. Nunp) STOP "lio.in have a different spin than *.fdf"

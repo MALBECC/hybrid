@@ -40,9 +40,13 @@ c Energy and forces from LJ term
             A=B*t1
             Elj = Elj+  A/dd**12d0 -B/dd**6d0
             fej = -12.0D0*A/dd**14d0 + 6.0D0*B/dd**8d0
-            flj(1)=-2.d0*fej*tx
-            flj(2)=-2.d0*fej*ty
-            flj(3)=-2.d0*fej*tz
+c            flj(1)=-2.d0*fej*tx
+c            flj(2)=-2.d0*fej*ty
+c            flj(3)=-2.d0*fej*tz
+
+            flj(1)=-1.d0*fej*tx
+            flj(2)=-1.d0*fej*ty
+            flj(3)=-1.d0*fej*tz
 
             f(1,j1)=f(1,j1) + flj(1)
             f(2,j1)=f(2,j1) + flj(2)
@@ -50,10 +54,18 @@ c Energy and forces from LJ term
             f(1,j2)=f(1,j2) - flj(1) 
             f(2,j2)=f(2,j2) - flj(2)
             f(3,j2)=f(3,j2) - flj(3)
+
+c	write(123123,*) j1
+c	write(123123,*) flj
+c        write(123123,*) j2
+c        write(123123,*) -flj
           enddo !! at st
         endif !! list
       enddo !! at sv
-      Es = 2.d0*Elj 
+c       Es = 2.d0*Elj 
+	Es = 1.d0*Elj !! para que Elj quede en Hartree
+
+c	write(123123,*) Es  
       return
       end subroutine ljef
 

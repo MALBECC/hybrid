@@ -122,7 +122,7 @@
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp
-	  kcal   = 1.602177E-19_dp * 6.022140857E23_dp / 4184.0_dp
+	  kcal   = 1.602177E-19_dp * 6.022140857E23_dp / 4184.0_dp !23.06055347_dp
 	  pi     = DACOS(-1.d0)
 	  Nav    = 6.022140857d23
 	
