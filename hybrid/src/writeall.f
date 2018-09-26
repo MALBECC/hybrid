@@ -179,19 +179,19 @@ c writes .rce file
       call io_assign(unite)
       open( unite, file=fnamee, form = 'formatted', position='append',
      .      status='unknown')
-       write(unite,'(F10.4,2x,F20.7)') rtot, Etots*kcal/eV
+       write(unite,'(F10.4,2x,F20.7)') rtot, Etots*kcal/eV !Etots es escrita en kcal
 c
       call io_close(unite) 
 
 
 
-c wirtes .rcg file
+c wirtes .rcg file !divide por Ang para pasar a angstrom
       call io_assign(unitc)
       open( unitc, file=fnamec, form = 'formatted', position='append',
      .      status='unknown')
        write(unitc,'(A4,I7,2x,A2,2x,A4,A,I4,4x,3f8.3)')
      . ('ATOM',i,atsym(isa(i)),'STO ','A',i,
-     . (rclas(ia,i)/Ang,ia=1,3), i=1,na)
+     . (rclas(ia,i)/Ang,ia=1,3), i=1,na)   
        write(unitc,'(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      . ('ATOM',na+i,atname(i),aaname(i),'A',aanum(i),
      . (rclas(ia,na+i)/Ang,ia=1,3), i=1,nac)
@@ -205,6 +205,7 @@ c*******************************************************************************
 	subroutine wrtcrd(natot,rclas)
 
 	use ionew
+	use scarlett, only: Ang,eV  !agregado JOTA
 	use fdf    
 	use sys
 	implicit none
@@ -298,7 +299,8 @@ c write only if constrlog is true
         if(constrlog) then
 
 c change units
-        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0
+        rclas(1:3,1:natot)=rclas(1:3,1:natot)/Ang !Uso Ang del modulo JOTA
+c        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0!
 
 c loop over nconstr
         do iconstr=1,nconstr

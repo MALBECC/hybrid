@@ -124,6 +124,7 @@
       double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
+      double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
       logical ::  recompute_cuts
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
@@ -269,15 +270,12 @@
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-     .  radbloqmmm,atxres,radblommbond)
+     .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm)
       endif !mm
 
 ! changing cutoff to atomic units
       rcorteqmmm=rcorteqmmm*Ang
       rcorteqmmm=rcorteqmmm**2 !we will compare square in cutoff
-
-      radbloqmmm=radbloqmmm*Ang
-      radbloqmmm=radbloqmmm**2 !we will compare square in cutoff
 
       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
@@ -404,6 +402,14 @@
         if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
 
+	write(*,*) qm, mm
+
+C Calculate Rcut & block list QM-MM 
+      if(qm.and.mm) then
+        call qmmm_lst_blk(na_u,nac,natot,nroaa,atxres,rclas,
+     .  rcorteqmmm,radbloqmmm,blockqmmm,listqmmm,rcorteqm,slabel,
+     .  radinnerbloqmmm)
+      endif !qm & mm
 
 ! Read fixed atom constraints
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
@@ -593,6 +599,7 @@ c return forces to fullatom arrays
             endif !qm & mm
 
 ! Calculate pure Solvent energy and forces
+! Forces in Hartree/bohr JOTA
             if(mm) then
 
       call solv_ene_fce(natot,na_u,nac,ng1,rclas,Em,Rm,pc(1:nac),
@@ -610,16 +617,21 @@ c return forces to fullatom arrays
      .    water,masst,radblommbond)
             endif !mm
 
-! converts fdummy to Kcal/mol/Ang  
-            fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang/eV*kcal
+
+! fce_amber in kcal/(molAng) 
+
+! converts fdummy to Kcal/mol/Ang          
+            fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang*kcal/eV
 
 ! here Etot in Hartree, fdummy in kcal/mol Ang
 
 ! add famber to fdummy  
             if(mm) then
               fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
-     .        +0.5d0*fce_amber(1:3,1:nac)
+     .        +fce_amber(1:3,1:nac)
             endif !mm
+
+! here fdummy in kcal/mol/Ang
 
 ! Calculation of LinkAtom Energy and Forces
             if(qm.and.mm ) then
@@ -651,20 +663,22 @@ c return forces to fullatom arrays
           endif 
         endif !imm
 
-! Converts fdummy Hartree/bohr. 
-        fdummy(1:3,1:natot)=fdummy(1:3,1:natot)/Ang*eV/kcal
+! Converts fdummy Hartree/bohr
+        fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*eV/(Ang*kcal)
+
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
 ! Writes final energy decomposition
-	Etots=Etot+0.5d0*(Elj+((Etot_amber+Elink)/kcal*eV))
-!        Etots=2.d0*Etot+Elj+((Etot_amber+Elink)/kcal*eV)
-!        Etots=0.5d0*Etots
-       write(6,*)
+
+	Etots=Etot+1.d0*(Elj+(Etot_amber+Elink)*eV/kcal) !Elj in Hartree, Etot_amber and Elink in kcal/mol
+       
+! here Etot in Hartree
+	write(6,*)
 	write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
 	if(qm) write(6,999)           'Elio :',Etot/eV      
-	if(qm.and.mm) write(6,999)    'Elj:    ',Elj*0.5d0/eV       
-	if(mm) write(6,999)      'Esolv:  ',Etot_amber*0.5d0/kcal   
-	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink*0.5d0/kcal
+	if(qm.and.mm) write(6,999)    'Elj:    ',Elj/eV       
+	if(mm) write(6,999)      'Esolv:  ',Etot_amber/kcal   
+	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink/kcal
 	write(6,999)    'Etots:  ',Etots/eV
        call flush(6)
 ! saque if para Etots
@@ -697,7 +711,7 @@ c return forces to fullatom arrays
       call wripdb(na_u,slabel,rclas,natot,step,wricoord,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
 
-! freeze QM atom
+! freeze QM atom   Jota, meter todo esto en fixed 2 + restraint interno
         if (optimization_lvl .eq. 2)  then
           do inick=1, na_u
             cfdummy(1:3,inick) = 0.d0
@@ -705,13 +719,13 @@ c return forces to fullatom arrays
         end if
 
 ! freeze MM atom
-	if (qm) then
-        do inick=1, natot
-          if(MM_freeze_list(inick)) then
-            cfdummy(1:3,inick) = 0.d0
-          end if
-        end do
-	endif !jota
+c	if (qm) then
+c        do inick=1, natot
+c          if(MM_freeze_list(inick)) then
+c            cfdummy(1:3,inick) = 0.d0
+c          end if
+c        end do
+c	endif !jota
 
 ! partial freeze
 	do inick=1,natoms_partial_freeze
@@ -765,7 +779,8 @@ C Write atomic forces
         if (writeRF .eq. 1) then!save coordinates and forces for integration 
            do itest=1, natot
 	      write(969,423) itest, rclas(1:3,itest)*Ang,
-     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
+c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
+     .        cfdummy(1:3,itest)*0.5d0*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA
            end do
         end if
 
@@ -802,8 +817,8 @@ C Write atomic forces
         write(6,999)
      .  'hybrid: System Temperature:', tempion, ' K'
 !      if(qm) call centerdyn(na_u,rclas,ucell,natot)
-c	if (MOD((istp - inicoor),traj_frec) .eq. 1) 
-      call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
+	if (MOD((istp - inicoor),traj_frec) .eq. 1) 
+     .  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
      .      rclas,atname,aaname,aanum,nesp,atsym,isa)
 
        endif
@@ -841,7 +856,6 @@ c	if (MOD((istp - inicoor),traj_frec) .eq. 1)
         call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
 ! write atomic constraints each step
         call wrtcrd(natot,rclas)
-
 
 
       elseif (idyn.eq.1) then !Save forces and energy for a NEB optimization

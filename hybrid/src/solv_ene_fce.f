@@ -156,8 +156,11 @@ c  calcula la fuerza total de amber
      .  fcelj_amber(1:3,i)+fceelec_amber(1:3,i)+fwat(1:3,i)
        fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)     
        fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
-	enddo
 
+c        write(456456,*)  i
+c        write(456456,*)  fcelj_amber(1:3,i)*eV/(Ang*kcal)
+	enddo
+c        write(456456,*)  Elj_amber*eV/kcal
       return
       end
 c****************************************************************
@@ -623,7 +626,8 @@ c si el dihedro es 500 es error y sale
 	do m=1,5
        k=evaldihe(i,j,m)
 
-	 if(k.ne.0.and.multidihe(k).ne.0) then
+	 if(k.ne.0) then
+           if(multidihe(k).ne.0) then
 
 c      k=evaldihe(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
@@ -640,7 +644,8 @@ c      k=evaldihe(i,j,m)
       fesq(1,i)=fesq(1,i)+dx
       fesq(2,i)=fesq(2,i)+dy
       fesq(3,i)=fesq(3,i)+dz
-	endif
+	   endif
+        endif
 	enddo
 	else
        k=dihety(i,j)
@@ -685,7 +690,8 @@ c si el dihedro es 500 es error y sale
 
        k=evaldihm(i,j,m)
 
-         if(k.ne.0.and.multidihe(k).ne.0) then
+         if(k.ne.0) then
+           if(multidihe(k).ne.0) then
 c       if(evaldihm(i,j,m).ne.0) then
 c       k=evaldihm(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
@@ -701,6 +707,7 @@ c       k=evaldihm(i,j,m)
       fmedio(1,i)=fmedio(1,i)+dx
       fmedio(2,i)=fmedio(2,i)+dy
       fmedio(3,i)=fmedio(3,i)+dz
+          endif
         endif
         enddo
         else
@@ -1215,6 +1222,8 @@ c******************************************************************
 c subrutina q calcula el water restarin potential
 
 	subroutine waters(na_u,nac,natot,rclas,masst,noaa,noat,ewat,fwat)
+	
+	use scarlett, only: eV, Ang, kcal
 	implicit none
 	integer, intent(in) :: na_u,nac,natot
 
@@ -1232,7 +1241,7 @@ c subrutina q calcula el water restarin potential
         mdist=0.d0
 
 c calcula el masscenter del sistema y el rwat
-        ramber(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !ramber ya viene en Angstroms!!!!! REVISAR jota
+        ramber(1:3,1:natot)=rclas(1:3,1:natot)/Ang
         masscenter=0.d0 
         do i=1,natot
         masscenter(1:3)=masscenter(1:3)+masst(i)*ramber(1:3,i)
@@ -1250,7 +1259,7 @@ c calcula el masscenter del sistema y el rwat
 
 c calculo la matrix con las aguas xa los at MM
         ramber=0.d0
-        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0 !rclas esta en Bohr, ramber queda en Angstroms
+        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)/Ang 
         k=1
         do i=1,nac
         if(noaa(i).eq.'HOH'.and.noat(i).eq.'O') then
