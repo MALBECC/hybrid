@@ -191,13 +191,14 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
     double precision, intent(in) :: hyb_r(3,hyb_natom+mm_natom), Iz_cl(mm_natom) !positions and charge of MM atoms
     double precision, intent(out) :: E !total LIO energy
     double precision, intent(out) :: fdummy(3,hyb_natom+mm_natom) !forces
-    double precision :: fa(3,hyb_natom), fmm(3,mm_natom) !QM and MM forces
+    double precision, dimension(:,:), allocatable :: fa, fmm !QM and MM forces
     integer :: dummy !auxiliar variable
     REAL*8 :: dipxyz(3) !dipole
     integer :: i,j !auxiliar
     logical, intent(in) :: do_SCF, do_QM_forces !SCF & forces control variable
     logical, intent(in) :: do_properties !properties control
 
+    allocate(fa(3,hyb_natom), fmm(3,mm_natom))
     calc_propM = do_properties
 
     nsol = mm_natom
