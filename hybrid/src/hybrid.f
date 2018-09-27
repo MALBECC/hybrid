@@ -97,7 +97,7 @@
       integer :: mmsteps !number of MM steps for each QM step, not tested
       integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
-      integer :: atxres(20000) !number ot atoms in residue i, no deberia estar fija la dimension
+      integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
       double precision :: Etot_amber !total MM energy
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
@@ -108,14 +108,14 @@
       logical :: constropt !activate restrain optimizaion
       integer :: nconstr !number of constrains
       integer :: nstepconstr !numero de pasos en los que barrera la coordenada de reaccion (limitado a 1-100 hay q cambiar esto, Nick)
-      integer :: typeconstr(20) !type of cosntrain (1 to 8)
-      double precision :: kforce(20) !force constant of constrain i
+      integer, dimension(:), allocatable :: typeconstr !type of cosntrain (1 to 8)
+      double precision, dimension(:), allocatable :: kforce !force constant of constrain i
       double precision :: rini,rfin  !initial and end value of reaction coordinate
-      double precision :: ro(20) ! fixed value of constrain in case nconstr > 1 for contrains 2+
-      double precision :: rt(20) ! value of reaction coordinate in constrain i
+      double precision, dimension(:), allocatable :: ro ! fixed value of constrain in case nconstr > 1 for contrains 2+
+      double precision, dimension(:), allocatable :: rt ! value of reaction coordinate in constrain i
       double precision :: dr !change of reaction coordinate in each optimization dr=(rfin-rini)/nstepconstr
-      double precision :: coef(20,10) !coeficients for typeconstr=8
-      integer :: atmsconstr(20,20), ndists(20) !atomos incluidos en la coordenada de reaccion
+      double precision, dimension(:,:), allocatable :: coef !coeficients for typeconstr=8
+      integer, allocatable :: atmsconstr(:,:), ndists(:) !atomos incluidos en la coordenada de reaccion
       integer :: istepconstr !auxiliar
 
 ! Cut Off QM-MM variables
@@ -190,6 +190,10 @@
 
 
 !--------------------------------------------------------------------
+!need to move this to an initializacion subroutine
+      allocate(atxres(20000))
+      allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
+      allocate(atmsconstr(20,20), ndists(20))
 
 ! Initialise some variables
       relaxd=.false.

@@ -251,5 +251,6 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
       end do
     end do
 
+    deallocate(fa, fmm)
     return
 end  subroutine SCF_hyb
