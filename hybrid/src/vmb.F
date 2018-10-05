@@ -183,7 +183,7 @@ C  conversion factor to bohr/fs
       return
       end
 
-      subroutine temp(iunit,natoms,ma,va,ntcon,tempe)
+      subroutine temp(iunit,natoms,ma,va,ntcon,tempe,cmcf)
 C *************************************************************************
 C Subroutine to calculate instantaneous temperature
 C
@@ -212,7 +212,7 @@ C *****************************************************************************
       implicit none
 
       integer 
-     .   natoms,iunit,ntcon
+     .   natoms,iunit,ntcon,cmcf
 
       double precision
      .  ma(natoms),tempe,va(3,natoms)
@@ -220,7 +220,7 @@ C *****************************************************************************
 C Internal variables ..........................................................
  
       integer
-     .  i,ia
+     .  i,ia,ct
 
       double precision
      .  fovermp,kin
@@ -232,6 +232,9 @@ C ........................
         write(6,*) 'temp: Wrong iunit option;  must be 1, 2 or 3'
         stop
       endif
+
+C Define degrees of freedom fixed
+      ct = cmcf + ntcon
 
 C Define constants and conversion factors .....................................
 
@@ -262,11 +265,12 @@ C Kinetic energy of atoms
 
 C Instantaneous temperature (Kelvin)
       if (iunit .eq. 1) then
-        tempe = 2.0d0*kin/dble(3*natoms-3-ntcon)/8.617d-5       !el -3 es porque congeló el cm
+        tempe = 2.0d0*kin/dble(3*natoms-ct)/8.617d-5 
       elseif (iunit .eq. 2) then
-        tempe = 2.0d0*kin/dble(3*natoms-3-ntcon)/8.617d-5/(eV*2.d0)
+        tempe = 2.0d0*kin/dble(3*natoms-ct)/8.617d-5/(eV*2.d0)
       else
-       tempe = 2.0d0*2.0d0*kin/dble(3*natoms-3-ntcon)/8.617d-5/(eV*2.d0)
+       tempe = 2.0d0*2.0d0*kin/dble(3*natoms-ct)/8.617d-5/(eV*2.d0)
+!JOTA PRUEBO SACAR EL 3
       endif
 
 
