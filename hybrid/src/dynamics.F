@@ -1,5 +1,5 @@
       subroutine verlet2(istep,iunit,iquench,natoms,fa,dt,ma,ntcon,va,
-     .                   xa,kin,temp,nfree)
+     .                   xa,kin,temp,nfree,cmcf)
 C *************************************************************************
 C Subroutine for MD simulations using the velocity-Verlet Algrithm.
 C (See Allen-Tildesley, Computer Simulations of Liquids, pg. 81)
@@ -35,6 +35,7 @@ C real*8 ma(natoms)     : Atomic masses
 C integer ntcon         : Total number of position constraints imposed
 C real*8 va(3,natoms)   : Atomic velocities
 C                         (used only if istep = 1)
+C integer cmcf          : Center of mass coordinates fixed JOTA
 C ******************* INPUT AND OUTPUT ****************************************
 C real*8 xa(3,natoms)   : Atomic coordinates 
 C                        (input: current time step; output: next time step)
@@ -50,7 +51,7 @@ C
       implicit none
 
       integer 
-     .   natoms,ntcon,istep,iquench,iunit,nfree
+     .   natoms,ntcon,istep,iquench,iunit,nfree,cmcf
 
       double precision
      .  dt,fa(3,natoms),kin,ma(natoms),
@@ -92,7 +93,8 @@ c        write(456,*) "nfree", nfree
           write(6,*) 'verlet2: Wrong iunit option;  must be 1, 2 or 3'
         stop
       endif
-      ct = 3 + ntcon
+c	ct = ntcon
+      ct = cmcf + ntcon 
       if (natoms .eq. 1) ct = 0
 
 C Allocate local memory - only done once as data must be saved. As a
@@ -123,7 +125,7 @@ C revisar jota <----------------------------------------------------------------
       endif
 C ........................
 
-C Compute old accelerations and velocities 
+C Compute old accelerations and velocities
 C  if the time step is the first of the simulation ...........................
       if (istep .eq. 1) then
         do ia = 1,natoms
@@ -136,7 +138,7 @@ C  if the time step is the first of the simulation ...........................
 C ....................
 
 C Compute velocities at current time step ...................................
-      do ia = 1,natoms
+	do ia = 1,natoms
         do i = 1,3
           va(i,ia) = vold(i,ia) + dtby2 
      .               * (accold(i,ia) + fovermp * fa(i,ia) / ma(ia))
@@ -159,7 +161,6 @@ C ................
 
 C Compute positions at next time step.....................................
       do ia = 1,natoms
-C	write(952,*) ia, ma(ia)   ! Para ver en que unidades escribe ma jota
         do i = 1,3
           xa(i,ia) = xa(i,ia) + dt * va(i,ia) 
      .                  + dt2 / 2.0d0 * fovermp * fa(i,ia) / ma(ia)
@@ -184,7 +185,6 @@ C Kinetic energy of atoms
           kin = kin + 0.5d0 * ma(ia) * va(i,ia)**2 / fovermp
         enddo
       enddo
-
 C Instantaneous temperature (Kelvin)
       if (iunit .eq. 1) then
         temp = 2.0d0*kin/dble(3*nfree-ct)/8.617d-5
