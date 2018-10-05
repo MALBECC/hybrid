@@ -35,14 +35,13 @@
 
 ! Cut Off QM-MM variables
 	integer, dimension(:), allocatable, save:: blocklist,blockqmmm,listqmmm
+	integer, dimension(:), allocatable, save:: blockall !JOTA
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
 !Dynamics
 	double precision :: Ekinion ! Kinectic energy
 	double precision :: tempion ! Actual Temperature of system
 	double precision :: tempinit ! Starting Temperature
-
-
 
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms

@@ -240,10 +240,13 @@ c*************************************************************
 c subroutine that imposes fce and vel constraints 
 
        subroutine  fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
-     .             fdummy,cfdummy,vat)
+     .             fdummy,cfdummy,vat,optimization_lvl)
 
+	use scarlett, only: coord_freeze, natoms_partial_freeze
 	implicit none
 	integer i,k,na_u,nac,natot,nfree,blockqmmm(nac),blocklist(natot)
+	integer optimization_lvl
+	integer inick, jnick
 	double precision fdummy(3,natot),cfdummy(3,natot),vat(3,natot) 
         logical    frstme
         save       frstme
@@ -252,40 +255,95 @@ c subroutine that imposes fce and vel constraints
 C copy fdummy array to cfdummy
 	cfdummy = fdummy 
 
+
 c nullify fce and vel 
+
+        if (optimization_lvl .eq. 2)  then
+          do inick=1, na_u
+            cfdummy(1:3,inick) = 0.d0
+            vat(1:3,inick)=0.d0
+	  end do
+        end if
+
         do i=1,na_u
            if (blocklist(i).eq.1) then
-           cfdummy(1:3,i)=0.0
-           vat(1:3,i)=0.0
+           cfdummy(1:3,i)=0.d0
+           vat(1:3,i)=0.d0
 c	   write(18200,*) "Congelé átomo QM", i ! Jota para test que congela aun si no hay parte QM
            endif
         enddo
 
+        do inick=1,natoms_partial_freeze
+          do jnick=1,3
+            if (coord_freeze(inick,1+jnick) .eq. 1) then
+              cfdummy(jnick,coord_freeze(inick,1))=0.d0
+              vat(jnick,coord_freeze(inick,1))=0.d0 !JOTA
+            end if
+          end do
+        enddo
+
+
         do i=1,nac
            if (blockqmmm(i).eq.1.or.blocklist(i+na_u).eq.1) then
-           cfdummy(1:3,i+na_u)=0.0
-           vat(1:3,i+na_u)=0.0
+           cfdummy(1:3,i+na_u)=0.d0
+           vat(1:3,i+na_u)=0.d0
 c           write(182,*) "Congelé átomo MM", i
            endif
         enddo
+	
+c	if(frstme) write(333,*) blocklist(1), blocklist(1)+
+c     . blocklist(2)+1
+
 
 c set total number of free atoms
-	if(frstme) then
-	
+c	if(frstme) then
+c	
 c	  write (777,*) blockqmmm
-	
-	  k=0
-	  do i=1,na_u
-	    if((blocklist(i).eq.0)) k=k+1
-	  enddo
-	  do i=1,nac
- 	    if((blocklist(i+na_u).eq.0).and.(blockqmmm(i).eq.0)) k=k+1
-	  enddo
-	  nfree=k
-	  write(6,'(/a,2x,i5)') 'hybrid: Total Free Atoms:', nfree 
-	  frstme=.false.
-	endif
+c	
+c	  k=0
+c	  do i=1,na_u
+c	    if((blocklist(i).eq.0)) k=k+1
+c	  enddo
+c	  do i=1,nac
+c 	    if((blocklist(i+na_u).eq.0).and.(blockqmmm(i).eq.0)) k=k+1
+c	  enddo
+c	  nfree=k
+c	  write(6,'(/a,2x,i5)') 'hybrid: Total Free Atoms:', nfree 
+c	  frstme=.false.
+c	endif
 
 	end
 c******************************************************************
+
+
+c******************************************************************
+c subroutine that counts fixed degrees of freedom 
+
+       subroutine  fixed3(natot,blockall,ntcon)
+
+        use scarlett, only: coord_freeze, natoms_partial_freeze
+        implicit none
+        integer i,k,natot
+	integer, intent(out) :: ntcon
+	integer, intent(in) :: blockall(natot)
+        integer inick, jnick
+
+          k=0
+          do i=1,natot
+            if((blockall(i).eq.1)) k=k+3
+          enddo
+          ntcon=k
+          write(6,'(/a,2x,i5)') 'hybrid: Total Free Atoms:', 
+     .    natot-(ntcon/3)
+
+! partial freeze
+       do inick=1,natoms_partial_freeze
+	if (blockall(coord_freeze(inick,1)) .eq. 0) then 
+         do jnick=1,3
+           if (coord_freeze(inick,1+jnick) .eq. 1) ntcon=ntcon+1 
+         end do
+	endif
+       enddo  
+	end subroutine fixed3
+c*****************************************************************
 
