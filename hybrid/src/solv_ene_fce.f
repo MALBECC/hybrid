@@ -157,10 +157,7 @@ c  calcula la fuerza total de amber
        fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)     
        fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
 
-c        write(456456,*)  i
-c        write(456456,*)  fcelj_amber(1:3,i)*eV/(Ang*kcal)
 	enddo
-c        write(456456,*)  Elj_amber*eV/kcal
       return
       end
 c****************************************************************
