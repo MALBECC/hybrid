@@ -421,9 +421,9 @@ C Calculate Rcut & block list QM-MM
       call fixed3(natot,blockall,ntcon)
 
 ! Build initial velocities according to Maxwell-Bolzmann distribution
-        if (idyn .eq. 4 .and. (.not. foundvat))
-     .  call vmb(natot,tempinit,masst,rclas,ntcon,vat,cmcf)
 
+        if (idyn .eq. 4 .and. (.not. foundvat))
+     .  call vmb(natot,tempinit,masst,rclas,0,vat,cmcf,blockall,ntcon)
 !tempinit
 
 
