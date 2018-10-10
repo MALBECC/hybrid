@@ -30,6 +30,7 @@ C Assigantes solvent atomic masses (masst) and atomic symbol (sym)
           atn1 = atn4(1:1)
           atn2 = atn4(1:2)
           if (atn1.eq.'H')  izs(k)=1
+          if (atn2.eq.'He') izs(k)=2
           if (atn1.eq.'C')  izs(k)=6
           if (atn1.eq.'N')  izs(k)=7
           if (atn1.eq.'O')  izs(k)=8
