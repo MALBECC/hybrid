@@ -46,7 +46,7 @@
      . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, parametro,
      . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, pi,
 !cutoff
-     . r_cut_list_QMMM,blocklist,blockqmmm,
+     . r_cut_list_QMMM,blocklist,blockqmmm, blockall,
      . listqmmm,MM_freeze_list, natoms_partial_freeze, 
      . natoms_partial_freeze, coord_freeze, 
 !NEB
@@ -101,8 +101,8 @@
       double precision :: Etot_amber !total MM energy
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
-
-
+      integer :: ntcon !number of restrained degrees of freedom JOTA 
+      integer :: cmcf !Center of Mass Coordinates Fixed JOTA
 
 ! ConstrOpt variables
       logical :: constropt !activate restrain optimizaion
@@ -214,7 +214,7 @@
       Nick_cent=.false.
       foundxv=.false.
       recompute_cuts=.true.
-
+      cmcf = 0
 ! Initialize IOnode
       call io_setup   
 
@@ -246,6 +246,7 @@
       nfree=natot
       blocklist = 0
       blockqmmm = 0
+      blockall = 0 !JOTA
       listqmmm = 0
       step = 0
       nstepconstr = 0
@@ -290,8 +291,6 @@
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
-
-
       if (idyn .ne. 1) then ! Read cell shape and atomic positions from a former run
         call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1) 
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
@@ -319,8 +318,6 @@
       call readcrd(na_u,nac,masst,linkatom,linkat,numlink,
      .             rclas,vat,foundcrd,foundvat)
       if(foundcrd) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
-
-
 
      
 ! Sets LinkAtoms' positions
@@ -409,20 +406,24 @@
 	write(*,*) qm, mm
 
 C Calculate Rcut & block list QM-MM 
+
       if(qm.and.mm) then
         call qmmm_lst_blk(na_u,nac,natot,nroaa,atxres,rclas,
      .  rcorteqmmm,radbloqmmm,blockqmmm,listqmmm,rcorteqm,slabel,
-     .  radinnerbloqmmm)
+     .  radinnerbloqmmm,blockall)
       endif !qm & mm
-
+        
 ! Read fixed atom constraints
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
      .            atname,aaname,aanum,water)
 
-! Build initial velocities according to Maxwell-Bolzmann distribution
-        if (idyn .eq. 4 .and. (.not. foundvat))
-     .  call vmb(natot,tempinit,masst,rclas,0,vat)
+! Counts fixed degrees of freedom
+      call fixed3(natot,blockall,ntcon)
 
+! Build initial velocities according to Maxwell-Bolzmann distribution
+
+        if (idyn .eq. 4 .and. (.not. foundvat))
+     .  call vmb(natot,tempinit,masst,rclas,0,vat,cmcf,blockall,ntcon)
 !tempinit
 
 
@@ -705,8 +706,7 @@ c return forces to fullatom arrays
 
 ! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
-     .             fdummy,cfdummy,vat)
-
+     .             fdummy,cfdummy,vat,optimization_lvl)
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
@@ -715,12 +715,12 @@ c return forces to fullatom arrays
       call wripdb(na_u,slabel,rclas,natot,step,wricoord,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
 
-! freeze QM atom   Jota, meter todo esto en fixed 2 + restraint interno
-        if (optimization_lvl .eq. 2)  then
-          do inick=1, na_u
-            cfdummy(1:3,inick) = 0.d0
-          end do
-        end if
+! freeze QM atom   Jota, meter todo esto en fixed 2
+c        if (optimization_lvl .eq. 2)  then
+c          do inick=1, na_u
+c            cfdummy(1:3,inick) = 0.d0
+c          end do
+c        end if
 
 ! freeze MM atom
 c	if (qm) then
@@ -732,13 +732,14 @@ c        end do
 c	endif !jota
 
 ! partial freeze
-	do inick=1,natoms_partial_freeze
-	  do jnick=1,3
-	    if (coord_freeze(inick,1+jnick) .eq. 1) then
-	      cfdummy(jnick,coord_freeze(inick,1))=0.d0
-	    end if
-	  end do
-	enddo
+c	do inick=1,natoms_partial_freeze
+c	  do jnick=1,3
+c	    if (coord_freeze(inick,1+jnick) .eq. 1) then
+c	      cfdummy(jnick,coord_freeze(inick,1))=0.d0
+c	      vat(jnick,coord_freeze(inick,1))=0.d0 !JOTA
+c	    end if
+c	  end do
+c	enddo   JOTA lo pusimos en fixed2
 
 
 ! write xyz, hay q ponerle un if para escribir solo cuando se necesita
@@ -803,7 +804,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
      .    masst, time_steep,Ndescend, time_steep_max, alpha)
 	elseif (idyn .eq. 4) then
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
-     .        masst, 0, vat, rclas, Ekinion, tempion, nfree)
+     .        masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
 !iquench lo dejamos como 0, luego cambiar
 !ntcon lo dejamos como 0, luego agregar
 !iunit fijado en 3
@@ -821,10 +822,9 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         write(6,999)
      .  'hybrid: System Temperature:', tempion, ' K'
 !      if(qm) call centerdyn(na_u,rclas,ucell,natot)
-	if (MOD((istp - inicoor),traj_frec) .eq. 1) 
+	if (MOD((istp - inicoor),traj_frec) .eq. 0)
      .  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
      .      rclas,atname,aaname,aanum,nesp,atsym,isa)
-
        endif
 
 

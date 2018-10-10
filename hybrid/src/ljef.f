@@ -55,10 +55,6 @@ c            flj(3)=-2.d0*fej*tz
             f(2,j2)=f(2,j2) - flj(2)
             f(3,j2)=f(3,j2) - flj(3)
 
-c	write(123123,*) j1
-c	write(123123,*) flj
-c        write(123123,*) j2
-c        write(123123,*) -flj
           enddo !! at st
         endif !! list
       enddo !! at sv

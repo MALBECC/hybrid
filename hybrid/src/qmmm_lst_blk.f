@@ -2,7 +2,7 @@ c subroutine that calculates the rcut and block QM-MM only in the first step
 
 	subroutine qmmm_lst_blk(na_u,nac,natot,nroaa,atxres,rclas,
      .  rcorteqmmm,radiobloqmmm,blockqmmm,listqmmm,rcorteqm,slabel,
-     .  radinnerbloqmmm)
+     .  radinnerbloqmmm,blockall)
 
 	use precision 
 	use ionew
@@ -13,6 +13,7 @@ c subroutine that calculates the rcut and block QM-MM only in the first step
      .  rcorteqmmm,radiobloqmmm,rclas(3,natot),Ang,radinnerbloqmmm,
      .  distinner2
         integer i,j,k,l,count,blockqmmm(nac),listqmmm(nac)
+	integer blockall(natot)
         logical bloqmmm,liqmmm,found
         character slabel*20,fname*24,paste*24
         external paste
@@ -104,14 +105,13 @@ c find file name
 c check if the input file exists
         inquire( file=fname, exist=found )
        if (found) then
-c	write (789789,*) found
 c Open file
         call io_assign( iu )
         open( iu, file=fname, status='old' )
 c read blockqmmm
         do i=1,nac
         read(iu,*,err=2,end=2) blockqmmm(i)
-        enddo
+	enddo
 c Close file
         call io_close( iu )
         write(6,'(/a)') 'qm-mm: Reading blocked QM-MM atoms from file'
@@ -122,8 +122,6 @@ c fixing MM atoms beyond block cut off
         dist=0.0
         dist2=radiobloqmmm**2
 	distinner2=radinnerbloqmmm**2
- 	write (456456,*) "radio",radiobloqmmm
-        write (456456,*) "radinner",radinnerbloqmmm
         blockqmmm=1
         do l=1,na_u
         k=1
@@ -133,8 +131,6 @@ c fixing MM atoms beyond block cut off
      .         (rclas(3,l)-cm(3,i))**2
           do j=1,atxres(i)
            if((dist.le.dist2).and.(dist.gt.distinner2)) blockqmmm(k)=0
-	write (1111,*) dist.le.dist2, dist.gt.distinner2
-
            k=k+1
           enddo
          enddo
@@ -153,6 +149,12 @@ c write blockqmmm
         do i=1,nac
         write(iu,*) blockqmmm(i)
         enddo
+
+c write blockall JOTA
+	do i=1,nac
+	blockall(i+na_u)=blockqmmm(i) 
+	enddo
+
 c Close file
         call io_close( iu )
 c        write(6,'(/a)') 'qm-mm: Writing blocked QM-MM atoms in file'

@@ -19,7 +19,7 @@
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
-	NEB_move_method, Ndamped, tempion, Nav, pi
+	NEB_move_method, Ndamped, tempion, Nav, pi, blockall
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -97,6 +97,7 @@
 	  allocate(qmattype(na_u), attype(nac), atname(nac))
 	  allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))
 	  allocate(blockqmmm(nac), listqmmm(nac), fce_amber(3,nac))
+	  allocate(blockall(natot)) !JOTA
 	  allocate(ng1type(nac,6), angetype(nac,25), angmtype(nac,25))
 	  allocate(evaldihe(nac,100,5), evaldihm(nac,100,5))
 	  allocate(dihety(nac,100), dihmty(nac,100), impty(nac,25))

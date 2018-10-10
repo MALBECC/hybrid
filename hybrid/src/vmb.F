@@ -1,4 +1,4 @@
-      subroutine vmb(nat,ttemp,mass,xa,isa,va)
+      subroutine vmb(nat,ttemp,mass,xa,isa,va,cmcf,blockall,ntcon)
 C *************************************************************************
 C This routine creates a velocity distribution according to the
 C Maxwell-Boltzman distribution with a given temperature.
@@ -24,11 +24,12 @@ C
 C  Modules
 C
       use precision
-      use scarlett, only: Ang,eV
+      use scarlett, only: Ang, eV, coord_freeze, natoms_partial_freeze
+
       implicit none
 
       integer 
-     .  nat, isa(nat)
+     .  nat, isa(nat), cmcf, blockall(nat), ntcon
 
       double precision
      .  mass(nat), ttemp, va(3,nat), xa(3,nat)
@@ -36,7 +37,7 @@ C
 C Internal variables ..................
 
       integer 
-     .  iseed, i, ix, iy, ntcon, Node
+     .  iseed, i, ix, iy, Node
 
       double precision
      .  cell(3,3), stress(3,3), fa(3,nat), 
@@ -69,14 +70,34 @@ C Loop over atoms to assing velocities .................
        	  vtot(3) = vtot(3) + va(3,i)
         enddo
 C ...............
+C Impose constraint on fixed atoms JOTA
+	do i = 1,nat
+	  if(blockall(i) .eq. 1) then
+	    va(1,i) = 0.d0
+	    va(2,i) = 0.d0
+	    va(3,i) = 0.d0
+	  endif
+	enddo
+
+        do i=1,natoms_partial_freeze
+          do ix=1,3
+            if (coord_freeze(i,1+ix) .eq. 1) then
+              va(ix,coord_freeze(i,1))=0.d0
+            end if
+          end do
+        enddo
+
+
+
 
 C Impose constraint on zero center of mass velocity ....................
+	if(cmcf .ne. 0) then  !Agrego if, para que no lo haga siempre
         do i = 1,nat
           do ix=1,3
             va(ix,i) = va(ix,i) - vtot(ix)/nat
           enddo
         enddo
-
+        endif
       endif
 
 
@@ -111,7 +132,7 @@ C ...............
       if (nat .le. 1) return
 
 C Correct velocity to exact temperature .....................
-      call temp(2,Nat,mass,va,ntcon,tempe)    !Esta hardcodeado con iunit=2; si iunit=3 la Ecin queda mal calculada pero la temp da ok por compensacion de errores; lo dejo así porque no escribe energía cinética en ningún lado...
+      call temp(2,Nat,mass,va,ntcon,tempe,cmcf)    !Esta hardcodeado con iunit=2; si iunit=3 la Ecin queda mal calculada pero la temp da ok por compensacion de errores; lo dejo así porque no escribe energía cinética en ningún lado...
 
       if (abs(tempe-ttemp) .ge. 1.e-4 .and. tempe .ge. 1.e-4) then
         do i = 1,Nat
@@ -183,7 +204,7 @@ C  conversion factor to bohr/fs
       return
       end
 
-      subroutine temp(iunit,natoms,ma,va,ntcon,tempe)
+      subroutine temp(iunit,natoms,ma,va,ntcon,tempe,cmcf)
 C *************************************************************************
 C Subroutine to calculate instantaneous temperature
 C
@@ -212,7 +233,7 @@ C *****************************************************************************
       implicit none
 
       integer 
-     .   natoms,iunit,ntcon
+     .   natoms,iunit,ntcon,cmcf
 
       double precision
      .  ma(natoms),tempe,va(3,natoms)
@@ -220,7 +241,7 @@ C *****************************************************************************
 C Internal variables ..........................................................
  
       integer
-     .  i,ia
+     .  i,ia,ct
 
       double precision
      .  fovermp,kin
@@ -232,6 +253,9 @@ C ........................
         write(6,*) 'temp: Wrong iunit option;  must be 1, 2 or 3'
         stop
       endif
+
+C Define degrees of freedom fixed
+      ct = cmcf + ntcon
 
 C Define constants and conversion factors .....................................
 
@@ -262,11 +286,12 @@ C Kinetic energy of atoms
 
 C Instantaneous temperature (Kelvin)
       if (iunit .eq. 1) then
-        tempe = 2.0d0*kin/dble(3*natoms-3-ntcon)/8.617d-5       !el -3 es porque congeló el cm
+        tempe = 2.0d0*kin/dble(3*natoms-ct)/8.617d-5 
       elseif (iunit .eq. 2) then
-        tempe = 2.0d0*kin/dble(3*natoms-3-ntcon)/8.617d-5/(eV*2.d0)
+        tempe = 2.0d0*kin/dble(3*natoms-ct)/8.617d-5/(eV*2.d0)
       else
-       tempe = 2.0d0*2.0d0*kin/dble(3*natoms-3-ntcon)/8.617d-5/(eV*2.d0)
+       tempe = 2.0d0*2.0d0*kin/dble(3*natoms-ct)/8.617d-5/(eV*2.d0)
+!JOTA PRUEBO SACAR EL 3
       endif
 
 
