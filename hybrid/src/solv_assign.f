@@ -10,7 +10,7 @@ c assignation of solvent atoms
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-     .  radbloqmmm,atsinres,radblommbond,radinnerbloqmmm)
+     .  radbloqmmm,atsinres,radblommbond,radinnerbloqmmm,res_ref)
 
 	use precision
 	use sys
@@ -61,7 +61,7 @@ ccorrecion del bug de bonds extras, Nick
 	integer :: ivalue(natot*2), inick,jnick
 c parche para q no ponga bonds entre extremos terminales
         double precision radblommbond, radinnerbloqmmm
-
+        integer res_ref
 	ivalue=0
 
 
@@ -81,8 +81,8 @@ C nullify some solvent vbles
       sfc=2.d0
       radbloqmmm=100.d0
       foundamber=.false.
-	radinnerbloqmmm=0.d0
-
+      radinnerbloqmmm=0.d0
+      res_ref=1
 
 C read solvent coordinates by atom
       if ( fdf_block('SolventInput',iunit) ) then
@@ -153,6 +153,7 @@ c read cutoff radious
       read(iunit,*,err=30,end=30) exp, radbloqmmm
       read(iunit,*,err=30,end=30) exp, radblommbond
       read(iunit,*,err=50,end=50) exp, radinnerbloqmmm
+      read(iunit,*,err=50,end=50) exp, res_ref
 C      read(iunit,*,err=30,end=30) exp, sfc
 
       else

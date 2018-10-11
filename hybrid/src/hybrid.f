@@ -125,6 +125,7 @@
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
       double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
+      integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA  
       logical ::  recompute_cuts
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
@@ -275,8 +276,9 @@
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-     .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm)
+     .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm,res_ref)
       endif !mm
+	write(7474,*) res_ref
 
 ! changing cutoff to atomic units
       rcorteqmmm=rcorteqmmm*Ang
@@ -413,12 +415,30 @@ C Calculate Rcut & block list QM-MM
      .  radinnerbloqmmm,blockall)
       endif !qm & mm
         
+
+! Calculate blockall for full-MM simulation JOTA
+      if(mm.and. .not. qm) then
+        write(7171,*) "blockall"
+        write(7171,*) blockall
+
+        call fixed0(res_ref,natot,nroaa,atxres,rclas,blockall,
+     .              radbloqmmm,radinnerbloqmmm)
+        write(7171,*) "blockall post fixed0"
+        write(7171,*) blockall
+
+      endif
+! nrjota hardcodeado = 1
+
 ! Read fixed atom constraints
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
      .            atname,aaname,aanum,water)
 
-! Counts fixed degrees of freedom
+! Count fixed degrees of freedom
       call fixed3(natot,blockall,ntcon)
+        write(7171,*) "blockall post fixed3"
+        write(7171,*) blockall
+        write(7171,*) "ntcon"
+        write(7171,*) ntcon
 
 ! Build initial velocities according to Maxwell-Bolzmann distribution
 
@@ -706,7 +726,7 @@ c return forces to fullatom arrays
 
 ! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
-     .             fdummy,cfdummy,vat,optimization_lvl)
+     .             fdummy,cfdummy,vat,optimization_lvl,blockall)
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
