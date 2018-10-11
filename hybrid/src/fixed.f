@@ -48,16 +48,13 @@ c fixing MM atoms beyond block cut off
               k = k + atxres(ijota)   !k es el primer átomo del residuo res_ref
             enddo                 
           endif
-	write(999,*) "k",k       
           do l=k,k+atxres(res_ref)-1 !barre todos los átomos del residuo res_ref
             do i=1,nroaa             !barre todos los residuos
               kk = 1
-	write(999,*) "i",i
               if(i .ne. 1) then !revisa que nroaa no sea el residuo 1
                 do ijota=1,i-1   !cuenta todos los átomos anteriores al primer átomo del i-ésimo residuo
                   kk = kk + atxres(ijota)     !kk es el primer átomo del i-ésimo residuo
                 enddo
-	write(999,*) "kk",kk
               endif
 
               dist=(rclas(1,l)-cm(1,i))**2+
@@ -351,7 +348,6 @@ c Agrego para que congele según blockall... Queda redundante si es QMMM
            if (blockall(i).eq.1) then
            cfdummy(1:3,i)=0.d0
            vat(1:3,i)=0.d0
-           write(7171,*) "Congelé átomo MM", i
            endif
         enddo
 
