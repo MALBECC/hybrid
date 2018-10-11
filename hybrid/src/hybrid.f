@@ -278,7 +278,6 @@
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
      .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm,res_ref)
       endif !mm
-	write(7474,*) res_ref
 
 ! changing cutoff to atomic units
       rcorteqmmm=rcorteqmmm*Ang
@@ -418,13 +417,9 @@ C Calculate Rcut & block list QM-MM
 
 ! Calculate blockall for full-MM simulation JOTA
       if(mm.and. .not. qm) then
-        write(7171,*) "blockall"
-        write(7171,*) blockall
 
         call fixed0(res_ref,natot,nroaa,atxres,rclas,blockall,
      .              radbloqmmm,radinnerbloqmmm)
-        write(7171,*) "blockall post fixed0"
-        write(7171,*) blockall
 
       endif
 ! nrjota hardcodeado = 1
@@ -435,10 +430,6 @@ C Calculate Rcut & block list QM-MM
 
 ! Count fixed degrees of freedom
       call fixed3(natot,blockall,ntcon)
-        write(7171,*) "blockall post fixed3"
-        write(7171,*) blockall
-        write(7171,*) "ntcon"
-        write(7171,*) ntcon
 
 ! Build initial velocities according to Maxwell-Bolzmann distribution
 
