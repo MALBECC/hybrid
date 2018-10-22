@@ -90,7 +90,15 @@ c read variables
      . optimization run'
 
 c calculates initial ro for all types of constraints
+	if (nstepconstr .gt. 0) then
         dr=(rfin-rini)/nstepconstr
+	elseif (nstepconstr .eq. 0) then
+	  dr=0.d0
+	  if(rfin .ne. rini) STOP "nstepconstr ne 0, and rfin .ne. rini"
+	else
+	 STOP "wrong nstepconstr value"
+	end if
+
         ro(1)=rini
         if(rfin.eq.rini) nstepconstr=0
 
@@ -134,7 +142,7 @@ c****************************************************************************
 	double precision kforce(20),ro(20),rt(20),rini,rfin,coef(20,10)
 	
 	integer at1,at2,at3,at4,at5,at6,at7,at8
-	double precision rclas(3,natot),fdummy(3,natot)
+	double precision, intent(inout) ::  rclas(3,natot),fdummy(3,natot)
 	double precision fce,fnew(3,10),rp(3),r12,r34,r56,r78,dist,
      .  dx,dy,dz
 	double precision pi,fdihe(12),F,dihedro2,rtot,req,kf
@@ -142,7 +150,7 @@ c****************************************************************************
 	pi = acos(-1.0d0)
 
 c change units 
-        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0
+        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !pasa a Angstroms
 
 c loop over nconstr
         do iconstr=1,nconstr
@@ -226,7 +234,9 @@ c write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
         rt(iconstr)=rtot
         req=ro(iconstr)
         kf=kforce(iconstr)
- 
+	write(6969,*) "kforce, req, rt" 
+        write(6969,*) kforce
+
 c atom1: dr12
         dx=0.d0
         dy=0.d0
@@ -246,7 +256,10 @@ c atom2: -fce over atom1
         fnew(2,2)=-fnew(2,1)
         fnew(3,2)=-fnew(3,1)
  
-c adding fnew to fdummy 
+c adding fnew to fdummy
+	write(6969,*) "fnew" 
+        write(6969,*) fnew
+
         fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
 
@@ -729,6 +742,14 @@ c**************************************************************
 	write(6,'(a)') 'constr opt: Optimized Reaction Coordinate'
 	write(6,'(a,F10.5)') 'Reaction Coordinate (Ang) : ',rt
 	write(6,'(a,F12.5)') 'Total Energy (eV) : ',E/eV
-        end
+      end subroutine subconstr3
 c**************************************************************
+      subroutine subconstr4(istep,rt)
+      use scarlett, only: Ang,eV
+        implicit none
+        double precision :: rt
+	integer :: istep
+        write(64444,'(2x,I8,f22.10)') istep,rt
+      end subroutine subconstr4
+
 
