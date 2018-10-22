@@ -116,7 +116,8 @@ C Read the Dynamics Options
      .                   dt, dxmax, ftol,  
      .                   usesavecg, usesavexv , Nick_cent,
      .                   na, 
-     .                   nat, nfce, wricoord, mmsteps, tempinit)
+     .                   nat, nfce, wricoord, mmsteps, tempinit,
+     .                   tt, tauber)
 
 C  Modules
       use precision
@@ -134,7 +135,8 @@ C  Modules
      .  wricoord, nat
 
       double precision
-     .  dt, dxmax, ftol, tempinit
+     .  dt, dxmax, ftol, tempinit,
+     .  tt, tauber
 
       logical
      .    usesavecg, usesavexv, Nick_cent
@@ -158,13 +160,16 @@ C  Internal variables .................................................
      .  dx_default,
      .  NEB_spring_constant_default,
      .  time_steep_default
-
       logical
      .  leqi, qnch, qnch_default
 
 C Temperatura inicial
 
 	tempinit = fdf_physical('MD.InitialTemperature',300.d0,'K')
+
+C Target Temperature JOTA
+
+        tt = fdf_physical('MD.TargetTemperature',300.d0,'K')
 
 
 C Kind of dynamics
@@ -203,6 +208,11 @@ C Kind of dynamics
           write(6,'(a,a)')
      .     'read: Dynamics option                  = ',
      .     '    Velocity Verlet MD run'
+      else if (leqi(dyntype,'berendsen')) then
+        idyn = 5
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    Berendsen MD run'
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
           write(6,'(a,a)')
@@ -222,6 +232,15 @@ C Kind of dynamics
         write(6,102)
         call die
       endif 
+
+C Berensen coupling constant
+      tauber = dt
+      if (idyn .eq. 5) then
+      tauber = fdf_physical('MD.TauRelax',dt,'fs')
+        write(6,'(a,f10.4,a)')
+     .  'read: Berendsen Coupling Constant      = ',
+     .   tauber,'  fs'
+      endif
 
 C Read if use saved XV data
       usesavexv = fdf_boolean('MD.UseSaveXV', .false.)
