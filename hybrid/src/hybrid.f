@@ -497,10 +497,23 @@ C Calculate Rcut & block list QM-MM
 
 
 ! Calculate Energy and Forces using Lio as Subroutine
-          if(qm) then 
-          call compute_cutsqmmm(r_cut_QMMM,F_cut_QMMM,Iz_cut_QMMM,
-     .    istepconstr,radbloqmmm,rcorteqmmm,nroaa,atxres)
+          if(qm) then
+            if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
+            if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
+            if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
+ 
+            call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm,
+     .      rcorteqmmm,nroaa,atxres)
 
+            allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
+     .      F_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
+     .      Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
+            r_cut_QMMM=0.d0
+            F_cut_QMMM=0.d0
+            Iz_cut_QMMM=0
+
+
+c	write(123123,*) "asdsad"
 c	  recompute_cuts=.true.
 c	  if (istep.eq.inicoor) recompute_cuts=.true.
 c	  if (replica_number.gt.1) recompute_cuts=.false.

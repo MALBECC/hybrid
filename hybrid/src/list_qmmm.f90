@@ -1,4 +1,4 @@
-      subroutine compute_cutsqmmm(r_cut_QMMM,F_cut_QMMM,Iz_cut_QMMM, &
+      subroutine compute_cutsqmmm(at_MM_cut_QMMM, &
       istepconstr,radbloqmmm,rcorteqmmm,nroaa,atxres)
       
       use scarlett, only: r_cut_list_QMMM,MM_freeze_list,na_u, &
@@ -6,22 +6,23 @@
 
       implicit none
       double precision, intent(in) :: rcorteqmmm, radbloqmmm
-      double precision, allocatable, dimension(:,:), intent(inout) :: &
-      r_cut_QMMM, F_cut_QMMM
-      double precision, allocatable, dimension(:), intent (inout) :: &
-      Iz_cut_QMMM
+!      double precision, allocatable, dimension(:,:) , intent(out):: &
+!      r_cut_QMMM, F_cut_QMMM
+!      double precision, allocatable, dimension(:), intent(out) :: &
+!      Iz_cut_QMMM
       integer, intent(in) :: nroaa, atxres(20000)
+      integer, intent(inout) :: at_MM_cut_QMMM
 
 ! internal variables
-      integer :: at_MM_cut_QMMM, r_cut_pos
+      integer :: r_cut_pos
       double precision :: r12, cm(3,20000), dist, dist2
       integer :: i, j, k, l, i_qm, i_mm, istepconstr 
       logical :: done, done_freeze, done_QMMM !control variables
 
 
-	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
-	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
-	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
+!	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
+!	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
+!	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
 	    r_cut_list_QMMM=0
 	    r_cut_pos=0
 	    at_MM_cut_QMMM=0
@@ -67,13 +68,13 @@
 	    end do
 
 
-	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), &
-          F_cut_QMMM(3,at_MM_cut_QMMM+na_u), &
-          Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
+!	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), &
+!          F_cut_QMMM(3,at_MM_cut_QMMM+na_u), &
+!          Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
 
-	  r_cut_QMMM=0.d0
-	  F_cut_QMMM=0.d0
-	  Iz_cut_QMMM=0
+!	  r_cut_QMMM=0.d0
+!	  F_cut_QMMM=0.d0
+!	  Iz_cut_QMMM=0
 
 !Recalcula list_qmmm
 
