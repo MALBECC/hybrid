@@ -35,6 +35,8 @@
 	  velocity_proyected=velocity_proyected+velocity_proyected_at
 	  if (velocity_proyected_at .lt. 0.d0) damp=.true.
 	end do
+		damp=.false.
+		if (velocity_proyected .lt. 0.d0) damp=.true.
 	velocity_mod=sqrt(velocity_mod)
 
 	if (.not. damp) then
