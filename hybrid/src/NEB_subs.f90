@@ -25,7 +25,7 @@
 	if (istep.eq.0) then!initial max steep size
 	  NEB_steep_size=0.1d0
 	  do i=1, natot
-	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*12.d0 !aumento la inercia en los hidrogrenos para porder aumenter el time step
+	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*12.d0 !mass scaling on H atoms to increase time step
 	  end do
           fclas_BAND_fresh=fclas_BAND
         else
@@ -124,29 +124,7 @@
 	  tang_vec(1:3,initial_atom:last_atom) =  &
 	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
 	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
-	ELSEIF (method.eq.1) then
-	  tang_vecA(1:3,initial_atom:last_atom) = &
-	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
-	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
-	
-	  tang_vecB(1:3,initial_atom:last_atom) = &
-	  rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) &
-	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
-	
-	  do i=initial_atom,last_atom
-	    NORMVECA= tang_vecA(1,i)**2 + tang_vecA(2,i)**2 + tang_vecA(3,i)**2
-	    NORMVECA=sqrt(NORMVECA)
-	    tang_vecA(1:3,i)=tang_vecA(1:3,i)/NORMVECA
-	
-	    NORMVECB= tang_vecB(1,i)**2 + tang_vecB(2,i)**2 + tang_vecB(3,i)**2
-	    NORMVECB=sqrt(NORMVECB)
-	    tang_vecB(1:3,i)=tang_vecB(1:3,i)/NORMVECB
-	  end do
-	
-	  tang_vec(1:3,initial_atom:last_atom)= &
-	  tang_vecA(1:3,initial_atom:last_atom)+tang_vecB(1:3,initial_atom:last_atom)
-	
-	ELSEIF (method.eq.2) then !The Journal of Chemical Physics 113, 9978 (2000); https://doi.org/10.1063/1.1323224
+	ELSEIF (method.eq.1 .or. method.eq.2) then !The Journal of Chemical Physics 113, 9978 (2000); https://doi.org/10.1063/1.1323224
 	  tang_vecA(1:3,initial_atom:last_atom) = &
 	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
 	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
@@ -154,31 +132,60 @@
 	  tang_vecB(1:3,initial_atom:last_atom) =  &
 	  rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) &
 	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number)
-	
-	  E0=Energy_band(replica_number-1)
-	  E1=Energy_band(replica_number)
-	  E2=Energy_band(replica_number+1)
+
+!luego pasar la normalizacion a una subrutina, Nick
 	  do i=initial_atom,last_atom
-	    if ((E2.gt.E1) .and. (E1.gt.E0)) then
-	      tang_vec(1:3,i)=tang_vecB(1:3,i)
-	    else if ((E0.gt.E1) .and. (E1.gt.E2)) then
-	      tang_vec(1:3,i)=tang_vecA(1:3,i)
+	    NORMVECA= tang_vecA(1,i)**2 + tang_vecA(2,i)**2 + tang_vecA(3,i)**2
+	    NORMVECB= tang_vecB(1,i)**2 + tang_vecB(2,i)**2 + tang_vecB(3,i)**2
+	    if (NORMVECA .lt. 1d-300) then
+	      write(*,*) "WARNING : tangA = 0 in ", replica_number,i
+	      tang_vecA(1:3,i)=0.d0
+	    else if (NORMVECA .ne. NORMVECA) then
+	      stop "NAN in tangent vector A"
 	    else
-	      Vmax=max(abs(E2-E1), abs(E1-E0))
-	      Vmin=min(abs(E2-E1), abs(E1-E0))
-	      if (E2.gt.E0) tang_vec(1:3,i)=Vmax*tang_vecB(1:3,i)+Vmin*tang_vecA(1:3,i)
-	      if (E0.gt.E2) tang_vec(1:3,i)=Vmin*tang_vecB(1:3,i)+Vmax*tang_vecA(1:3,i)
+	      NORMVECA=sqrt(NORMVECA)
+	      tang_vecA(1:3,i)=tang_vecA(1:3,i)/NORMVECA
+	    end if
+	    if (NORMVECB .lt. 1d-300) then
+	      write(*,*) "WARNING : tangB = 0 in ", replica_number,i
+	      tang_vecB(1:3,i)=0.d0
+	    else if (NORMVECB .ne. NORMVECB) then
+	      stop "NAN in tangent vector A"
+	    else
+	      NORMVECB=sqrt(NORMVECB)
+	      tang_vecB(1:3,i)=tang_vecB(1:3,i)/NORMVECB
 	    end if
 	  end do
+
+	  IF (method.eq.1) then
+	    tang_vec(1:3,initial_atom:last_atom)= &
+	    tang_vecA(1:3,initial_atom:last_atom)+tang_vecB(1:3,initial_atom:last_atom)
+	  ELSE
+	    E0=Energy_band(replica_number-1)
+	    E1=Energy_band(replica_number)
+	    E2=Energy_band(replica_number+1)
+	    do i=initial_atom,last_atom
+	      if ((E2.gt.E1) .and. (E1.gt.E0)) then
+	        tang_vec(1:3,i)=tang_vecB(1:3,i)
+	      else if ((E0.gt.E1) .and. (E1.gt.E2)) then
+	        tang_vec(1:3,i)=tang_vecA(1:3,i)
+	      else
+	        Vmax=max(abs(E2-E1), abs(E1-E0))
+	        Vmin=min(abs(E2-E1), abs(E1-E0))
+	        if (E2.gt.E0) tang_vec(1:3,i)=Vmax*tang_vecB(1:3,i)+Vmin*tang_vecA(1:3,i)
+	        if (E0.gt.E2) tang_vec(1:3,i)=Vmin*tang_vecB(1:3,i)+Vmax*tang_vecA(1:3,i)
+	      end if
+	    end do
+	  END IF
 	ELSE
 	  STOP "Wrong method in NEB_calculate_tg"
 	END IF
 	
 	do i=initial_atom,last_atom
-	  if (i.lt. 9) write(556,*) "tangente", i, tang_vec(1:3,i)
+!	  if (i.lt. 9) write(556,*) "tangente", i, tang_vec(1:3,i)
 	  NORMVEC= tang_vec(1,i)**2 + tang_vec(2,i)**2 + tang_vec(3,i)**2
 	  NORMVEC=sqrt(NORMVEC)
-	  if (NORMVEC .lt. 1d-20) then
+	  if (NORMVEC .lt. 1d-300) then
 !	    write(*,*) "tangent vector null, replica: ",replica_number, "atom ", i
 	     tang_vec(1:3,i)=0.d0
 !	    stop
