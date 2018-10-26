@@ -744,12 +744,36 @@ c**************************************************************
 	write(6,'(a,F12.5)') 'Total Energy (eV) : ',E/eV
       end subroutine subconstr3
 c**************************************************************
-      subroutine subconstr4(istep,rt)
+      subroutine subconstr4(istep,rt,slabel)
+      use ionew
       use scarlett, only: Ang,eV
         implicit none
         double precision :: rt
 	integer :: istep
-        write(64444,'(2x,I8,f22.10)') istep,rt
+        external paste
+        logical frstme
+        integer unit
+        save    frstme,unit,fname
+        data    frstme /.true./
+        character slabel*20, paste*24
+        character fname*24
+
+      if ( frstme ) then
+        fname = paste(slabel,'.rst')
+        frstme = .false.
+      endif
+
+      call io_assign(unit)
+      open( unit, file=fname, form = 'formatted', position='append',
+     .      status='unknown')
+
+        write(unit,'(2x,I8,f22.10)') istep,rt
+
+      call io_close(unit)
+
+      return
+
       end subroutine subconstr4
 
 
+c -------------------------------------------------------------------
