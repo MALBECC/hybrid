@@ -60,7 +60,7 @@
      . ftol,
      . Ang, eV, kcal, 
 !Dynamics
-     . Ekinion, tempion, tempinit, tt, tauber, tempqm,
+     . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !FIRE
      . time_steep, Ndescend, time_steep_max, alpha,
 !Lio
@@ -289,7 +289,7 @@
       call read_md( idyn, nmove, dt, dxmax, ftol, 
      .              usesavecg, usesavexv , Nick_cent, na_u,  
      .              natot, nfce, wricoord, mmsteps, tempinit,
-     .              tt, tauber)
+     .              tt, tauber,mn)
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
@@ -432,7 +432,7 @@ C Calculate Rcut & block list QM-MM
 
 ! Build initial velocities according to Maxwell-Bolzmann distribution
 
-        if (((idyn .eq. 4) .or. (idyn .eq. 5)) .and. (.not. foundvat))
+        if ((idyn .gt. 3) .and. (.not. foundvat))
      .  call vmb(natot,tempinit,masst,rclas,0,vat,cmcf,blockall,ntcon)
 !tempinit
 
@@ -462,11 +462,10 @@ C Calculate Rcut & block list QM-MM
           write(6,'(A)')    '*******************************'
           write(6,'(A,i5)') '  Constrained Step : ', istepconstr
           write(6,'(A)')    '*******************************'
-	  write(666,*) "paso ", istepconstr
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .lt. 6 ) then ! case 0 1 2 3
+        if (idyn .lt. 7 ) then ! case 0 1 2 3
           inicoor = 0
           fincoor = nmove
         endif
@@ -481,7 +480,7 @@ C Calculate Rcut & block list QM-MM
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 6) 
+          if (idyn .ge. 7) 
      .    STOP 'only CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
@@ -690,7 +689,7 @@ c return forces to fullatom arrays
         call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr,
      .  ndists,coef)
-	  if(idyn .ge. 4) call subconstr4(istep,rt(1))
+	  if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
           endif 
         endif !imm
 
@@ -806,6 +805,12 @@ C Write atomic forces
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
+      if (mn .eq. 0 .and. idyn .eq. 6) then
+        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
+        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
+        write(6,999) "mn =", mn
+      endif
+
       if (idyn .ne. 1 ) then !Move atoms with a CG algorithm
 
         if (writeRF .eq. 1) then!save coordinates and forces for integration 
@@ -836,6 +841,10 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         elseif (idyn .eq. 5) then
           call berendsen(istp,3,natot,cfdummy,dt,tauber,masst,
      .        ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
+        elseif (idyn .eq. 6) then
+          call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
+     .        Ekinion,kn,vn,tempion,nfree,cmcf)
+
 !tauber, tt
 !iunit fijado en 3
 
@@ -845,7 +854,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 
 	write(6,999)
      .  'hybrid: Temperature Antes:', tempion, ' K' 
-       if((idyn .eq. 4) .or. (idyn .eq. 5)) then
+       if(idyn .gt. 3) then
          call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,
      . nfree,cmcf)
 
@@ -857,6 +866,11 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
      .  'hybrid: System Temperature:', tempion, ' K'
         if(qm) write(6,999)
      .  'hybrid: QM SubSystem Temperature:', tempqm, ' K'
+        if(idyn .eq. 6) write(6,999)
+     .   'Kinetic energy of Nose variable:', kn, ' eV'
+        if(idyn .eq. 6) write(6,999)
+     .   'Potential energyy of Nose var:', vn, 'eV'
+
 !      if(qm) call centerdyn(na_u,rclas,ucell,natot)
 	if (MOD((istp - inicoor),traj_frec) .eq. 0)
      .  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,

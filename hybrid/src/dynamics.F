@@ -103,9 +103,8 @@ C  convert F/m in (Ry/Bohr)/amu  to  Bohr/fs**2
       else
 C convert F/m in (Hartree/Bohr)/amu  to  Bohr/fs**2
         fovermp = 2.0d0 * fovermp * Ang**2 / (eV*2.d0)    
-C revisar jota <--------------------------------------------------------------------------------    
       endif
-C ........................
+C .............................................................................
 
 C Compute old accelerations and velocities
 C  if the time step is the first of the simulation ...........................
@@ -406,6 +405,12 @@ C .....................
       return
       end
 
+C***********************************************************************
+C***********************************************************************
+C** Subroutine that calculates intantaneous temperature of the system **
+C***********************************************************************
+C***********************************************************************
+C iunit = 3
 
       subroutine calculateTemp(kin,temp,tempqm,va,ntcon,
      . nfree,cmcf)
@@ -444,4 +449,211 @@ C internal variables
         temp = 2.0d0*2.0d0*kin/dble(3*nfree-ct)/8.617d-5/(eV*2.d0)
       return
       end subroutine calculateTemp
-     
+
+C************************************************************************
+
+      subroutine nose(istep,natoms,fa,tt,dt,
+     .                ma,mn,ntcon,va,xa,kin,kn,vn,
+     .                temp,nfree,cmcf)
+C *************************************************************************
+C Subroutine for MD simulations with CONTROLLED TEMPERATURE.
+C The temperature is controlled with a NOSE thermostat.
+C The use of Nose dynamics provides trajectories which sample the 
+C isothermal ensamble.
+C The equations of motion are integrated with a modified Verlet 
+C algorithm, with a selfconsistent set of equations for the 
+C Nose variables.
+C
+C Written by P.Ordejon, November'96
+C ************************* UNITS ******************************************
+C (Como si fuera iunit = 3 JOTA)
+C Temperature in Kelvin
+C Time in femtoseconds
+C Atomic masses in atomic mass units
+C Energies are in Hartree
+C Distances are in Bohr
+C ************************* INPUT *********************************************
+C integer istep         : Number of time step during simulation
+C integer iunit         : Units option: 1 or 2 (see UNITS above)
+C integer natoms        : Number of atoms in the simulation cell
+C real*8 fa(3,natoms)   : Atomic forces
+C real*8 tt             : Target temperature
+C real*8 dt             : Length of the time step 
+C real*8 ma(natoms)     : Atomic masses
+C real*8 mn             : Mass of Nose thermostat
+C integer ntcon         : Total number of position constraints imposed
+C real*8 va(3,natoms)   : Atomic velocities
+C                         (used only if istep = 1)
+C integer cmcf          : Center of mass coordinates fixed JOTA
+C ******************* INPUT AND OUTPUT ****************************************
+C real*8 xa(3,natoms)   : Atomic coordinates
+C                        (input: current time step; output: next time step)
+C ************************* OUTOPUT *******************************************
+C real*8 kin            : Kinetic energy of the atomic system
+C real*8 kn             : Kinetic energy of Nose variable 
+C real*8 vn             : Potential energyy of Nose var
+C real*8 temp           : Instantaneous system temperature 
+C *****************************************************************************
+C
+C  Modules
+C
+      use precision
+      use scarlett, only: Ang,eV
+      implicit none
+
+      integer
+     .   natoms,ntcon,istep,nfree,cmcf
+
+      double precision
+     .  dt,fa(3,natoms),kin,kn,
+     .  ma(natoms),mn,tt,
+     .  va(3,natoms),vn,xa(3,natoms)
+
+c      external
+c     .  memory
+C Internal variables .........................................................
+
+      integer
+     .  ct,i,ia,Node
+
+      save x,xold
+
+      double precision
+     .  diff,dt2,dtby2,fact,fovermp,
+     .  tekin,temp,tol,twodt,
+     .  x,xdot,xlast,xnew,xold
+
+      double precision, dimension(:,:), allocatable, save ::
+     .  xanew,xaold
+C .............................................................................
+
+      ct = cmcf + ntcon
+      if (natoms .eq. 1) ct = 0
+
+C Allocate local memory and initialise
+      if (.not.allocated(xanew)) then
+        allocate(xanew(3,natoms))
+c        call memory('A','D',3*natoms,'nose')
+      endif
+      if (.not.allocated(xaold)) then
+        allocate(xaold(3,natoms))
+c        call memory('A','D',3*natoms,'nose')
+        do ia = 1,natoms
+          do i = 1,3
+            xaold(i,ia)=0.0d0
+          enddo
+        enddo
+      endif
+
+C Define constants and conversion factors .....................................
+      dt2   = dt**2
+      dtby2 = dt/2.0d0
+      twodt = dt*2.0d0
+      tol   = 1.0d-12
+
+      fovermp = 0.009648534d0*Ang**2/eV
+C  fovermp converts F/m in (eV/Amstrong)/amu  to  Amstrong/fs**2
+
+C  convert target ionic temperature into target kinetic energy
+C  Ekin=1/2*(3N-3)*kB*Temp  (yields Ekin in eV if Temp is in Kelvin)
+
+c	write(7171,*) tt, nfree, ct 
+
+      tekin = 0.5d0*dble(3*nfree-ct)*8.617d-5*eV*tt
+
+C Initialize variables if current time step is the first of the simulation
+
+      if (istep .eq. 1) then
+        x = 0.0d0
+        xold = 0.0d0
+        do ia = 1,natoms
+          do i = 1,3
+            xaold(i,ia) = xa(i,ia) - dt * va(i,ia)
+     .                + (dt2/2.0d0) * fovermp * fa(i,ia) / ma(ia)
+          enddo
+        enddo
+      endif
+
+C Compute uncorrected next positions .....................................
+      do ia = 1,natoms
+        do i = 1,3
+          xanew(i,ia) =  2.0d0 * xa(i,ia) - xaold(i,ia) +
+     .                   dt2 * fovermp * fa(i,ia) / ma(ia)
+        enddo
+      enddo
+
+C Compute uncorrected velocities and kinetic energy ......................
+      kin = 0.d0
+      do ia = 1,natoms
+        do i = 1,3
+          va(i,ia) = (xanew(i,ia) - xaold(i,ia)) / twodt
+          kin = kin + 0.5d0 * ma(ia) * va(i,ia)**2 / fovermp
+        enddo
+      enddo
+
+C Compute initial guess for Nose variables at next time step .............
+      xnew = 2.0d0 * x - xold
+
+C Start selfconsistency loop to calculate Nose variable ..................
+10    continue
+
+      xlast = xnew
+
+C xdot and hdot (time derivatives at current time), and related stuff
+      xdot = (xnew - xold) / twodt
+      fact = (1.0/(1.0+xdot*dtby2))
+
+C  Compute Nose variable for next iteration
+      xnew = 2.0d0 * x - xold
+     .       + (dt2/mn) * 2.0 * (fact**2 * kin - tekin)
+
+C Check if selfconsistency has been reached
+      diff = abs(xnew - xlast)
+      if (xlast .eq. 0.0d0) then
+        if (diff .gt. tol)  goto 10
+      else
+        if (diff/abs(xlast) .gt. tol)  goto 10
+      endif
+C ...................
+
+C Calculate corrected atomic coordinates at next time step, 
+C and corrected velocities and kinetic energy at current time step .........
+      do ia = 1,natoms
+        do i = 1,3
+          xanew(i,ia) = fact * ( xanew (i,ia) +
+     .                   dtby2 * xdot * xaold(i,ia))
+          va(i,ia) = fact * va(i,ia)
+        enddo
+      enddo
+      kin = kin * fact**2
+C ...................
+
+C Save current atomic positions as old ones, 
+C   and next positions as current ones
+      do i = 1,3
+        do ia = 1,natoms
+          xaold(i,ia) = xa(i,ia)
+          xa(i,ia) = xanew(i,ia)
+        enddo
+      enddo
+
+      xold = x
+      x = xnew
+
+C Calculate Kinetic and potential energies ................................
+C Kinetic energy of Nose variable
+      kn = (1.0d0 / 2.0d0) * mn * xdot**2
+
+C Potential energy of Nose variable (in eV)
+      vn = 2.0d0 * tekin * xold
+
+C Instantaneous temperature (Kelvin)
+
+      temp = 2.0d0*kin/dble(3*nfree-ct)/8.617d-5/eV
+
+C .....................
+
+      return
+      end subroutine nose
+
+   
