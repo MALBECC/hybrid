@@ -60,7 +60,7 @@
      . ftol,
      . Ang, eV, kcal, 
 !Dynamics
-     . Ekinion, tempion, tempinit,
+     . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !FIRE
      . time_steep, Ndescend, time_steep_max, alpha,
 !Lio
@@ -125,6 +125,7 @@
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
       double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
+      integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA  
       logical ::  recompute_cuts
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
@@ -275,7 +276,7 @@
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-     .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm)
+     .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm,res_ref)
       endif !mm
 
 ! changing cutoff to atomic units
@@ -287,7 +288,8 @@
 ! Read simulation data 
       call read_md( idyn, nmove, dt, dxmax, ftol, 
      .              usesavecg, usesavexv , Nick_cent, na_u,  
-     .              natot, nfce, wricoord, mmsteps, tempinit)
+     .              natot, nfce, wricoord, mmsteps, tempinit,
+     .              tt, tauber,mn)
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
@@ -403,8 +405,6 @@
         if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
 
-	write(*,*) qm, mm
-
 C Calculate Rcut & block list QM-MM 
 
       if(qm.and.mm) then
@@ -413,16 +413,26 @@ C Calculate Rcut & block list QM-MM
      .  radinnerbloqmmm,blockall)
       endif !qm & mm
         
+
+! Calculate blockall for full-MM simulation JOTA
+      if(mm.and. .not. qm) then
+
+        call fixed0(res_ref,natot,nroaa,atxres,rclas,blockall,
+     .              radbloqmmm,radinnerbloqmmm)
+
+      endif
+! nrjota hardcodeado = 1
+
 ! Read fixed atom constraints
       call fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
      .            atname,aaname,aanum,water)
 
-! Counts fixed degrees of freedom
+! Count fixed degrees of freedom
       call fixed3(natot,blockall,ntcon)
 
 ! Build initial velocities according to Maxwell-Bolzmann distribution
 
-        if (idyn .eq. 4 .and. (.not. foundvat))
+        if ((idyn .gt. 3) .and. (.not. foundvat))
      .  call vmb(natot,tempinit,masst,rclas,0,vat,cmcf,blockall,ntcon)
 !tempinit
 
@@ -452,11 +462,10 @@ C Calculate Rcut & block list QM-MM
           write(6,'(A)')    '*******************************'
           write(6,'(A,i5)') '  Constrained Step : ', istepconstr
           write(6,'(A)')    '*******************************'
-	  write(666,*) "paso ", istepconstr
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .lt. 5 ) then ! case 0 1 2 3
+        if (idyn .lt. 7 ) then ! case 0 1 2 3
           inicoor = 0
           fincoor = nmove
         endif
@@ -471,7 +480,7 @@ C Calculate Rcut & block list QM-MM
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 5) 
+          if (idyn .ge. 7) 
      .    STOP 'only CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
@@ -487,69 +496,83 @@ C Calculate Rcut & block list QM-MM
 
 
 ! Calculate Energy and Forces using Lio as Subroutine
-          if(qm) then 
+          if(qm) then
+            if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
+            if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
+            if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
+ 
+            call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm,
+     .      rcorteqmmm,nroaa,atxres)
 
-	  recompute_cuts=.false.
-	  if (istep.eq.inicoor) recompute_cuts=.true.
-	  if (replica_number.gt.1) recompute_cuts=.false.
-
-	  if (recompute_cuts) then ! define lista de interacciones en el primer paso de cada valor del restrain
-	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
-	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
-	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
-	    r_cut_list_QMMM=0
-	    r_cut_pos=0
-	    at_MM_cut_QMMM=0
-
-	    if (istepconstr.eq.1) then
-		MM_freeze_list=.true.
-		do i_qm=1,na_u
-		  MM_freeze_list(i_qm)=.false.
-		end do
-	    end if
-
-	    do i_mm=1, nac !MM atoms
-	      i_qm=0
-	      done=.false.
-              done_freeze=.false.
-              done_QMMM=.false.
-	      do while (i_qm .lt. na_u .and. .not. done) !QM atoms
-	        i_qm=i_qm+1
-                r12=(rclas(1,i_qm)-rclas(1,i_mm+na_u))**2.d0 +
-     .              (rclas(2,i_qm)-rclas(2,i_mm+na_u))**2.d0 +
-     .              (rclas(3,i_qm)-rclas(3,i_mm+na_u))**2.d0
-
-	        if(r12 .lt. rcorteqmmm .and. .not. done_QMMM) then
-	          done_QMMM=.true.
-	          at_MM_cut_QMMM=at_MM_cut_QMMM+1
-	          r_cut_pos=r_cut_pos+1
-	          r_cut_list_QMMM(i_mm)=r_cut_pos
-	        end if
+            allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
+     .      F_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
+     .      Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
+            r_cut_QMMM=0.d0
+            F_cut_QMMM=0.d0
+            Iz_cut_QMMM=0
 
 
+c	  recompute_cuts=.true.
+c	  if (istep.eq.inicoor) recompute_cuts=.true.
+c	  if (replica_number.gt.1) recompute_cuts=.false.
 
-		if (istepconstr.eq.1) then !define lista de movimiento para la 1er foto
-	          if(r12 .lt. radbloqmmm .and. .not. done_freeze) then
-	             MM_freeze_list(i_mm+na_u)=.false.
-	             done_freeze=.true.
-	          end if
-		end if
+c	  if (recompute_cuts) then ! define lista de interacciones en el primer paso de cada valor del restrain
+c	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
+c	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
+c	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
+c	    r_cut_list_QMMM=0
+c	    r_cut_pos=0
+c	    at_MM_cut_QMMM=0
+
+c	    if (istepconstr.eq.1) then
+c		MM_freeze_list=.true.
+c		do i_qm=1,na_u
+c		  MM_freeze_list(i_qm)=.false.
+c		end do
+c	    end if
+
+c	    do i_mm=1, nac !MM atoms
+c	      i_qm=0
+c	      done=.false.
+c              done_freeze=.false.
+c              done_QMMM=.false.
+c	      do while (i_qm .lt. na_u .and. .not. done) !QM atoms
+c	        i_qm=i_qm+1
+c                r12=(rclas(1,i_qm)-rclas(1,i_mm+na_u))**2.d0 +
+c     .              (rclas(2,i_qm)-rclas(2,i_mm+na_u))**2.d0 +
+c     .              (rclas(3,i_qm)-rclas(3,i_mm+na_u))**2.d0
+c
+c	        if(r12 .lt. rcorteqmmm .and. .not. done_QMMM) then
+c	          done_QMMM=.true.
+c	          at_MM_cut_QMMM=at_MM_cut_QMMM+1
+c	          r_cut_pos=r_cut_pos+1
+c	          r_cut_list_QMMM(i_mm)=r_cut_pos
+c	        end if
 
 
 
-		done=done_QMMM .and. done_freeze
-	      end do
-	    end do
+c		if (istepconstr.eq.1) then !define lista de movimiento para la 1er foto
+c	          if(r12 .lt. radbloqmmm .and. .not. done_freeze) then
+c	             MM_freeze_list(i_mm+na_u)=.false.
+c	             done_freeze=.true.
+c	          end if
+c		end if
+c
 
 
-	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u),
-     .    F_cut_QMMM(3,at_MM_cut_QMMM+na_u),
-     .    Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
+c		done=done_QMMM .and. done_freeze
+c	      end do
+c	    end do
 
-	  r_cut_QMMM=0.d0
-	  F_cut_QMMM=0.d0
-	  Iz_cut_QMMM=0
-	  end if
+
+c	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u),
+c     .    F_cut_QMMM(3,at_MM_cut_QMMM+na_u),
+c     .    Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
+
+c	  r_cut_QMMM=0.d0
+c	  F_cut_QMMM=0.d0
+c	  Iz_cut_QMMM=0
+c	  end if
 
 
 !copy position and nuclear charges to cut-off arrays
@@ -665,8 +688,10 @@ c return forces to fullatom arrays
         call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr,
      .  ndists,coef)
+	  if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
           endif 
         endif !imm
+
 
 ! Converts fdummy Hartree/bohr
         fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*eV/(Ang*kcal)
@@ -706,7 +731,7 @@ c return forces to fullatom arrays
 
 ! Impose constraints to atomic movements by changing forces
        call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
-     .             fdummy,cfdummy,vat,optimization_lvl)
+     .             fdummy,cfdummy,vat,optimization_lvl,blockall)
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
@@ -779,13 +804,19 @@ C Write atomic forces
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
+      if (mn .eq. 0 .and. idyn .eq. 6) then
+        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
+        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
+        write(6,999) "mn =", mn
+      endif
+
       if (idyn .ne. 1 ) then !Move atoms with a CG algorithm
 
         if (writeRF .eq. 1) then!save coordinates and forces for integration 
            do itest=1, natot
 	      write(969,423) itest, rclas(1:3,itest)*Ang,
 c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
-     .        cfdummy(1:3,itest)*0.5d0*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA
+     .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA saco *0.5 
            end do
         end if
 
@@ -806,21 +837,39 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
      .        masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
 !iquench lo dejamos como 0, luego cambiar
-!ntcon lo dejamos como 0, luego agregar
+        elseif (idyn .eq. 5) then
+          call berendsen(istp,3,natot,cfdummy,dt,tauber,masst,
+     .        ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
+        elseif (idyn .eq. 6) then
+          call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
+     .        Ekinion,kn,vn,tempion,nfree,cmcf)
+
+!tauber, tt
 !iunit fijado en 3
 
 	else
 	  STOP "Wrong idyn value"
 	end if
 
+	write(6,999)
+     .  'hybrid: Temperature Antes:', tempion, ' K' 
+       if(idyn .gt. 3) then
+         call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,
+     . nfree,cmcf)
 
-       if(idyn .eq. 4) then
         write(6,999)
      .  'hybrid: Kinetic Energy (eV):',Ekinion/eV
         write(6,999)
      .  'hybrid: Total Energy + Kinetic (eV):',(Etots+Ekinion)/eV
         write(6,999)
      .  'hybrid: System Temperature:', tempion, ' K'
+        if(qm) write(6,999)
+     .  'hybrid: QM SubSystem Temperature:', tempqm, ' K'
+        if(idyn .eq. 6) write(6,999)
+     .   'Kinetic energy of Nose variable:', kn, ' eV'
+        if(idyn .eq. 6) write(6,999)
+     .   'Potential energyy of Nose var:', vn, 'eV'
+
 !      if(qm) call centerdyn(na_u,rclas,ucell,natot)
 	if (MOD((istp - inicoor),traj_frec) .eq. 0)
      .  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
