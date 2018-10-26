@@ -203,9 +203,9 @@
 	implicit none
 	double precision, dimension(3,natot), intent(in) :: tang_vec
 	double precision ::  proyForce 
-	integer :: replica_number
+	integer, intent(in) :: replica_number
 	integer :: i
-	
+	proyForce=0.d0
 	do i=1, natot
 	  proyForce=fclas_BAND(1,i,replica_number)*tang_vec(1,i)
 	  proyForce=proyForce+fclas_BAND(2,i,replica_number)*tang_vec(2,i)
@@ -226,7 +226,9 @@
 	integer :: replica_number
 	integer, intent(in) :: methodSF
 	integer :: i
-	
+	auxescalar=0.d0
+	auxescalarA=0.d0
+	auxescalarB=0.d0
 	F_spring=0.d0
 	do i=1, natot
 	  if (methodSF.eq.1) then
