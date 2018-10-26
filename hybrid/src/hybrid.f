@@ -512,7 +512,6 @@ C Calculate Rcut & block list QM-MM
             Iz_cut_QMMM=0
 
 
-c	write(123123,*) "asdsad"
 c	  recompute_cuts=.true.
 c	  if (istep.eq.inicoor) recompute_cuts=.true.
 c	  if (replica_number.gt.1) recompute_cuts=.false.
