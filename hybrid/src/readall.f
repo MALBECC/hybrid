@@ -117,7 +117,7 @@ C Read the Dynamics Options
      .                   usesavecg, usesavexv , Nick_cent,
      .                   na, 
      .                   nat, nfce, wricoord, mmsteps, tempinit,
-     .                   tt, tauber)
+     .                   tt, tauber,mn)
 
 C  Modules
       use precision
@@ -136,7 +136,7 @@ C  Modules
 
       double precision
      .  dt, dxmax, ftol, tempinit,
-     .  tt, tauber
+     .  tt, tauber, mn
 
       logical
      .    usesavecg, usesavexv, Nick_cent
@@ -213,6 +213,11 @@ C Kind of dynamics
           write(6,'(a,a)')
      .     'read: Dynamics option                  = ',
      .     '    Berendsen MD run'
+      else if (leqi(dyntype,'nose')) then
+        idyn = 6
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    Nose termostat MD run'
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
           write(6,'(a,a)')
@@ -241,6 +246,20 @@ C Berensen coupling constant
      .  'read: Berendsen Coupling Constant      = ',
      .   tauber,'  fs'
       endif
+
+C Mass of Nose variable
+
+      if (idyn.eq.6) then
+        mn = fdf_physical('MD.NoseMass',1.d2,'eV*fs**2')
+        if (mn .eq. 0) then
+          write(6,'(/,a)') 
+     .  'read: Nose mass                        =   Estimated from Ndf' 
+        else
+          write(6,'(a,f10.4,a)')
+     .  'read: Nose mass                        = ',mn,'  eV/fs**2'
+        endif 
+      endif
+
 
 C Read if use saved XV data
       usesavexv = fdf_boolean('MD.UseSaveXV', .false.)
