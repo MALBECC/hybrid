@@ -41,8 +41,13 @@
 !Dynamics
 	double precision :: Ekinion ! Kinectic energy
 	double precision :: tempion ! Actual Temperature of system
+        double precision :: tempqm ! Actual Temperature of QM subsystem
 	double precision :: tempinit ! Starting Temperature
-
+	double precision :: tt ! Target Temperature
+	double precision :: tauber ! Bath Coupling Constant Berendsen
+        double precision :: kn ! Kinetic energy of Nose variable
+        double precision :: vn ! Potential energyy of Nose var
+        double precision :: mn ! Mass of Nose thermostat
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms

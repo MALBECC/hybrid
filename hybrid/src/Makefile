@@ -30,7 +30,7 @@ OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	reinit.o timestamp.o volcel.o cgvc.o iocg.o \
 	centerall.o ran3.o dot.o readall.o subconstr.o \
 	writeall.o qmmm_lst_blk.o solv_assign.o \
-	ljef.o solv_ene_fce.o linkatom.o recipes.o \
+	ljef.o solv_ene_fce.o linkatom.o recipes.o list_qmmm.o \
 	assignation.o center_rotation.o init_hybrid.o NEB_subs.o\
 	quickmin.o FIRE.o check_convergence.o dynamics.o vmb.o\
         hybrid.o \
@@ -95,7 +95,7 @@ HFLAGS += -O2 -L../../g2g
 hybrid: version $(FDF) $(ALL_OBJS)
 	@mkdir -p ../bin
 	$(FC) -o ../bin/hybrid \
-		$(HFLAGS) $(ALL_OBJS) $(LIO_OBJS) $(FDF) $(LIBS) 
+		$(HFLAGS) $(ALL_OBJS) $(LIO_OBJS) $(FDF) $(LIBS)  
 
 
 clean: 

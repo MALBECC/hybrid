@@ -1,3 +1,80 @@
+c******************************************************************
+c subroutine that fill the blockall matrix in only MM calculations
+
+	subroutine  fixed0(res_ref,natot,nroaa,atxres,rclas,blockall,
+     .              radiobloqmmm,radinnerbloqmmm)
+
+        use scarlett, only: Ang
+        implicit none
+        integer i,j,k,kk,l,natot,nroaa,atxres(20000),blockall(natot)
+        integer res_ref,ijota
+        double precision cm(3,20000),dist,dist2,radiobloqmmm,
+     .  radinnerbloqmmm,rclas(3,natot),
+     .  distinner2
+
+c change units
+        rclas=rclas/Ang
+
+c calculate center of masses of all residues
+        
+        cm=0.d0
+        k=1
+        do i=1,nroaa
+          do j=1,atxres(i)
+            cm(1:3,i)=cm(1:3,i)+rclas(1:3,k)
+            k=k+1
+          enddo
+          cm(1:3,i)=cm(1:3,i)/atxres(i)
+        enddo
+c fixing MM atoms beyond block cut off  
+        write(6,'(/a,f12.6)')
+     .  'mm: cut off radius Block (Ang):',radiobloqmmm
+        write(6,'(/a,f12.6)')
+     .  'mm: inner cut off radius Block (Ang):',radinnerbloqmmm
+        write(6,'(/a,2x,i5)')
+     .  'mm: cut off radius Block applied respect of residue:',res_ref
+	if(radiobloqmmm.eq.0.d0) then
+          blockall=1
+          write(6,'(/a,f12.6)')
+     .    'Fixing all MM atoms JOTA'
+        else
+          dist=0.d0
+          dist2=radiobloqmmm**2
+          distinner2=radinnerbloqmmm**2
+
+          k = 1
+          if(res_ref .ne. 1) then !revisa que res_ref no sea el residuo 1
+            do ijota=1,res_ref-1   !cuenta todos los átomos anteriores al primer átomo de res_ref
+              k = k + atxres(ijota)   !k es el primer átomo del residuo res_ref
+            enddo                 
+          endif
+          do l=k,k+atxres(res_ref)-1 !barre todos los átomos del residuo res_ref
+            do i=1,nroaa             !barre todos los residuos
+              kk = 1
+              if(i .ne. 1) then !revisa que nroaa no sea el residuo 1
+                do ijota=1,i-1   !cuenta todos los átomos anteriores al primer átomo del i-ésimo residuo
+                  kk = kk + atxres(ijota)     !kk es el primer átomo del i-ésimo residuo
+                enddo
+              endif
+
+              dist=(rclas(1,l)-cm(1,i))**2+
+     .             (rclas(2,l)-cm(2,i))**2+
+     .             (rclas(3,l)-cm(3,i))**2
+              do j=kk,kk+atxres(i)-1 !barre todos los átomos del j-ésimo residuo
+                if((dist.gt.dist2).or.(dist.lt.distinner2)) 
+     .          blockall(j)=1
+              enddo
+            enddo
+          enddo
+        endif
+
+c change units
+        rclas=rclas*Ang
+
+        end subroutine fixed0
+c*****************************************************************
+
+c*****************************************************************
 c subroutine that read the constrained atom block 
 
 	subroutine fixed1(na_u,nac,natot,nroaa,rclas,blocklist,
@@ -240,11 +317,12 @@ c*************************************************************
 c subroutine that imposes fce and vel constraints 
 
        subroutine  fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
-     .             fdummy,cfdummy,vat,optimization_lvl)
+     .             fdummy,cfdummy,vat,optimization_lvl,blockall)
 
 	use scarlett, only: coord_freeze, natoms_partial_freeze
 	implicit none
 	integer i,k,na_u,nac,natot,nfree,blockqmmm(nac),blocklist(natot)
+	integer blockall(natot)
 	integer optimization_lvl
 	integer inick, jnick
 	double precision fdummy(3,natot),cfdummy(3,natot),vat(3,natot) 
@@ -264,6 +342,14 @@ c nullify fce and vel
             vat(1:3,inick)=0.d0
 	  end do
         end if
+
+c Agrego para que congele según blockall... Queda redundante si es QMMM
+        do i=1,natot
+           if (blockall(i).eq.1) then
+           cfdummy(1:3,i)=0.d0
+           vat(1:3,i)=0.d0
+           endif
+        enddo
 
         do i=1,na_u
            if (blocklist(i).eq.1) then
@@ -290,7 +376,14 @@ c	   write(18200,*) "Congelé átomo QM", i ! Jota para test que congela aun si 
 c           write(182,*) "Congelé átomo MM", i
            endif
         enddo
-	
+
+        if (optimization_lvl .eq. 2)  then
+          do inick=1, na_u
+            cfdummy(1:3,inick) = 0.d0
+            vat(1:3,inick)=0.d0
+          end do
+        end if
+
 c	if(frstme) write(333,*) blocklist(1), blocklist(1)+
 c     . blocklist(2)+1
 
