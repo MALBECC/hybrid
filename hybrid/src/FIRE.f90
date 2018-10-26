@@ -32,11 +32,12 @@
 	    velocity_proyected_at=velocity_proyected_at+vel(j,i)*Force(j,i)
 	    velocity_mod=velocity_mod+vel(j,i)*vel(j,i)
 	  end do
+	  write(*,*) "atom", i, "VP ", velocity_proyected_at
 	  velocity_proyected=velocity_proyected+velocity_proyected_at
 	  if (velocity_proyected_at .lt. 0.d0) damp=.true.
 	end do
-		damp=.false.
-		if (velocity_proyected .lt. 0.d0) damp=.true.
+!		damp=.false.
+!		if (velocity_proyected .lt. 0.d0) damp=.true.
 	velocity_mod=sqrt(velocity_mod)
 
 	if (.not. damp) then
@@ -45,7 +46,18 @@
 	    time_steep=min(time_steep*1.1d0, time_steep_max)
 	    alpha=alpha*0.99d0
 	  end if
-	  vel=(1.d0-alpha)*vel+alpha*velocity_mod*Force/Fmod
+	  do  i=1, natot
+	    Fmod=0.d0
+	    velocity_mod=0.d0
+	
+	    do j=1,3
+	      Fmod=Fmod + Force(j, i)**2
+	      velocity_mod=velocity_mod+vel(j,i)*vel(j,i)
+	    end do
+	     velocity_mod=sqrt(velocity_mod)
+	     Fmod=sqrt(Fmod)
+	    vel(1:3,i)=(1.d0-alpha)*vel(1:3,i)+alpha*velocity_mod*Force(1:3,i)/Fmod
+	  end do
 	else
 	  Ndamped=Ndamped+1
 	  write(*,*) "damping system", Ndamped
