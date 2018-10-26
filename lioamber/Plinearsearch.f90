@@ -10,6 +10,7 @@
 
 
 	subroutine P_conver(Rho_LS, niter, En, E1, E2, Ex, good, xnano, rho_a, rho_b)
+!IF Rho_LS=-1 never do lineal search
 !IF Rho_LS=0 calculate convergence criteria for actual density matrix
 !IF Rho_LS=1 do a lineal search for density matrix only if energy > energy of previus step
 !IF Rho_LS=2 do a lineal search for density matrix in all steeps
@@ -135,24 +136,36 @@
 	if (Elast.lt. E_lambda(10) .or. Rho_LS.eq.2) then
 	  write(*,*) "This step ", E_lambda(10), "last steep ", Elast
 	  write(*,*) "doing lineal interpolation in Rho"
-	  do ilambda=0, 10
-	    dlambda=Pstepsize*dble(ilambda)/10.d0
-	    if (dlambda .gt. 1.d0) STOP "dlambda > 1.d0"
-	    RMM(1:MM)=rho_lambda0(1:MM)*(1.d0-dlambda)+rho_lambda1(1:MM)*dlambda 
-	    if(OPEN) rhoalpha(1:MM)=rho_lambda0_alpha(1:MM)*(1.d0-dlambda)+rho_lambda1_alpha(1:MM)*dlambda
-	    if(OPEN) rhobeta(1:MM)=rho_lambda0_betha(1:MM)*(1.d0-dlambda)+rho_lambda1_betha(1:MM)*dlambda
-	    call give_me_energy(E_lambda(ilambda), En, E1, E2, Ex)
 
-	    write(*,*) "step ",ilambda, "energy ", E_lambda(ilambda)
-	  end do
+	  ilambda=10
+	  dlambda=Pstepsize*dble(ilambda)/10.d0
+	  if (dlambda .gt. 1.d0) STOP "dlambda > 1.d0"
+	  RMM(1:MM)=rho_lambda0(1:MM)*(1.d0-dlambda)+rho_lambda1(1:MM)*dlambda 
+	  if(OPEN) rhoalpha(1:MM)=rho_lambda0_alpha(1:MM)*(1.d0-dlambda)+rho_lambda1_alpha(1:MM)*dlambda
+	  if(OPEN) rhobeta(1:MM)=rho_lambda0_betha(1:MM)*(1.d0-dlambda)+rho_lambda1_betha(1:MM)*dlambda
+	  call give_me_energy(E_lambda(ilambda), En, E1, E2, Ex)
 
-	  call line_search(11,E_lambda, 1d0, Blambda )
-	  if (Blambda .ge. 1.d0) Blambda=Blambda-1.0d0
-	  write(*,*) "Best lambda", Blambda
-	  Blambda=Blambda*Pstepsize/10.d0
-	  write(*,*) "Fluctuation: ", Blambda
+	  if (Elast.lt. E_lambda(10) .or. Rho_LS.eq.2) then
+	    do ilambda=0, 9
+	      dlambda=Pstepsize*dble(ilambda)/10.d0
+	      if (dlambda .gt. 1.d0) STOP "dlambda > 1.d0"
+	      RMM(1:MM)=rho_lambda0(1:MM)*(1.d0-dlambda)+rho_lambda1(1:MM)*dlambda 
+	      if(OPEN) rhoalpha(1:MM)=rho_lambda0_alpha(1:MM)*(1.d0-dlambda)+rho_lambda1_alpha(1:MM)*dlambda
+	      if(OPEN) rhobeta(1:MM)=rho_lambda0_betha(1:MM)*(1.d0-dlambda)+rho_lambda1_betha(1:MM)*dlambda
+	      call give_me_energy(E_lambda(ilambda), En, E1, E2, Ex)
+	      write(*,*) "step ",ilambda, "energy ", E_lambda(ilambda)
+	    end do
+	      write(*,*) "step ",10, "energy ", E_lambda(10)
+	    call line_search(11,E_lambda, 1d0, Blambda )
+	    if (Blambda .ge. 1.d0) Blambda=Blambda-1.0d0
+	    write(*,*) "Best lambda", Blambda
+	    Blambda=Blambda*Pstepsize/10.d0
+	    write(*,*) "Fluctuation: ", Blambda
+	  else
+	    Blambda=Pstepsize
+	  end if
 	else
-	  Blambda=Pstepsize
+	  Blambda=1.d0
 	end if
 
 	RMM(1:MM)=rho_lambda0(1:MM)*(1.d0-Blambda)+rho_lambda1(1:MM)*Blambda
@@ -189,6 +202,7 @@
 	if (Blambda .ge. 8.d-1*Pstepsize) Pstepsize=Pstepsize*1.2d0
 	if (Pstepsize .gt. 1.d0) Pstepsize=1.d0
 	if (Blambda .le. 2.d-1*Pstepsize .and. Pstepsize .gt. 1d-4) may_conv=.false.
+	if (Blambda .le. 2.d-1*Pstepsize) Pstepsize=Pstepsize/5.d0
 	return
 	end subroutine P_linear_calc
 

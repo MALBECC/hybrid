@@ -277,7 +277,7 @@ C hay qunificar los timesteeps
       time_steep_default=1d-1
       time_steep = fdf_double('Tstep',
      .  time_steep_default)
-      time_steep_max=75.d0*time_steep
+      time_steep_max=15.d0*time_steep
 C Trajectory frecuency to write coordinates and Energy 
 	traj_frec = fdf_integer('MD.TrajFrec',100)
 
