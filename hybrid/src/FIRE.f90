@@ -32,7 +32,7 @@
 	    velocity_proyected_at=velocity_proyected_at+vel(j,i)*Force(j,i)
 	    velocity_mod=velocity_mod+vel(j,i)*vel(j,i)
 	  end do
-	  write(*,*) "atom", i, "VP ", velocity_proyected_at
+!	  write(*,*) "atom", i, "VP ", velocity_proyected_at
 	  velocity_proyected=velocity_proyected+velocity_proyected_at
 	  if (velocity_proyected_at .lt. 0.d0) damp=.true.
 	end do
