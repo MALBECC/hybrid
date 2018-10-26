@@ -842,8 +842,6 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
           call berendsen(istp,3,natot,cfdummy,dt,tauber,masst,
      .        ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
         elseif (idyn .eq. 6) then
-!          if (mn .eq. 0) 
-!     .    mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
           call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
 
