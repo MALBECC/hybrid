@@ -21,7 +21,9 @@ c -------------------------------------------------------------------
       if ( frstme ) then
         fname = paste(slabel,'.ene')
         Ang  = 1.d0 / 0.529177d0
-        eV  = 1.d0 / 13.60580d0
+        eV  = 1.d0 / 27.211396132d0
+c        eV  = 1.d0 / 13.60580d0
+c cambiado para E de lio
         frstme = .false.
       endif
 
@@ -30,9 +32,9 @@ c -------------------------------------------------------------------
      .      status='unknown')
 
 	if(idyn .eq. 0 .or. idyn .eq. 5 ) then
-      write(unit,'(i5,2x,F14.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
+      write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
 	else
-      write(unit,'(i5,2x,F12.4,2x,F12.4,2x,F12.4,2x,F7.2)')
+      write(unit,'(i5,2x,F18.4,2x,F12.4,2x,F12.4,2x,F7.2)')
      .istp,Ekinion/eV,Etots/eV,(Etots+Ekinion)/eV,tempion
 	endif
 
@@ -79,9 +81,10 @@ c -------------------------------------------------------------------
 
       if ( frstme ) then
         Ang  = 1.d0 / 0.529177d0
-        eV  = 1.d0 / 13.60580d0
+        eV  = 1.d0 / 27.211396132d0
+!        eV  = 1.d0 / 13.60580d0
       fnamep = paste(slabel,'.init.pdb')
-      fnamec = paste(slabel,'.crd')
+c      fnamec = paste(slabel,'.crd')
       fnamel = paste(slabel,'.last.pdb')
 
 c writes initial PDB coords in .init.pdb file 
@@ -97,37 +100,37 @@ c writes initial PDB coords in .init.pdb file
        call io_close(unitp)
 
 c writes in .crd file at begining 
-      inquire( file=fnamec, exist=foundc )
-	if (foundc) then
-      call io_assign(unitc)
-      open( unitc, file=fnamec, status='old' )
-      read(unitc,'(a30)',err=1,end=1) title
-      call io_close(unitc)
-      ch=title(1:4)
-      if(ch.ne.'File') then
-      call io_assign(unitc)
-      open( unitc, file=fnamec, form = 'formatted', status='unknown')
-      write(unitc,'(20a)') 'File CRD'
-      call io_close(unitc)
-      endif
-	else
-      call io_assign(unitc)
-      open( unitc, file=fnamec, form = 'formatted', status='unknown')  
-      write(unitc,'(20a)') 'File CRD'
-      call io_close(unitc)
-	endif
-      frstme = .false.
+c      inquire( file=fnamec, exist=foundc )
+c	if (foundc) then
+c      call io_assign(unitc)
+c      open( unitc, file=fnamec, status='old' )
+c      read(unitc,'(a30)',err=1,end=1) title
+c      call io_close(unitc)
+c      ch=title(1:4)
+c      if(ch.ne.'File') then
+c      call io_assign(unitc)
+c      open( unitc, file=fnamec, form = 'formatted', status='unknown')
+c      write(unitc,'(20a)') 'File CRD'
+c      call io_close(unitc)
+c      endif
+c	else
+c      call io_assign(unitc)
+c      open( unitc, file=fnamec, form = 'formatted', status='unknown')  
+c      write(unitc,'(20a)') 'File CRD'
+c      call io_close(unitc)
+c	endif
+c      frstme = .false.
       endif !frstme
-	call flush(6)
+c	call flush(6)
 
 c writes in .crd acumulately 
-      if(MOD(istp,wricoord).eq.0) then         
-      call io_assign(unitc)
-      open( unitc, file=fnamec, form = 'formatted', position='append',
-     .      status='unknown')
-       write(unitc,'(10F8.3)') (rclas(1:3,i)/Ang,i=1,natot)
-      call io_close(unitc)
-      endif
+c      if(MOD(istp,wricoord).eq.0) then         
+c      call io_assign(unitc)
+c      open( unitc, file=fnamec, form = 'formatted', position='append',
+c     .      status='unknown')
+c       write(unitc,'(10F8.3)') (rclas(1:3,i)/Ang,i=1,natot)
+c      call io_close(unitc)
+c      endif
 
 c writes actual coords in PDB format in .last.pdb file 
       call io_assign(unitl)
@@ -174,7 +177,8 @@ c -------------------------------------------------------------------
 
       if ( frstme ) then
         Ang  = 1.d0 / 0.529177d0
-        eV  = 1.d0 / 13.60580d0
+        eV  = 1.d0 / 27.211396132d0
+c        eV  = 1.d0 / 13.60580d0
       fnamec = paste(slabel,'.rcg')
       fnamee = paste(slabel,'.rce')
       frstme = .false.
@@ -202,72 +206,6 @@ c wirtes .rcg file
 
       return
       end
-
-c*********************************************************************************
-c writes the slabel.siesta.fdf with its modifications
-      subroutine write_lab(slabel, siestaslabel)
-
-      use ionew
-      use fdf
-      implicit none
-
-      character
-     .  slabel*20,siestaslabel*20
-
-C  Internal variables 
-      character
-     .  filein*24,fileout*24, line(100000)*150, paste*24,
-     .  chsn*10,chsl*11,chtr*12,chmdx*11,lineaux*150 
-
-      integer 
-     .   i, nlines, length(100000), unit, iunit
-
-      external paste
-
-c Read slabel.fdf
-      filein = paste(slabel,'.fdf')
-      call io_assign(iunit)
-      open( iunit, file=filein)
-
-        i=1
- 10     continue
-        read(iunit, err=20,end=20,fmt='(a)') line(i)
-        call chrlen(line(i),0,length(i))
-        if (length(i) .ne. 0) i=i+1
-        goto 10
- 20     continue
-        nlines=i-1
-      call io_close(iunit)
-
-C Write slabel.siesta.fdf
-      fileout = paste(siestaslabel,'.fdf')
-      call io_assign(unit)
-      open( unit, file=fileout)
-        
-        do i=1,nlines
-          lineaux=line(i) 
-          chsn=lineaux(1:10)
-          chsl=lineaux(1:11)
-          chtr=lineaux(1:12)
-          chmdx=lineaux(1:11) 
-          if (chsn.eq.'SystemName') then
-            write(unit,'(a,2x,a)') 'SystemName',siestaslabel 
-          elseif(chsl.eq.'SystemLabel') then
-            write(unit,'(a,2x,a)') 'SystemLabel',siestaslabel
-          elseif(chtr.eq.'MD.TypeOfRun') then
-            write(unit,'(a)') 'MD.TypeOfRun forces' 
-          elseif(chmdx.eq.'WriteMDXmol') then
-            write(unit,'(a)') 'WriteMDXmol .false.'
-          else
-            write(unit,'(a)') lineaux(1:length(i)) 
-          endif
-        enddo
-
-            write(unit,'(a)') 'ReadVext .true.'
-            write(unit,'(a)') 'SaveDeltaRho .true.'
- 
-        call io_close(unit)
-        end
 
 c***********************************************************************************
 	subroutine wrtcrd(natot,rclas)
@@ -366,7 +304,7 @@ c write only if constrlog is true
         if(constrlog) then
 
 c change units
-        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177
+        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0
 
 c loop over nconstr
         do iconstr=1,nconstr
@@ -482,7 +420,7 @@ c write file
         call io_close(unit)
 
 c change units 
-        rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177
+        rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177d0
 
         endif !constrlog
         return

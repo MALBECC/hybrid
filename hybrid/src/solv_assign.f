@@ -10,7 +10,7 @@ c assignation of solvent atoms
      .  nimp,kimp,impeq,imptype,multiimp,perimp,
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,timestep,
-     .  radbloqmmm,atsinres)
+     .  radbloqmmm,atsinres, radblommbond)
 
 	use precision
 	use sys
@@ -23,7 +23,8 @@ c assignation of solvent atoms
         double precision, dimension(:,:), allocatable, save::
      .  qaa,Rma,Ema 
         double precision Rm(natot),Em(natot),
-     .  pc(nac),rclas(3,natot)
+     .  pc(0:nac),rclas(3,natot)
+cagregue 0 apc
         character ch*1,exp
  	character*4 atom
 	character*4, dimension(:), allocatable, save::
@@ -56,9 +57,17 @@ c assignation of solvent atoms
         double precision radbloqmmm
 	logical foundamber
         character ch1*1,ch4*4
+ccorrecion del bug de bonds extras, Nick
+	integer :: ivalue(natot*2), inick,jnick
+c parche para q no ponga bonds entre extremos terminales
+        double precision radblommbond
 
+	ivalue=0
+
+
+	write(*,*) "entre a solv_assign, Nick"
 C nullify some solvent vbles
-      rclas = 0.0
+      rclas = 0.d0
       aanum = 0
       nroaa = 0
       ng1 = 0
@@ -67,24 +76,35 @@ C nullify some solvent vbles
       ndihe = 0
       nimp = 0
       ncon = 0
-      rcortemm = 100.0
-      rcorteqm = 1.E-06
-      rcorteqmmm = 100.0
-      sfc=2.0
-      timestep=0.1
-      radbloqmmm=100.0
+      rcortemm = 100.d0
+      rcorteqm = 1.d-06
+      rcorteqmmm = 100.d0
+      sfc=2.d0
+      timestep=0.1d0
+      radbloqmmm=100.d0
       foundamber=.false.
 
 C read solvent coordinates by atom
       if ( fdf_block('SolventInput',iunit) ) then
+!	write(*,*) "nac vale ", nac
 	do i=1,nac
          read(iunit,err=10,end=10,fmt='(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      .      atom, j, atname(i), aaname(i),
      .      ch, resnum(i), rclas(1:3,na_u+i)
+c ATOM     12  CE  MET H   1       7.246  15.955   0.940
+
+	 ivalue(j)=i
          enddo
 	else
         call die("solvent: You must specify the solvent coordinates")      
-	endif
+      endif
+
+c	write(*,*) "ivalue"
+c	do j=1,natot
+c	   write(*,*) j, ivalue(j)
+c	end do
+
+c	write(*,*) "flag 1, Nick"
 
 c change coordinates to Siesta format
 	rclas(1:3,1:natot) = rclas(1:3,1:natot) / 0.529177d0   
@@ -93,18 +113,21 @@ c assigns number of residues
        k=1
        aanum(1)=k
        do i=2,nac
-       if (resnum(i).eq.resnum(i-1)) then
-       aanum(i)=aanum(i-1)
-       elseif (resnum(i).ne.resnum(i-1)) then
-       k = k+1
-       aanum(i)= k
-       endif
+         if (resnum(i).eq.resnum(i-1)) then
+           aanum(i)=aanum(i-1)
+         elseif (resnum(i).ne.resnum(i-1)) then
+           k = k+1
+           aanum(i)= k
+         endif
        enddo
+
        nroaa = aanum(nac)
-        if(nroaa.eq.0) then
-        call die("solvent: Number of residues can not be zero")
-        endif
-        if(nac.eq.0) nroaa=0
+
+       if(nroaa.eq.0) then
+         call die("solvent: Number of residues can not be zero")
+       endif
+ 
+       if(nac.eq.0) nroaa=0
 
 c read solute atom type
         if(na_u.ne.0) then
@@ -112,6 +135,7 @@ c read solute atom type
 	do i=1,na_u+1
 	  read(iunit,*,end=20,err=20) ch4 
 	  ch1=ch4(1:1)
+c	  write(*,*) "ch4 vale ", ch1, " Nick"
 	  if(i.eq.na_u+1) then
 	    if(ch1.eq.'%') then
 	    goto 2
@@ -120,6 +144,8 @@ c read solute atom type
 	    endif
 	  endif
 	  if(ch1.eq.'%') then
+c	  write(*,*) "na_u vale", na_u, "Nick"
+c	  write(*,*) "lei ", ch1, " Nick"
 	  call die('solvent: solute atom types are lower than na_u') 
 	  endif
 	qmattype(i)=ch4
@@ -129,6 +155,8 @@ c read solute atom type
       endif
 	endif
 
+c	write(*,*) "flag 2, Nick"
+
 c read cutoff radious
       if ( fdf_block('CutOffRadius',iunit) )
      .     then
@@ -136,6 +164,7 @@ c read cutoff radious
       read(iunit,*,err=30,end=30) exp, rcorteqmmm
       read(iunit,*,err=30,end=30) exp, rcortemm
       read(iunit,*,err=30,end=30) exp, radbloqmmm
+      read(iunit,*,err=30,end=30) exp, radblommbond
 C      read(iunit,*,err=30,end=30) exp, sfc
 C      read(iunit,*,err=30,end=30) exp, timestep
       else
@@ -152,24 +181,40 @@ c checking cut-off radius
 
 c external solvent connectivity block
        if ( fdf_block('SolventConnectivity',iunit) ) then
-       i=1
- 5     continue
-       if(i.gt.1000) then
-       call die('read: Solvent connectivities must not exeed 1000')
+         i=1
+ 5       continue
+         if(i.gt.1000) then
+           call die('read: Solvent connectivities must not exeed 1000')
+         endif
+         read(iunit,'(a)',advance='no',err=40,end=40) exp 
+         if(exp.eq.'%') goto 6
+         read(iunit,*,err=40,end=40) exp, con2(1:2,i)
+         i=i+1
+         goto 5
+ 6       continue
+         ncon=i-1
+         allocate(con(2,ncon))
+c arreglo esto para conectividades correctas segun el numero de atomo en el fdf, Nick
+c         con(1:2,1:ncon)=con2(1:2,1:ncon)
+
+	  do jnick=1, ncon
+	  do inick=1, 2
+	     write(*,*) "i,j,con2, ivalue", inick,jnick,con2(inick,jnick),
+     .       ivalue(con2(inick,jnick))
+	     con(inick,jnick)=ivalue(con2(inick,jnick))
+	  end do
+	     write(*,*) "interaccion extra agregada entre ",
+     .       con(1,jnick), " y ", con(2,jnick)
+	  end do
+
+          if(ncon.ne.0) then
+            write(6,'(/,a)') 'read: Reading new connectivities block'
+          endif
+       else
+         allocate(con(2,1))
+cagregado nick, sino trae problemas cuando ncon=0
        endif
-       read(iunit,'(a)',advance='no',err=40,end=40) exp 
-       if(exp.eq.'%') goto 6
-       read(iunit,*,err=40,end=40) exp, con2(1:2,i)
-       i=i+1
-       goto 5
- 6     continue
-       ncon=i-1
-       allocate(con(2,ncon))
-       con(1:2,1:ncon)=con2(1:2,1:ncon)
-        if(ncon.ne.0) then
-        write(6,'(/,a)') 'read: Reading new connectivities block'
-        endif
-       endif
+
 
 c se fija si esta el amber.parm 
 	inquire( file="amber.parm", exist=foundamber )
@@ -190,6 +235,9 @@ c aca empieza la verdadera asignacion: segun atomo xa c/aa
 c subrutina que lee el nro de atomos por aa
         call atxaa(n,aanamea,atomsxaa)
 
+c	write(*,*) "nroaa, Nick",nroaa
+c	write(*,*) "atxres, Nick",atxres
+
 c cambia vbles
 	atxres=0
         k = 1
@@ -201,13 +249,14 @@ c cambia vbles
         		endif
         	enddo
 		if(atxres(i).eq.0) then
-		write(6,*) 'solvent: Wrong residue name  :', i
-		STOP
+			write(6,*) 'solvent: Wrong residue name  :', i
+			STOP
 		endif
+
         	do j=1,atxres(i)
-        	atnu(i,j)=k
-		atnamea(i,j)=atname(k)
-        	k = k+1
+        		atnu(i,j)=k
+			atnamea(i,j)=atname(k)
+        		k = k+1
         	enddo
         enddo	
 
@@ -272,6 +321,9 @@ c checking ST and SV parameters
 	do i=1,nac
         if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
         if(Rm(i+na_u).eq.0.or.Em(i+na_u).eq.0.or.pc(i).eq.0) then
+	write(*,*) "Rm(i+na_u)", Rm(i+na_u)
+	 write(*,*) "Em(i+na_u)", Em(i+na_u)
+	write(*,*) "pc(i)", pc(i)
 	write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter, atom:', i
         STOP
 	endif
@@ -294,7 +346,7 @@ c  subrutina q pone la carga y tipo de atomo
         integer nroaa,nataa(nroaa,100),nac,atxres(nroaa)                                                             
 	character*4 atnamea(nroaa,100),resname(nroaa),
      .  attypea(nroaa,100),attype(nac)
-	double precision qaa(nroaa,100),pc(nac)
+	double precision qaa(nroaa,100),pc(0:nac)
         double precision, dimension(:,:,:), allocatable, save ::
      .  pcoord
         double precision, dimension(:,:), allocatable, save ::
@@ -313,6 +365,10 @@ c  subrutina q pone la carga y tipo de atomo
         logical search
         character*12 option 
 	integer ui
+
+	integer :: i2,j2,k2 !auxiliars
+	logical :: kill
+	kill=.false.
 
 	call io_assign(ui) 
         open(unit=ui,file="amber.parm")
@@ -363,23 +419,74 @@ c si funciona como subrutina asigna las cargas y attypeas seguna amber
 
         k=1
         do i=1,nroaa
-        do j=1,atxres(i)
-        attype(k)=attypea(i,j)
-        k=k+1
-        enddo
+          do j=1,atxres(i)
+            attype(k)=attypea(i,j)
+            k=k+1
+          enddo
         enddo
  
+
+	write(*,*) "flag 123456"
+
         k=1
         do i=1,nroaa
-        do j=1,atxres(i)
-        pc(k)=qaa(i,j)
-	if(qaa(i,j).eq.0.0) then
-	write(6,'(a,i5)') 'solvent: Wrong atom name  :',k           
-	STOP
-	endif
-        k=k+1
+          do j=1,atxres(i)
+            pc(k)=qaa(i,j)
+!		write(6,*) k, attypea(i,j)
+	    if(qaa(i,j).eq.0.0) then !report error
+	      write(6,'(a,i5)') 'solvent: Wrong atom name  :',k           
+	      k2=k
+
+	      if (i.gt.1) then
+!		write(*,*) "i>1"
+  	        i2=i-1
+                do j2=1,atxres(i2)
+	          k=k-1
+    	        end do
+	        i2=i
+                do j2=1,j-1
+                  k=k-1
+                end do
+
+
+	        do i2=i-1, i
+	          do j2=1,atxres(i2)
+	            if (i .eq. i2 .and. j2.eq.j) then
+		      write(6,*) k, resname(i2), attypea(i2,j2),"<--- this one"
+		    else
+		      write(6,*) k, resname(i2), attypea(i2,j2)
+		    end if
+		    k=k+1
+		  end do
+	        end do
+
+	      else
+!		write(*,*) "i=1"
+                do j2=1,j-1
+                  k=k-1
+                end do
+
+                i2=i
+                do j2=1,atxres(i2)
+                  if (j2.eq.j) then
+		    write(6,*) k, resname(i2), attypea(i2,j2),"<--- this one"
+                  else
+                    write(6,*) k, resname(i2), attypea(i2,j2)
+                  end if
+                  k=k+1
+                end do
+	      end if
+	      kill=.true.
+	      k=k2
+	    endif
+
+            k=k+1
+          enddo
         enddo
-        enddo
+
+
+!	write(*,*) "kill?"
+	if (kill) STOP
 
         deallocate(patnamea,pcoord,
      .  pattype,patxres,paanamea,
@@ -403,8 +510,8 @@ c subrutina q asigna segun el attypea  los pots Lj
         logical search
         character*12 option 
         integer ui
-	Rm=0.0
-	Em=0.0
+	Rm=0.d0
+	Em=0.d0
 
         call io_assign(ui)
         open(unit=ui,file="amber.parm")
@@ -428,8 +535,8 @@ c lee el archivo con los parametros
 
 c  pasa los LJ a las unidades del siesta
         do i=1,nlj
-        pRm(i) = (2.0*pRm(i)/0.529177)/(2.0**(1.0/6.0))
-        pEm(i) = (pEm(i)/627.5108)
+        pRm(i) = (2.0d0*pRm(i)/0.529177d0)/(2.d0**(1.d0/6.d0))
+        pEm(i) = (pEm(i)/627.5108d0)
         enddo
  
 c asigna el LJ corresp al attypea xa el solvente
@@ -581,30 +688,30 @@ c subrutina q asigna los 1eros vecinos
 
 c asigna los 1eros vecinos de cada atomo      
          do i=1,nroaa
-         do k=1,nresid
-         if (resname(i).eq.presname(k)) then
-         do j=1,atxres(i)
-         n=1  
-         do l=1,bondxres(k)
-         if (nataa(i,j).eq.png1(k,l,1)) then
-          do m=1,atxres(i)
-         if (nataa(i,m).eq.png1(k,l,2)) then 
-         ng1(atnu(i,j),n) = atnu(i,m)
-         n=n+1
-         endif
-         enddo
-         elseif(nataa(i,j).eq.png1(k,l,2)) then
-           do m=1,atxres(i)
-         if (nataa(i,m).eq.png1(k,l,1)) then
-         ng1(atnu(i,j),n) = atnu(i,m)
-         n=n+1
-         endif
-         enddo 
-         endif 
-         enddo
-         enddo
-         endif
-         enddo
+           do k=1,nresid
+             if (resname(i).eq.presname(k)) then
+               do j=1,atxres(i)
+                 n=1  
+                 do l=1,bondxres(k)
+                   if (nataa(i,j).eq.png1(k,l,1)) then
+                     do m=1,atxres(i)
+                       if (nataa(i,m).eq.png1(k,l,2)) then 
+                         ng1(atnu(i,j),n) = atnu(i,m)
+                         n=n+1
+                       endif
+                     enddo
+                   elseif(nataa(i,j).eq.png1(k,l,2)) then
+                     do m=1,atxres(i)
+                       if (nataa(i,m).eq.png1(k,l,1)) then
+                         ng1(atnu(i,j),n) = atnu(i,m)
+                         n=n+1
+                       endif
+                     enddo 
+                   endif 
+                 enddo
+               enddo
+             endif
+           enddo
          enddo
 
 c calcula los vecinos entre 2 aa seguidos
@@ -661,19 +768,22 @@ c calcula los vecinos entre 2 nucleotidos seguidos
 
 c asigna las uniones de los atomos impuestos en el imput
         do i=1,ncon
-        if(con(1,i).eq.-1) goto 10
-        do k=1,6
-        if(ng1(con(1,i),k).eq.0) then
-        ng1(con(1,i),k)=con(2,i)
-        do j=1,6
-        if(ng1(con(2,i),j).eq.0) then        
-        ng1(con(2,i),j)=con(1,i)   
-        goto 10
-        endif
-        enddo
-        endif
-        enddo
- 10     continue                 
+c barre conectivodades extra agregadas 
+          if(con(1,i).eq.-1) goto 10
+          do k=1,6
+            if(ng1(con(1,i),k).eq.0) then
+              ng1(con(1,i),k)=con(2,i)
+		write(*,*) "agregue conectividad", con(1,i), con(2,i), k
+              do j=1,6
+                if(ng1(con(2,i),j).eq.0) then        
+                  ng1(con(2,i),j)=con(1,i)   
+	write(*,*) "agregue conectividad", con(1,i), con(2,i), j
+                  goto 10
+                endif
+              enddo
+            endif
+          enddo
+ 10       continue                 
         enddo
 
         deallocate(presname,bondxres,png1)      
@@ -931,6 +1041,9 @@ c subrutina q lee cuantos atomos tiene cada aa
 	endif
         do i=1,n
                 read(ui,*,err=1,end=1) aanamea(i),atomsxaa(i)
+!aanamea es el nombre del residuo
+!atomsxaa es la cantidad de atomos q tiene el residuo
+!		write(*,*) "lei: ", aanamea(i),atomsxaa(i)
                 do j=1,atomsxaa(i)
 	if(atomsxaa(i).ge.100) then
 	stop 'solvent: Number of atoms in a residue must not exeed 100'
@@ -975,6 +1088,8 @@ c bonds
         call io_assign(ui)
         open(unit=ui,file="amber.parm")
         search=.true.
+	bondtype=""
+c pongo en 0, Nick
         do while (search)
         read (ui,*,err=100,end=100) option
         if (option.eq.'bonds') then

@@ -9,45 +9,9 @@
         integer,save             :: nvna(nemax)  ! Number of entries in table
 
         private nemax,delta,vnatable,nvna,nmax
-        public rcut, vna_sub, read_na
+        public rcut, vna_sub 
 
         contains
-
-        subroutine read_na(ne,atsim)
-
-        use ionew
-        implicit none
-        integer ne
-        character atsim(ne)*2, filevna*24, paste*24
-        external paste
-
-C internal variables
-        integer unit, is, i
-        real*8 x(nmax)
-
-C Reads the neutral atom potentials from files 
-        if (ne .gt. nemax) stop 'Increase max number of species!!'
-        call io_assign(unit)
-
-        do is=1,ne
-          call io_assign(unit)
-          filevna = paste('VNA.', atsim(is))
-          open(unit,file=filevna,status='old',form='formatted')
-          read(unit,*)
-          do i=1,nmax
-            nvna(is)=i
-            if (i .gt. nmax) stop 'Increase size of VNA matrix!!'
-            read(unit,*,err=100,end=100) x(i),vnatable(i,is)
-          enddo
-100       continue
-          delta(is) = x(2)-x(1)
-          rcut(is)=x(nvna(is)-1)
-          call io_close(unit)
-        enddo
-
-        return
-        end subroutine read_na
-
 c..............................................................................
 
          subroutine vna_sub(is,rr,vna,grvna)

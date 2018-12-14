@@ -12,13 +12,14 @@ c this subroutine calculates the solvent energy
      .    evaldihelog,evaldihmlog,paso,nparm,
      .    actualiz,listcut,
      .    noat,noaa,sfc,timestep,
-     .    water,masst)         
+     .    water,masst,radblommbond)         
 
         implicit none
 c      vbles grales
        integer   i,j,k,l,na_u,natot,nac,ng1(nac,6),paso 
        double precision  pcA(nac),rclas(3,natot),ramber(3,nac),
-     .    EmA(nac),RmA(nac),pc(nac),Em(natot),Rm(natot),
+     .    EmA(nac),RmA(nac),pc(1:nac),Em(natot),Rm(natot),
+c agregue 0 a pc, Nick
      .    Etot_amber,Ebond_amber,Eangle_amber,Edihe_amber,Eimp_amber,
      .    Elj_amber,Eelec_amber,Elj_amber14,Eelec_amber14 
        double precision fcetot_amber(3,nac),
@@ -51,27 +52,30 @@ c	vbles q faltaban
      .          nonbonded(nac,100),scale(nac,100),
      .          nonbondedxat(nac),scalexat(nac)
        logical  evaldihelog(nac,100),evaldihmlog(nac,100),actualiz
+c parche para omitir interaccion entre extremos terminales
+      double precision :: radblommbond
+
 
 c inicializa las energias y fuerzas
-      Etot_amber=0.0
-      Ebond_amber=0.0
-      Eangle_amber=0.0
-      Edihe_amber=0.0
-      Eimp_amber=0.0
-      Elj_amber=0.0
-      Eelec_amber=0.0
-      Elj_amber14=0.0
-      Eelec_amber14=0.0
-      fcetot_amber=0.0
-      fcebond_amber=0.0
-      fceangle_amber=0.0
-      fcedihe_amber=0.0
-      fceimp_amber=0.0
-      fcelj_amber=0.0
-      fceelec_amber=0.0
-      fcetotaxes_amber=0.0   
-      ewat=0.0
-      fwat=0.0
+      Etot_amber=0.d0
+      Ebond_amber=0.d0
+      Eangle_amber=0.d0
+      Edihe_amber=0.d0
+      Eimp_amber=0.d0
+      Elj_amber=0.d0
+      Eelec_amber=0.d0
+      Elj_amber14=0.d0
+      Eelec_amber14=0.d0
+      fcetot_amber=0.d0
+      fcebond_amber=0.d0
+      fceangle_amber=0.d0
+      fcedihe_amber=0.d0
+      fceimp_amber=0.d0
+      fcelj_amber=0.d0
+      fceelec_amber=0.d0
+      fcetotaxes_amber=0.d0   
+      ewat=0.d0
+      fwat=0.d0
 
 c cambia variables
       k=1
@@ -93,15 +97,15 @@ c cambia variables
  
 c  pasa a las unidades de Amber
       do i=1,nac
-      RmA(i) = RmA(i)*(2.0**(1.0/6.0))*0.529177/2.0
-      EmA(i) = EmA(i)*627.5108
-      ramber(1:3,i)=ramber(1:3,i)*0.529177
+      RmA(i) = RmA(i)*(2.d0**(1.d0/6.d0))*0.529177d0/2.d0
+      EmA(i) = EmA(i)*627.5108d0
+      ramber(1:3,i)=ramber(1:3,i)*0.529177d0
       enddo
 
 c  llama a subrutina q calcula la energia y fuerzas de bonds
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
-     .       ng1type,paso,nparm)
+     .       ng1type,paso,nparm,radblommbond)
 
 c  llama a subrutina q calcula la energia y fuerzas de angles
         call amber_angles(nac,ng1,ramber,Eangle_amber,attype,
@@ -139,11 +143,24 @@ c  calcula la energia total de amber
      .    Elj_amber+Eelec_amber+Elj_amber14+Eelec_amber14+ewat
 
 c  calcula la fuerza total de amber
+
+
+c	write(*,*) "contribuciones AMBER"
+c	write(*,*) "i, fcebond_amber(1:3,i), fceangle_amber(1:3,i), 
+c     .  fcedihe_amber(1:3,i), fceimp_amber(1:3,i), fcelj_amber(1:3,i), 
+c     .  fceelec_amber(1:3,i), fwat(1:3,i)"
+
 	do i=1,nac
+c	write(*,*) i, fcebond_amber(1:3,i), fceangle_amber(1:3,i), 
+c     .  fcedihe_amber(1:3,i), fceimp_amber(1:3,i), fcelj_amber(1:3,i),
+c     .  fceelec_amber(1:3,i), fwat(1:3,i)
+
+
+
 	fcetot_amber(1:3,i)=fcebond_amber(1:3,i)+fceangle_amber(1:3,i)
      .  +fcedihe_amber(1:3,i)+fceimp_amber(1:3,i)+
      .  fcelj_amber(1:3,i)+fceelec_amber(1:3,i)+fwat(1:3,i)
-       fcetot_amber(1:3,i)=(-1.0)*fcetot_amber(1:3,i)     
+       fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)     
        fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
 	enddo
 
@@ -154,7 +171,7 @@ c subrutina q calcula la energia y fuerzas de bonds
 
         subroutine amber_bonds(nac,ng1,ramber,Ebond_amber,
      .             attype,nbond,kbond,bondeq,bondtype,bondxat,
-     .             fcebond_amber,ng1type,paso,nparm)
+     .             fcebond_amber,ng1type,paso,nparm,radblommbond)
 
        implicit none      
 c      vbles grales 
@@ -177,25 +194,51 @@ c      vbles de asignacion
       logical           first                                                                  
       save              first                                                                  
       data              first /.true./    
+      logical           ST
+       double precision :: radblommbond
+
+	ST=.false.
 
 c asignacion de tipos de union
       if(first) then
        do i=1,nac
+c barre at clasicos
         do j=1,bondxat(i)
+c barre bonds del atomo i
          do k=1,nbond
+c barre todos los bonds leidos en el amber.parm
           tybond=bondtype(k)
           ty1=tybond(1:2)
           ty2=tybond(4:5)
+
+!	write(*,*) "asigno tipo", attype(i), attype(ng1(i,j)), ng1(i,j)
+
           if(attype(i).eq.ty1.and.attype(ng1(i,j)).eq.ty2) then
-          ng1type(i,j)=k
+            ng1type(i,j)=k
           elseif(attype(i).eq.ty2.and.attype(ng1(i,j)).eq.ty1) then
-          ng1type(i,j)=k
+            ng1type(i,j)=k
           endif
+
          enddo
         enddo
        enddo
       first=.false.
       endif !asignacion
+
+!	if (.false.) then !poner una variable para prender luego
+       do i=1,nac
+!check params, Nick
+        do j=1,bondxat(i)
+	  if (ng1type(i,j) .eq.0) then
+	    write(*,*) "bond ", attype(i),"-", attype(ng1(i,j)),
+     .  " not defined check amber.parm"
+	  write(*,*) i,j, "bonds", bondxat(i), ng1(i,j)
+	  ST=.true.
+	  end if
+	end do
+	end do
+	if (ST) STOP
+!	end if
 
 c calculo de la E y F de bond
        do i=1,nac
@@ -203,22 +246,30 @@ c calculo de la E y F de bond
          rij=dist(ramber(1,i),ramber(2,i),ramber(3,i),
      .            ramber(1,ng1(i,j)),ramber(2,ng1(i,j)),
      .            ramber(3,ng1(i,j)))
+
+
+          if (rij .lt. radblommbond) then
           Ebond_amber= Ebond_amber+kbond(ng1type(i,j))*
-     .    (rij-bondeq(ng1type(i,j)))**2       
-          dx1=(1.0/rij)*(ramber(1,i)-ramber(1,ng1(i,j)))
-          dx1=2.0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dx1
-          dy1=(1.0/rij)*(ramber(2,i)-ramber(2,ng1(i,j))) 
-          dy1=2.0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dy1  
-          dz1=(1.0/rij)*(ramber(3,i)-ramber(3,ng1(i,j)))
-          dz1=2.0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dz1
+     .    (rij-bondeq(ng1type(i,j)))**2d0       
+          dx1=(1.d0/rij)*(ramber(1,i)-ramber(1,ng1(i,j)))
+          dx1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dx1
+          dy1=(1.d0/rij)*(ramber(2,i)-ramber(2,ng1(i,j))) 
+          dy1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dy1  
+          dz1=(1.d0/rij)*(ramber(3,i)-ramber(3,ng1(i,j)))
+          dz1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dz1
           fcebond_amber(1,i)=fcebond_amber(1,i)+dx1
           fcebond_amber(2,i)=fcebond_amber(2,i)+dy1
           fcebond_amber(3,i)=fcebond_amber(3,i)+dz1
+          else
+c parche para omitir bonds entre extremos terminales
+            Write(*,*) "WARNING, omiting bond ", i, j,
+     .  "bond distance ", rij
+          end if
         enddo
        enddo
 
-       Ebond_amber= Ebond_amber/2
-       ftotbond=0.0
+       Ebond_amber= Ebond_amber/2d0
+       ftotbond=0.d0
 
       end
 c******************************************************
@@ -254,9 +305,9 @@ c      vbles de asignacion
       data              first /.true./    
       
        pi=DACOS(-1.d0)
-       fesq=0.0
-       fmedio=0.0
-       ftotangle=0.0
+       fesq=0.d0
+       fmedio=0.d0
+       ftotangle=0.d0
 
 c asignacion de los tipos de angulos 
       if(first) then
@@ -308,7 +359,7 @@ c para el angulo en la esquina
      .          ramber(2,atange(i,j,2)),ramber(3,atange(i,j,2)))
        Eangle_amber = Eangle_amber + kangle(angetype(i,j))*
      .                ((angulo-angleeq(angetype(i,j)))*
-     .                (pi/180))**2
+     .                (pi/180d0))**2d0
       scal=scalar(ramber(1,i),ramber(2,i),ramber(3,i),
      .          ramber(1,atange(i,j,1)),ramber(2,atange(i,j,1)),
      .          ramber(3,atange(i,j,1)),ramber(1,atange(i,j,2)),
@@ -322,22 +373,22 @@ c para el angulo en la esquina
      .          ramber(3,atange(i,j,1)))
       dscalar=(ramber(1,atange(i,j,2))-ramber(1,atange(i,j,1)))
       dr12r32=r32*(ramber(1,i)-ramber(1,atange(i,j,1)))/(r12)
-      dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
-      dx=2.0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
-     .                (pi/180)*dx
+      dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
+      dx=2.d0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
+     .                (pi/180d0)*dx
       dscalar=(ramber(2,atange(i,j,2))-ramber(2,atange(i,j,1)))
       dr12r32=r32*(ramber(2,i)-ramber(2,atange(i,j,1)))/(r12)
-      dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
-      dy=2.0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
-     .                (pi/180)*dy
+      dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
+      dy=2.d0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
+     .                (pi/180d0)*dy
       dscalar=(ramber(3,atange(i,j,2))-ramber(3,atange(i,j,1)))
       dr12r32=r32*(ramber(3,i)-ramber(3,atange(i,j,1)))/(r12)
-      dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
-      dz=2.0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
-     .                (pi/180)*dz
+      dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
+      dz=2.d0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
+     .                (pi/180d0)*dz
       fesq(1,i)=fesq(1,i)+dx
       fesq(2,i)=fesq(2,i)+dy   
       fesq(3,i)=fesq(3,i)+dz  
@@ -353,7 +404,7 @@ c para el angulo en el medio
      .          ramber(2,atangm(i,j,2)),ramber(3,atangm(i,j,2)))
        Eangle_amber = Eangle_amber + kangle(angmtype(i,j))*
      .                ((angulo-angleeq(angmtype(i,j)))*
-     .                (pi/180))**2
+     .                (pi/180d0))**2d0
       scal=scalar(ramber(1,atangm(i,j,1)),ramber(2,atangm(i,j,1)),
      .          ramber(3,atangm(i,j,1)),ramber(1,i),ramber(2,i),
      .          ramber(3,i),ramber(1,atangm(i,j,2)),
@@ -364,37 +415,37 @@ c para el angulo en el medio
       r32=dist(ramber(1,atangm(i,j,2)),
      .          ramber(2,atangm(i,j,2)),ramber(3,atangm(i,j,2)),
      .          ramber(1,i),ramber(2,i),ramber(3,i))
-      dscalar=2.0*ramber(1,i)-ramber(1,atangm(i,j,1))-
+      dscalar=2.d0*ramber(1,i)-ramber(1,atangm(i,j,1))-
      .        ramber(1,atangm(i,j,2))
       dr12r32=(r32*(-ramber(1,atangm(i,j,1))+ramber(1,i))/r12)+
      .        (r12*(-ramber(1,atangm(i,j,2))+ramber(1,i))/r32)
-      dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
-      dx=2.0*kangle(angmtype(i,j))*(angulo-angleeq(angmtype(i,j)))*
-     .                (pi/180)*dx
-      dscalar=2.0*ramber(2,i)-ramber(2,atangm(i,j,1))-
+      dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
+      dx=2.d0*kangle(angmtype(i,j))*(angulo-angleeq(angmtype(i,j)))*
+     .                (pi/180d0)*dx
+      dscalar=2.d0*ramber(2,i)-ramber(2,atangm(i,j,1))-
      .        ramber(2,atangm(i,j,2))
       dr12r32=(r32*(-ramber(2,atangm(i,j,1))+ramber(2,i))/r12)+
      .        (r12*(-ramber(2,atangm(i,j,2))+ramber(2,i))/r32)
-      dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
-      dy=2.0*kangle(angmtype(i,j))*(angulo-angleeq(angmtype(i,j)))*
-     .                (pi/180)*dy
-      dscalar=2.0*ramber(3,i)-ramber(3,atangm(i,j,1))-
+      dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
+      dy=2.d0*kangle(angmtype(i,j))*(angulo-angleeq(angmtype(i,j)))*
+     .                (pi/180d0)*dy
+      dscalar=2.d0*ramber(3,i)-ramber(3,atangm(i,j,1))-
      .        ramber(3,atangm(i,j,2))
       dr12r32=(r32*(-ramber(3,atangm(i,j,1))+ramber(3,i))/r12)+
      .        (r12*(-ramber(3,atangm(i,j,2))+ramber(3,i))/r32)
-      dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
-      dz=2.0*kangle(angmtype(i,j))*(angulo-angleeq(angmtype(i,j)))*
-     .                (pi/180)*dz
+      dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
+      dz=2.d0*kangle(angmtype(i,j))*(angulo-angleeq(angmtype(i,j)))*
+     .                (pi/180d0)*dz
       fmedio(1,i)=fmedio(1,i)+dx
       fmedio(2,i)=fmedio(2,i)+dy
       fmedio(3,i)=fmedio(3,i)+dz
         enddo
        enddo
     
-       Eangle_amber= Eangle_amber/3
+       Eangle_amber= Eangle_amber/3d0
  
        do i=1,nac
        fceangle_amber(1,i)=fesq(1,i)+fmedio(1,i)
@@ -441,9 +492,9 @@ c      vbles de asignacion
       data              first /.true./    
 
        pi=DACOS(-1.d0)
-       ftotdihe=0.0
-       fesq=0.0
-       fmedio=0.0
+       ftotdihe=0.d0
+       fesq=0.d0
+       fmedio=0.d0
 
 c asignacion de los tipos de dihedros
       if(first) then
@@ -523,7 +574,7 @@ C	write(*,*) 'dihety: ',i,j,'sin parametro'
      .   ty2.and.attype(atdihm(i,j,2)).eq.ty3.and.
      .   attype(atdihm(i,j,3)).eq.ty4) then
          dihmty(i,j)=k
-          if(perdihe(k).lt.0.0) then
+          if(perdihe(k).lt.0.d0) then
           evaldihmlog(i,j)=.true.
           m=m+1
           evaldihm(i,j,m)=k
@@ -533,7 +584,7 @@ C	write(*,*) 'dihety: ',i,j,'sin parametro'
      .   ty3.and.attype(atdihm(i,j,2)).eq.ty2.and.
      .   attype(atdihm(i,j,3)).eq.ty1) then
          dihmty(i,j)=k
-          if(perdihe(k).lt.0.0) then
+          if(perdihe(k).lt.0.d0) then
           evaldihmlog(i,j)=.true.
           m=m+1
           evaldihm(i,j,m)=k
@@ -553,7 +604,7 @@ C        write(*,*) 'dihmty: ',i,j,'sin parametro'
 c calcula la E y F de dihedros 
 c para los dihes en la esquina
         do i=1,ndihe
-        if(perdihe(i).lt.0.0) then
+        if(perdihe(i).lt.0.d0) then
         perdihe(i)=-perdihe(i)
         endif
         enddo
@@ -579,7 +630,7 @@ c si el dihedro es 500 es error y sale
 
        k=evaldihe(i,j,m)
        E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180)*(perdihe(k)*dihedral-diheeq(k))))
+     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
 	call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
@@ -595,7 +646,7 @@ c si el dihedro es 500 es error y sale
 	else
        k=dihety(i,j)
        E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180)*(perdihe(k)*dihedral-diheeq(k))))
+     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
         call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
@@ -633,7 +684,7 @@ c si el dihedro es 500 es error y sale
          if(evaldihm(i,j,m).ne.0) then
        k=evaldihm(i,j,m)
        E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180)*(perdihe(k)*dihedral-diheeq(k))))
+     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
         call diheforce(nac,ramber,
      .                 atdihm(i,j,1),i,atdihm(i,j,2),atdihm(i,j,3),2,
@@ -650,7 +701,7 @@ c si el dihedro es 500 es error y sale
 
        k=dihmty(i,j)
        E1=(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180)*(perdihe(k)*dihedral-diheeq(k))))
+     .  (1+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
         call diheforce(nac,ramber,
      .                 atdihm(i,j,1),i,atdihm(i,j,2),atdihm(i,j,3),2,
@@ -705,7 +756,7 @@ c	varianles de fza
       data              first /.true./
     
        pi=DACOS(-1.d0)
-       fimptot=0.0
+       fimptot=0.d0
 
 c asignacion de los tipos de impropers
       if(first) then
@@ -766,7 +817,7 @@ C        write(*,*) 'impty: ',i,j,'sin parametro'
 
 c calcula la E y F de impropers
       do i=1,nimp
-        if(perimp(i).lt.0.0) then
+        if(perimp(i).lt.0.d0) then
         perimp(i)=-perimp(i)
         endif
         enddo
@@ -807,7 +858,7 @@ c busca que atomo del impropio es el i
       fimp(3,i)=fimp(3,i)+dz
         enddo
        enddo
-      Eimp_amber=Eimp_amber/4
+      Eimp_amber=Eimp_amber/4d0
 
       end
 c *******************************************************
@@ -828,7 +879,7 @@ c subrutina que calcula la energia y fuerzas de terminos non-bonded
 c      vbles grales
        integer   nac,ng1(nac,6),i,j,k,l,m,n,paso,dimvec,
      . n_pointer,na_u,natot
-       double precision   ramber(3,nac),Em(nac),Rm(nac),pc(nac),
+       double precision   ramber(3,nac),Em(nac),Rm(nac),pc(1:nac),
      .    Elj_amber,Eelec_amber,Elj_amber14,Eelec_amber14
        character*4 attype(nac),noat(nac),noaa(nac)
        double precision ewat,fwat(3,nac),masst(natot),rclas(3,natot)
@@ -859,63 +910,83 @@ c variables de la lista de vecinos
       data              first /.true./    
 
 	pi=DACOS(-1.d0)
-        unidades=((1.602177E-19**2)*6.02E23)/(1.0E-10*4*
-     .     pi*8.8541878E-12*4.184*1000)
-        fel=0.0
-	flj=0.0
-	felec=0.0
-        felectot=0.0
-        fljtot=0.0
-        epsilon=1.0
-        factorlj=2.0
-        factorelec=1.2
+        unidades=((1.602177d-19**2d0)*6.02d23)/(1.0d-10*4d0*
+     .     pi*8.8541878d-12*4.184d0*1000d0)
+        fel=0.d0
+	flj=0.d0
+	felec=0.d0
+        felectot=0.d0
+        fljtot=0.d0
+        epsilon=1.d0
+        factorlj=2.d0
+        factorelec=1.2d0
 	acs=200	
-	ewat=0.0
-	fwat=0.0
-	dimvec=nac*3000
-	if(dimvec.gt.100000000) stop 
-     .  'Solvent Energy and Forces: "dimvec" too large!'
+	ewat=0.d0
+	fwat=0.d0
+c	dimvec=nac*3000
+c cambio dim vec, Nick  antes alocateaba mas chico de lo q podeia llegar a necesitar
+	dimvec=nac*(nac+1)/2
+c	if(dimvec.gt.100000000) stop 
+c     .  'Solvent Energy and Forces: "dimvec" too large!'
+
+
+c	do i=1,nac
+c		write(*,*) "conectiv", i, ng1(i,1:6)
+c	end do
 
 c asigna los atomos nonbonded y su tipo
          if(first) then       
-         do i=1,nac 
-          m=1
-          do j=1,bondxat(i)
-	  if(i.lt.ng1(i,j))then
-           nonbonded(i,m)=ng1(i,j)
-           m=m+1
-	  endif
-          enddo
-          do j=1,angexat(i)
-	  if(i.lt.atange(i,j,2)) then
-	  nonbonded(i,m)=atange(i,j,2)
-	  m=m+1
-          endif
-	  enddo
-	  nonbondedxat(i)=m-1
+           do i=1,nac 
+             m=1
+             do j=1,bondxat(i)
+	       if(i.lt.ng1(i,j))then
+                 nonbonded(i,m)=ng1(i,j)
+                 m=m+1
+	       endif
+             enddo
+c                if ( (i.eq.1180) .or. (i.eq.1183).or.(i.eq.1184)
+c     .  .or.(i.eq.1185).or.(i.eq.1186).or.(i.eq.1187).or.
+c     .  (i.eq.1194).or.(i.eq.1197).or.(i.eq.1199)) then
+c                   write(*,*) "check1 bonds ", i, m
+c                end if
+
+
+             do j=1,angexat(i)
+	       if(i.lt.atange(i,j,2)) then
+	         nonbonded(i,m)=atange(i,j,2)
+	         m=m+1
+               endif
+	     enddo
+	     nonbondedxat(i)=m-1
+
+
+c		if ( (i.eq.1180) .or. (i.eq.1183).or.(i.eq.1184)
+c     .  .or.(i.eq.1185).or.(i.eq.1186).or.(i.eq.1187).or.
+c     .  (i.eq.1194).or.(i.eq.1197).or.(i.eq.1199)) then
+c		   write(*,*) "check1 ang ", i, m
+c		end if
 
 c se fija los que estan 1-4(scaled)
-          m=1
-          do j=1,dihexat(i)
-	  if(i.lt.atdihe(i,j,3)) then
+             m=1
+             do j=1,dihexat(i)
+	       if(i.lt.atdihe(i,j,3)) then
 c se fija si ya lo puso (por si hay dihedros repetidos)
-	  do n=1,m-1	  
-	  if(atdihe(i,j,3).eq.scale(i,n)) goto 10  
-	  enddo
+	         do n=1,m-1	  
+	           if(atdihe(i,j,3).eq.scale(i,n)) goto 10  
+	         enddo
 c se fija si no lo puso en nonbonded (se no es tambien 1-3)
-	  do n=1,nonbondedxat(i)
-	  if(atdihe(i,j,3).eq.nonbonded(i,n)) goto 10	
-	  enddo	
+	         do n=1,nonbondedxat(i)
+	           if(atdihe(i,j,3).eq.nonbonded(i,n)) goto 10	
+	         enddo	
 
-          scale(i,m)=atdihe(i,j,3)
-          m=m+1
-	  endif
- 10       enddo
-	  scalexat(i)=m-1
-	 enddo
-
-        actualiz=.true.
-	first=.false.
+                 scale(i,m)=atdihe(i,j,3)
+                 m=m+1
+	       endif
+ 10          enddo
+	     scalexat(i)=m-1
+	   enddo
+          actualiz=.true.
+	  first=.false.
 	endif !asignacion
 
 c ahora crea la lista de vecinos si estan dentro de listcut+sfc, 
@@ -943,7 +1014,7 @@ c	write(6,*) 'Neighbour list actualization in step:',paso
 
 	veclistemp=0
 	veclistxat=0
- 	rcut=(listcut+sfc+2.)**2
+ 	rcut=(listcut+sfc+2.d0)**2d0
 	n=1
 	do i=1,nac
 	do j=i+1,nac
@@ -968,6 +1039,8 @@ c	write(6,*) 'Neighbour list actualization in step:',paso
 		distancia2=dist2(ramber(1,i),ramber(2,i),ramber(3,i),
      .          ramber(1,j),ramber(2,j),ramber(3,j))
 		if(distancia2.le.rcut) then
+!aca pincha con cuts grandes, Nick
+!la dimension maxima es nac*(nac+1)/2
                         veclistemp(n)=j
                         n=n+1
 		endif
@@ -993,6 +1066,14 @@ c alocatea veclist posta
 
 c  calculo de la E y F de terminos non-bonded
 c loop scale nonbonded
+
+c        write(*,*) "flag conect"
+c        do i=1,nac 
+c                write(*,*) i, scalexat(i)
+c        end do
+c	STOP
+
+
 	do i=1,nac
 	 do k=1,scalexat(i)
 	 j=scale(i,k)	
@@ -1003,12 +1084,12 @@ c loop scale nonbonded
                 distancia = sqrt(distancia2)
                 Rij=Rm(i)+Rm(j)
                 Eij=sqrt(Em(i)*Em(j))
-                Rij6 = Rij**6
-                distancia2_3 = distancia2**3
-                E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.)
+                Rij6 = Rij**6d0
+                distancia2_3 = distancia2**3d0
+                E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.d0)
 		E1=E1/factorlj
                 Elj_amber14=Elj_amber14+E1
-            fel = -12.0*Eij*Rij6/distancia2**4*(Rij6/distancia2_3 - 1.0)
+	fel = -12.d0*Eij*Rij6/distancia2**4d0*(Rij6/distancia2_3 - 1.d0)
                 fel = fel/factorlj
                 dx2=-dx1
                 dy2=-dy1
@@ -1019,6 +1100,7 @@ c loop scale nonbonded
                 flj(1,j)=flj(1,j)+dx2*fel
                 flj(2,j)=flj(2,j)+dy2*fel
                 flj(3,j)=flj(3,j)+dz2*fel
+c		write(*,*) "E2 callc", i,j,pc(i),pc(j)
                 E2=((pc(i)*pc(j))/distancia)*unidades/epsilon
               	E2=E2/factorelec 
 		Eelec_amber14=Eelec_amber14+E2
@@ -1034,17 +1116,23 @@ c loop scale nonbonded
                 felec(3,j)=felec(3,j)+dz2*fel
         enddo
 	enddo
+
+
+c	write(*,*) "flag 1 non-bonded"
+c	write(*,*) "flj",flj
+c	write(*,*) "flelc",felec
+
 c fin scaled nonbonden
 c loop nonscaled nonbonded
         n_pointer=1      
         x0=listcut
         x1=listcut+sfc
-	cb=-sfc/x0**2
-	ca=-cb/2.
+	cb=-sfc/x0**2d0
+	ca=-cb/2.d0
 	cc=ca
-	cd=cc-1./x0
-	rinn=x0**2
-	rout=x1**2
+	cd=cc-1.d0/x0
+	rinn=x0**2d0
+	rout=x1**2d0
 
         do i=1,nac
 	 do k=n_pointer,veclistxat(i)
@@ -1057,11 +1145,11 @@ c loop nonscaled nonbonded
 		distancia = sqrt(distancia2)
 		Rij=Rm(i)+Rm(j)
                 Eij=sqrt(Em(i)*Em(j))
-		Rij6 = Rij**6
-		distancia2_3 = distancia2**3
-		E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.)
+		Rij6 = Rij**6d0
+		distancia2_3 = distancia2**3d0
+		E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.d0)
                 Elj_amber=Elj_amber+E1
-		fel = -12.0*Eij*Rij6/distancia2**4*(Rij6/distancia2_3 - 1.0)
+		fel = -12.d0*Eij*Rij6/distancia2**4d0*(Rij6/distancia2_3 - 1.d0)
                 dx2=-dx1
                 dy2=-dy1
                 dz2=-dz1
@@ -1071,7 +1159,7 @@ c loop nonscaled nonbonded
                 flj(1,j)=flj(1,j)+dx2*fel
                 flj(2,j)=flj(2,j)+dy2*fel
                 flj(3,j)=flj(3,j)+dz2*fel
-                E2=(pc(i)*pc(j)*unidades/epsilon)*(1./distancia)
+                E2=(pc(i)*pc(j)*unidades/epsilon)*(1.d0/distancia)
 		E2F=E2+(pc(i)*pc(j)*unidades/epsilon*cd)
 		Eelec_amber=Eelec_amber+E2F
 		fel=-E2/distancia2
@@ -1088,11 +1176,11 @@ c loop nonscaled nonbonded
                 distancia = sqrt(distancia2)     
 		Rij=Rm(i)+Rm(j)
                 Eij=sqrt(Em(i)*Em(j))
-                Rij6 = Rij**6
-                distancia2_3 = distancia2**3
-                E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.)
+                Rij6 = Rij**6d0
+                distancia2_3 = distancia2**3d0
+                E1 = Eij*Rij6/distancia2_3*((Rij6/distancia2_3)-2.d0)
                 Elj_amber=Elj_amber+E1
-            fel = -12.0*Eij*Rij6/distancia2**4*(Rij6/distancia2_3 - 1.0)
+        fel = -12.d0*Eij*Rij6/distancia2**4d0*(Rij6/distancia2_3 - 1.d0)
                 dx2=-dx1
                 dy2=-dy1
                 dz2=-dz1
@@ -1104,10 +1192,10 @@ c loop nonscaled nonbonded
                 flj(3,j)=flj(3,j)+dz2*fel
 		fac=(distancia-listcut)/sfc
                 E2=pc(i)*pc(j)*unidades/epsilon
-                E2F=E2*(ca*fac**2+cb*fac+cc)
+                E2F=E2*(ca*fac**2d0+cb*fac+cc)
                 Eelec_amber=Eelec_amber+E2F
                 fel=E2/distancia
-		fel=fel*(2*ca*fac+cb)/sfc
+		fel=fel*(2d0*ca*fac+cb)/sfc
                 dx2=-dx1
                 dy2=-dy1
                 dz2=-dz1
@@ -1129,8 +1217,10 @@ c******************************************************************
 c subrutina q calcula el water restarin potential
 
 	subroutine waters(na_u,nac,natot,rclas,masst,noaa,noat,ewat,fwat)
+	implicit none
+	integer, intent(in) :: na_u,nac,natot
 
-        integer na_u,nac,natot,watlist(2000),watlistnum
+        integer watlist(2000),watlistnum
         double precision rclas(3,natot),ewat,rwat,masscenter(3),
      .  rt(3),rij,E,fwat(3,nac),dx,dy,dz,masst(natot),
      .  kte,ramber(3,natot),dist,dist2,mdist
@@ -1139,30 +1229,30 @@ c subrutina q calcula el water restarin potential
         double precision pi
 
         pi=DACOS(-1.d0)
-        kte=200.0
-        dist2=0.0
-        mdist=0.0
+        kte=200.d0
+        dist2=0.d0
+        mdist=0.d0
 
 c calcula el masscenter del sistema y el rwat
-        ramber(1:3,1:natot)=rclas(1:3,1:natot)*0.529177
-        masscenter=0.0 
+        ramber(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0
+        masscenter=0.d0 
         do i=1,natot
         masscenter(1:3)=masscenter(1:3)+masst(i)*ramber(1:3,i)
         enddo
         masscenter=masscenter/natot
-        do i=1,natot_
-        dist2=(ramber(1,i)-masscenter(1))**2+
-     .        (ramber(2,i)-masscenter(2))**2+
-     .        (ramber(3,i)-masscenter(3))**2
+        do i=1,natot
+        dist2=(ramber(1,i)-masscenter(1))**2d0+
+     .        (ramber(2,i)-masscenter(2))**2d0+
+     .        (ramber(3,i)-masscenter(3))**2d0
         if(dist2.gt.mdist) mdist=dist2
         enddo
 
-	rwat=sqrt(mdist) - 2.5        
+	rwat=sqrt(mdist) - 2.5d0        
 	write(6,'(a,2x,f8.4)') 'Water Cutoff Radius:', rwat
 
 c calculo la matrix con las aguas xa los at MM
-        ramber=0.0
-        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177
+        ramber=0.d0
+        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0
         k=1
         do i=1,nac
         if(noaa(i).eq.'HOH'.and.noat(i).eq.'O') then
@@ -1177,8 +1267,8 @@ c fin de si es agua
         endif
         enddo
         watlistnum=k-1
-        ewat=0.0
-        fwat=0.0
+        ewat=0.d0
+        fwat=0.d0
 c calculo de la Ene y la fza para el potencial de las aguas Ewat = 0.0
         do j=1,watlistnum
         i = watlist (j)
@@ -1187,12 +1277,12 @@ c calculo de la Ene y la fza para el potencial de las aguas Ewat = 0.0
         if(rij.gt.rwat) then
         E = kte*((rij-rwat)**2)
         ewat = ewat + E
-        dx = (1.0/rij)*(ramber(1,i)-masscenter(1))
-        dx = 2.*kte*(rij-rwat)*dx
-        dy = (1.0/rij)*(ramber(2,i)-masscenter(2))
-        dy =  2.*kte*(rij-rwat)*dy
-        dz = (1.0/rij)*(ramber(3,i)-masscenter(3))
-        dz =  2.*kte*(rij-rwat)*dz
+        dx = (1.d0/rij)*(ramber(1,i)-masscenter(1))
+        dx = 2.d0*kte*(rij-rwat)*dx
+        dy = (1.d0/rij)*(ramber(2,i)-masscenter(2))
+        dy =  2.d0*kte*(rij-rwat)*dy
+        dz = (1.d0/rij)*(ramber(3,i)-masscenter(3))
+        dz =  2.d0*kte*(rij-rwat)*dz
        fwat(1,i)=fwat(1,i)-dx
        fwat(2,i)=fwat(2,i)-dy
        fwat(3,i)=fwat(3,i)-dz

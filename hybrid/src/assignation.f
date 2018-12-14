@@ -1,7 +1,7 @@
 c subroutine that asignates masses and specie
       subroutine assign(na_u,nac,atname,iza,izs,masst)
 
-      use precision
+      use precision, only : dp
       use fdf
       use sys
       implicit          none
@@ -12,51 +12,52 @@ c subroutine that asignates masses and specie
       character*2       sym(na_u+nac), SYMBOL, name
 
 C Assigantes solute atomic masses (masst) and atomic symbol (sym)
-        masst=0.0
-        do i=1,na_u
-         masst(i) = ATMASS(iza(i))
-         sym(i) = SYMBOL(iza(i))
-       if(masst(i).eq.0.0) then
-       call die("assign: There are solute atoms without mass")
-       endif
-        enddo
+      masst=0.0
+      do i=1,na_u
+        masst(i) = ATMASS(iza(i))
+        sym(i) = SYMBOL(iza(i))
+        if(masst(i).eq.0.0) then
+          call die("assign: There are solute atoms without mass")
+        endif
+      enddo
 
 C Assigantes solvent atomic masses (masst) and atomic symbol (sym)
         izs = 0
         izs(1:na_u)=iza(1:na_u)
         k=na_u+1
         do i=1,nac
-        atn4 = atname(i)
-        atn1 = atn4(1:1)
-        atn2 = atn4(1:2)
-        if (atn1.eq.'H')  izs(k)=1
-        if (atn1.eq.'C')  izs(k)=6
-        if (atn1.eq.'N')  izs(k)=7
-        if (atn1.eq.'O')  izs(k)=8
-        if (atn1.eq.'F')  izs(k)=9
-        if (atn2.eq.'Na') izs(k)=11
-        if (atn2.eq.'Mg') izs(k)=12
-        if (atn1.eq.'P')  izs(k)=15
-        if (atn1.eq.'S')  izs(k)=16
-        if (atn2.eq.'Cl') izs(k)=17
-        if (atn1.eq.'K')  izs(k)=19
-        if (atn2.eq.'Ca') izs(k)=20
-        if (atn2.eq.'Mn') izs(k)=25
-        if (atn2.eq.'FE') izs(k)=26
-        if (atn2.eq.'Cu') izs(k)=29
-        if (atn2.eq.'Zn') izs(k)=30
-        if (atn2.eq.'Br') izs(k)=35
-        if (atn1.eq.'I')  izs(k)=53
-        if (atn2.eq.'Pt') izs(k)=78
-       if(izs(k).eq.0) then
+          atn4 = atname(i)
+          atn1 = atn4(1:1)
+          atn2 = atn4(1:2)
+          if (atn1.eq.'H')  izs(k)=1
+          if (atn1.eq.'C')  izs(k)=6
+          if (atn1.eq.'N')  izs(k)=7
+          if (atn1.eq.'O')  izs(k)=8
+          if (atn1.eq.'F')  izs(k)=9
+          if (atn2.eq.'Na') izs(k)=11
+          if (atn2.eq.'Mg') izs(k)=12
+          if (atn1.eq.'P')  izs(k)=15
+          if (atn1.eq.'S')  izs(k)=16
+          if (atn2.eq.'Cl') izs(k)=17
+          if (atn1.eq.'K')  izs(k)=19
+          if (atn2.eq.'Ca') izs(k)=20
+          if (atn2.eq.'Mn') izs(k)=25
+          if (atn2.eq.'FE') izs(k)=26
+          if (atn2.eq.'Cu') izs(k)=29
+          if (atn2.eq.'Zn') izs(k)=30
+          if (atn2.eq.'Br') izs(k)=35
+          if (atn1.eq.'I')  izs(k)=53
+          if (atn2.eq.'Pt') izs(k)=78
+ 
+      if(izs(k).eq.0) then
        call die('assign: There are solvent atoms without atomic number')
-       endif
-        masst(k) = ATMASS (izs(k))
-        sym(k)= SYMBOL(izs(k))
-       if(masst(k).eq.0.0) then
+      endif
+       masst(k) = ATMASS (izs(k))
+       sym(k)= SYMBOL(izs(k))
+      if(masst(k).eq.0.0) then
        call die('assign: There are solvent atoms without mass')
-       endif
-        k=k+1
+      endif
+       k=k+1
         enddo
 
 c Read atomic masses of different atoms from fdf block 
@@ -80,14 +81,13 @@ c assignates new masses
 
       return
  10   stop 'assign: Problem reading from "NewMasses" block'
-      end 
+      end subroutine assign
 c*************************************************************************
       FUNCTION SYMBOL( Z )
 C Given the atomic number, returns the atomic symbol (e.g. 'Na')
 C Written by J. Soler
-      use precision
       use sys
-
+      implicit none
       character(len=2)    :: SYMBOL  ! Atomic symbol
       integer, intent(in) :: Z       ! Atomic number
 
@@ -120,8 +120,9 @@ C Written by J. Soler
 C Returns the average atomic mass from the atomic number Z.
 C Dta taken from VCH periodic table.
 C Written by J.M.Soler. April'97.
-      use precision
+      use precision, only : dp
       use sys
+      implicit none
 
       real(dp)             :: ATMASS ! Average atomic mass, in amu
       integer, intent(in)  :: Z      ! Atomic number
