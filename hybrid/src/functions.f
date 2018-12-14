@@ -24,12 +24,13 @@ c       calculo del producto escalar
         scalar = (x1-x2)*(x3-x2)+(y1-y2)*(y3-y2)+(z1-z2)*(z3-z2)
         angle = dist(x1,y1,z1,x2,y2,z2)*dist(x3,y3,z3,x2,y2,z2)
         angle = scalar/angle
-	if (angle.ge.1.0) then
-	angle = 1.0
-	elseif(angle.le.-1.0) then
-        angle=-1.0
+	if (angle.ge.1.d0) then
+	angle = 1.d0
+	elseif(angle.le.-1.d0) then
+        angle=-1.d0
         endif
-        angle = dACOS(angle)*180/pi
+        angle = dACOS(angle)*180d0/pi
+	return
         end function angle
 
         function scalar(x1,y1,z1,x2,y2,z2,x3,y3,z3)
@@ -55,24 +56,25 @@ c       calculo del producto escalar
         nz = (x2-x3)*(y4-y3)-(y2-y3)*(x4-x3)
 c       calculo del prod scalar n*m
         scalar = mx*nx + my*ny + mz*nz
-        m = mx**2 + my**2 + mz**2
-        m = m**(0.5)
-        n = nx**2 + ny**2 + nz**2
-        n = n**(0.5)
+        m = mx**2d0 + my**2d0 + mz**2d0
+        m = m**(0.5d0)
+        n = nx**2d0 + ny**2d0 + nz**2d0
+        n = n**(0.5d0)
 c si el argumento da mal (m*n)=0.0 avisa y sale el dihe vale 500.0
 	if(m*n.eq.0) then
-	dihedro=500.0
+	dihedro=500.d0
+	STOP "problemas en el calculo de un diedro, Nick"
 	go to 10
 	endif
         arg=scalar/(m*n)
-        if(arg.ge.1.0) then
-	dihedro= 0.0
-	elseif (arg.le.-1.0) then
-	dihedro=180.0
+        if(arg.ge.1.0d0) then
+	dihedro= 0.d0
+	elseif (arg.le.-1.d0) then
+	dihedro=180.d0
 	else
         dihedro = dACOS(arg)
 	endif
-        dihedro = dihedro*180/pi
+        dihedro = dihedro*180d0/pi
  10	continue
         end function dihedro
 
@@ -97,12 +99,12 @@ c       n = vectorial product 23 and 34
  
 c       scalar product n*m
         scalar = mx*nx + my*ny + mz*nz
-        m = mx**2 + my**2 + mz**2
-        m = m**(0.5)
-        n = nx**2 + ny**2 + nz**2
-        n = n**(0.5)
+        m = mx**2d0 + my**2d0 + mz**2d0
+        m = m**(0.5d0)
+        n = nx**2d0 + ny**2d0 + nz**2d0
+        n = n**(0.5d0)
         dihedro2 = ACOS(scalar/(m*n))
-        dihedro2 = dihedro2*180/pi
+        dihedro2 = dihedro2*180d0/pi
  
 c       which cuadrant? 
 c       plane generation with points 1 2 3
@@ -113,13 +115,13 @@ c       plane generation with points 1 2 3
  
 c	distance(l) at4 to ABCD=0 plane
         l1 = A*x4+B*y4+C*z4+D
-        l2 = (A**2+B**2+C**2)
-        l2 = l2**0.5
+        l2 = (A**2d0+B**2d0+C**2d0)
+        l2 = l2**0.5d0
         l= l1/l2
  
 c	if l>0 -> dihe<0 , else >0
         if(l.lt.0) then
-                dihedro2 = 360-dihedro2
+                dihedro2 = 360d0-dihedro2
         endif
  
         end function dihedro2
@@ -146,6 +148,9 @@ c variables generales
         character exp
         double precision pi
 	pi=DACOS(-1.d0)
+
+c	write(*,*) "i1 i2 i3 i4", i1, i2, i3, i4
+
        call dihevars(   ramber(1,i1),ramber(2,i1),ramber(3,i1),
      .                  ramber(1,i2),ramber(2,i2),ramber(3,i2),
      .                  ramber(1,i3),ramber(2,i3),ramber(3,i3),
@@ -153,21 +158,21 @@ c variables generales
      .                  mx,my,mz,rm,nx,ny,nz,rn,dih)
         fce=0.0       
 	scal=mx*nx + my*ny + mz*nz    
-        dtot = (kd/mult)*(-dSIN((pi/180)*
+        dtot = (kd/mult)*(-dSIN((pi/180d0)*
      .  (per*dih-eq)))*(per)
         prue=scal/(rn*rm)
-        prue=(1.0-(prue)**2) 
-        if (prue.lt.1.0E-15.and.prue.gt.-1.0E-15) go to 10  
+        prue=(1.d0-(prue)**2d0) 
+        if (prue.lt.1.0d-15.and.prue.gt.-1.0d-15) go to 10  
         prue=dsqrt(prue) 
 	dtot = -dtot/prue
 	do j=1,3
 	i=(atom-1)*3+j
-	dmx=0.0
-        dmy=0.0
-        dmz=0.0
-        dnx=0.0
-        dny=0.0
-        dnz=0.0
+	dmx=0.d0
+        dmy=0.d0
+        dmz=0.d0
+        dnx=0.d0
+        dny=0.d0
+        dnz=0.d0
 	if(i.eq.1) then
         dmy=ramber(3,i2)-ramber(3,i3)
         dmz=ramber(2,i3)-ramber(2,i2)
@@ -252,22 +257,22 @@ c variables generales
      .                  ramber(1,i3),ramber(2,i3),ramber(3,i3),
      .                  ramber(1,i4),ramber(2,i4),ramber(3,i4),
      .                  mx,my,mz,rm,nx,ny,nz,rn,dih)
-        fce=0.0
+        fce=0.d0
         scal=mx*nx + my*ny + mz*nz
 	dtot=kd
         prue=scal/(rn*rm)
-        prue=(1.0-(prue)**2)
-        if (prue.lt.1.0E-15.and.prue.gt.-1.0E-15) go to 10
+        prue=(1.d0-(prue)**2d0)
+        if (prue.lt.1.0d-15.and.prue.gt.-1.0d-15) go to 10
         prue=dsqrt(prue)
         dtot = -dtot/prue
         do j=1,3
         i=(atom-1)*3+j
-        dmx=0.0
-        dmy=0.0
-        dmz=0.0
-        dnx=0.0
-        dny=0.0
-        dnz=0.0
+        dmx=0.d0
+        dmy=0.d0
+        dmz=0.d0
+        dnx=0.d0
+        dny=0.d0
+        dnz=0.d0
         if(i.eq.1) then
         dmy=ramber(3,i2)-ramber(3,i3)
         dmz=ramber(2,i3)-ramber(2,i2)
@@ -321,7 +326,7 @@ c variables generales
         dn=(nx*dnx+ny*dny+nz*dnz)/rn
         dmn=rm*dn+rn*dm
         dscalar=nx*dmx+mx*dnx+ny*dmy+my*dny+nz*dmz+mz*dnz
-        fce(i)= dtot*(dscalar*rm*rn-dmn*scal)/(rn*rm)**2
+        fce(i)= dtot*(dscalar*rm*rn-dmn*scal)/(rn*rm)**2d0
         enddo
   10    end
 c*******************************************************************
@@ -342,19 +347,19 @@ c subroutine that calculates the variables of a dihedral angle
         nz = (x2-x3)*(y4-y3)-(y2-y3)*(x4-x3)
 c       calculo del prod scalar n*m
         scalar = mx*nx + my*ny + mz*nz
-        m = mx**2 + my**2 + mz**2
-        m = m**(0.5)
-        n = nx**2 + ny**2 + nz**2
-        n = n**(0.5)
+        m = mx**2d0 + my**2d0 + mz**2d0
+        m = m**(0.5d0)
+        n = nx**2d0 + ny**2d0 + nz**2d0
+        n = n**(0.5d0)
         arg=scalar/(m*n)
-        if(arg.ge.1.0) then 
-	dihedro=0.0 
-	elseif(arg.le.-1.0) then
- 	dihedro=180.0
+        if(arg.ge.1.d0) then 
+	dihedro=0.d0 
+	elseif(arg.le.-1.d0) then
+ 	dihedro=180.d0
 	else
         dihedro = dACOS(arg)
 	endif
-        dihedro = dihedro*180/pi 
+        dihedro = dihedro*180d0/pi 
  10	continue 
         end
 
@@ -381,11 +386,11 @@ c       x' axis ejx
         yejx = -((x3-x2)*(z1-z2) -(z3-z2)*(x1-x2))
         zejx = (x3-x2)*(y1-y2)-(y3-y2)*(x1-x2)
  
-        rejx = dsqrt(xejx**2+yejx**2+zejx**2)
+        rejx = dsqrt(xejx**2d0+yejx**2d0+zejx**2d0)
  
         l1 = xejx/rejx
  
-        r23=dsqrt((x3-x2)**2+(y3-y2)**2+(z3-z2)**2)
+        r23=dsqrt((x3-x2)**2d0+(y3-y2)**2d0+(z3-z2)**2d0)
         m1 = yejx/rejx
         n1= zejx/rejx
  
@@ -398,7 +403,7 @@ c       x' axis ejx
       yejz = -((xejx)*(z3-z2) -(zejx)*(x3-x2))
       zejz = (xejx)*(y3-y2)-(yejx)*(x3-x2)
  
-        rejz = dsqrt(xejz**2+yejz**2+zejz**2)
+        rejz = dsqrt(xejz**2d0+yejz**2d0+zejz**2d0)
  
         l3 = xejz/rejz
         m3 = yejz/rejz
@@ -408,9 +413,9 @@ c	at4 coords in x' y' z' system
 c	dihedral equivalent to angle in z' x' plane
 c	180-angle equivalent to angle with y' axis
 c	r4=distance at3 - at4 
-        d4 = d4*pi/180.0
-        a4 =180.0-a4
-        a4 = a4*pi/180.0
+        d4 = d4*pi/180.d0
+        a4 =180.d0-a4
+        a4 = a4*pi/180.d0
  
         z = r4*dSIN(a4)*dCOS(d4)
         x = r4*dSIN(a4)*dSIN(d4)

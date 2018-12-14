@@ -1,4 +1,12 @@
       subroutine ioxv( task, n, u, r, v, fxv ,fv)
+c notas, Nick
+c task read or write
+c n = natot
+c u = ucell
+c r = rclas
+c v = vat
+c fxv = foundxv
+c fv = foundvat 
 
 c *******************************************************************
 c Saves positions and velocities.
@@ -35,6 +43,10 @@ c Choose between read or write
 
 c       Check if input file exists
         fxv = .false.
+
+
+		write(*,*) "buscando ", fname
+
           inquire( file=fname, exist=fxv )
           if (fxv) then
 

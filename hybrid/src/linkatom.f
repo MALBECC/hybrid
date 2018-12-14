@@ -1,6 +1,8 @@
 c Reads Link Atoms parameters
 	subroutine link1(numlink,linkat,linkqm,linkmm,
      .  linkqmtype,linkmm2,ng1,namber,na,qmtype,r)
+c namber atomos clasicos
+c na atomos cuanticos
 
 	use fdf
 	use sys
@@ -9,6 +11,7 @@ c Reads Link Atoms parameters
      .  linkat(15),ng1(namber,6),linkmm2(15,4,3),min(na)
 	character exp,linkqmtype(15,4)*4,qmtype(na)*4,ch4*4,ch1*1,ch2*2
 	double precision r(3,na+namber),rmin(na),r1,dist
+
 
 	linkqm=0
 	linkmm=0
@@ -26,15 +29,15 @@ c assignation of linkatoms
 
 c assignation of CQM and CMM 
 	do i=1,na
-	rmin(i)=dist(r(1,i),r(2,i),r(3,i),r(1,na+1),r(2,na+1),r(3,na+1))
-	min(i)=na+1
-	do j=na+2,na+namber
-	r1=dist(r(1,i),r(2,i),r(3,i),r(1,j),r(2,j),r(3,j))
-	if(r1.le.rmin(i)) then
-	rmin(i)=r1
-	min(i)=j
-	endif
-	enddo
+	  rmin(i)=dist(r(1,i),r(2,i),r(3,i),r(1,na+1),r(2,na+1),r(3,na+1))
+	  min(i)=na+1
+	  do j=na+2,na+namber
+	    r1=dist(r(1,i),r(2,i),r(3,i),r(1,j),r(2,j),r(3,j))
+	    if(r1.le.rmin(i)) then
+	      rmin(i)=r1
+	      min(i)=j
+	    endif
+	  enddo
 	enddo
 
 	do i=1,na
@@ -44,20 +47,22 @@ c assignation of CQM and CMM
 c	write(6,*) i,min(i),rmin(i)
 	enddo
 
+
+c	write(*,*) "num links", numlink, "Nick"
 	do k=1,numlink
-	linkqm(k,1)=1
-	do i=2,na
-	if(rmin(i).le.rmin(linkqm(k,1))) then 
-	linkqm(k,1)=i
-	endif
-	enddo
-	if(rmin(linkqm(k,1)).gt.4) then
-	write(6,*) k,linkqm(k,1),rmin(linkqm(k,1))
-	write(6,*) 'Wrong LA CQM atom....Check geometry'
-	STOP
-	endif
-	rmin(linkqm(k,1))=20
-	linkmm(k,1)=min(linkqm(k,1))-na
+	  linkqm(k,1)=1
+	  do i=2,na
+	    if(rmin(i).le.rmin(linkqm(k,1))) then 
+	      linkqm(k,1)=i
+	    endif
+	  enddo
+	  if(rmin(linkqm(k,1)).gt.4) then
+	    write(6,*) k,linkqm(k,1),rmin(linkqm(k,1))
+	    write(6,*) 'Wrong LA CQM atom....Check geometry'
+	    STOP
+	  endif
+	  rmin(linkqm(k,1))=20
+	  linkmm(k,1)=min(linkqm(k,1))-na
 	enddo
 
 c assignation of QM 1st neighbors
@@ -126,8 +131,12 @@ c sp3 carbon
 c asignation of QM link atoms types
         do i=1,numlink
         do j=1,4
-	if(linkqm(i,j).eq.0) linkqmtype(i,j)='XX'
-	linkqmtype(i,j)=qmtype(linkqm(i,j))
+	if(linkqm(i,j).eq.0) then
+	   linkqmtype(i,j)='XX'
+	else
+	  linkqmtype(i,j)=qmtype(linkqm(i,j))
+	end if
+
 	enddo
 	enddo
 
@@ -197,6 +206,10 @@ c ramber=rclas
      . dversor(3),rhq,rqm,Ener,kch(15),rch(15),distl(15)
 	logical wriok
 
+
+	integer ii, ji
+
+
 c numerical variables to indicate the parameters
 c last value eq 0, 1 dihedral, eq 1 more than 1 dihedral
 	integer parametro(15,22,4)	
@@ -207,7 +220,7 @@ c linkmm2 asigantion: linkmm atoms neighbours
 	wriok=.false.
 
 c change units 
-	ramber(1:3,1:natot)=ramber(1:3,1:natot)*0.529177
+	ramber(1:3,1:natot)=ramber(1:3,1:natot)*0.529177d0
 
 c asignation for E and F
         if(istp.eq.1) then          
@@ -566,23 +579,23 @@ c istp=1 only
 c reasignation of perdihe2
         do i=1,ndihe
         if(perdihe2(i).lt.0) then
-        perdihe2(i)=-1.0*perdihe2(i)
+        perdihe2(i)=-1.d0*perdihe2(i)
         endif
         enddo
 
-	Ener=0.0
+	Ener=0.d0
 
-	flink(1:3,1:natot)=0.0
+	flink(1:3,1:natot)=0.d0
 
 c calculation of E and F 
 
 	do i=1,numlink
-	Elink(i)=0.0
+	Elink(i)=0.d0
 	
 c       bond Cqm -- Cmm parameter 1 
-	dx=0.0
-        dy=0.0
-        dz=0.0
+	dx=0.d0
+        dy=0.d0
+        dz=0.d0
 
 	at1=linkqm(i,1)
 	at2=natot-namber+linkmm(i,1)
@@ -594,14 +607,14 @@ c       bond Cqm -- Cmm parameter 1
           Elink(i) = Elink(i) + kbond(k)
      .    *(rij-bondeq(k))**2 
  	
-          dx=(1.0/rij)*(ramber(1,at1)-ramber(1,at2))
-          dx=2.0*kbond(k)*(rij-bondeq(k))*dx
+          dx=(1.d0/rij)*(ramber(1,at1)-ramber(1,at2))
+          dx=2.d0*kbond(k)*(rij-bondeq(k))*dx
  
-          dy=(1.0/rij)*(ramber(2,at1)-ramber(2,at2))
-          dy=2.0*kbond(k)*(rij-bondeq(k))*dy
+          dy=(1.d0/rij)*(ramber(2,at1)-ramber(2,at2))
+          dy=2.d0*kbond(k)*(rij-bondeq(k))*dy
  
-          dz=(1.0/rij)*(ramber(3,at1)-ramber(3,at2))
-          dz=2.0*kbond(k)*(rij-bondeq(k))*dz
+          dz=(1.d0/rij)*(ramber(3,at1)-ramber(3,at2))
+          dz=2.d0*kbond(k)*(rij-bondeq(k))*dz
 	 
 c QM atoms are < 0, atom 2 are equal 
         flink(1,at1)=-dx
@@ -610,6 +623,10 @@ c QM atoms are < 0, atom 2 are equal
         flink(1,at2)=dx
         flink(2,at2)=dy
         flink(3,at2)=dz
+
+c        write(*,*) "Hlink bonds"
+c        write(*,*) i, Elink(i), flink
+
 
 c	write(*,*) 'contrib cq-cm i E F',i,
 c     .  kbond(k)*(1.0-kbond(k)/kch(i))
@@ -620,9 +637,9 @@ c ***********************************************************************
 c       angle  Cqm -- Cmm -- X parameters 2 to 4
 
 c	3 angles ( one for each x) j, x index
-	dx=0.0
-	dy=0.0
-	dz=0.0
+	dx=0.d0
+	dy=0.d0
+	dz=0.d0
 	
 	do j=2,4
 	if(linkmm(i,j).eq.0) goto 55
@@ -637,7 +654,7 @@ c	3 angles ( one for each x) j, x index
  
          Elink(i) = Elink(i) + kangle(k)*
      .                ((angulo-angleeq(k))*
-     .                (pi/180))**2
+     .                (pi/180d0))**2d0
  
 c	write(*,*) 'contrib cq-cm-x(j) i,j E ',i,j,kangle(k)*
 c     .                ((angulo-angleeq(k))*
@@ -655,24 +672,24 @@ c     .                (pi/180))**2
 	      
 	dscalar=(ramber(1,at3)-ramber(1,at2))
         dr12r32=r32*(ramber(1,at1)-ramber(1,at2))/(r12)
-        dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-        dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
-        dx=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dx
+        dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+        dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
+        dx=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dx
  
         dscalar=(ramber(2,at3)-ramber(2,at2))
         dr12r32=r32*(ramber(2,at1)-ramber(2,at2))/(r12)
-        dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-        dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
-        dy=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dy
+        dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+        dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
+        dy=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dy
  
         dscalar=(ramber(3,at3)-ramber(3,at2))
         dr12r32=r32*(ramber(3,at1)-ramber(3,at2))/(r12)
-        dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-        dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
-        dz=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dz
+        dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+        dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
+        dz=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dz
 	
 c atom qm cq force, sum of each particular x
 	flink(1,at1)=flink(1,at1)-dx
@@ -680,29 +697,29 @@ c atom qm cq force, sum of each particular x
 	flink(3,at1)=flink(3,at1)-dz
 	
 c force over x, change at3 by at1 
-	dx=0.0
-        dy=0.0
-        dz=0.0
+	dx=0.d0
+        dy=0.d0
+        dz=0.d0
 	dscalar=(ramber(1,at1)-ramber(1,at2))
         dr12r32=r32*(ramber(1,at3)-ramber(1,at2))/(r12)
-        dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-        dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
-        dx=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dx
+        dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+        dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
+        dx=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dx
  
         dscalar=(ramber(2,at1)-ramber(2,at2))
         dr12r32=r32*(ramber(2,at3)-ramber(2,at2))/(r12)
-        dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-        dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
-        dy=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dy
+        dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+        dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
+        dy=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dy
  
         dscalar=(ramber(3,at1)-ramber(3,at2))
         dr12r32=r32*(ramber(3,at3)-ramber(3,at2))/(r12)
-        dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-        dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
-        dz=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dz
+        dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+        dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
+        dz=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dz
 	
 
 c sum each x  
@@ -711,36 +728,36 @@ c sum each x
         flink(3,at3)=flink(3,at3)-dz
 	
 c middle atom force (change in derivate) 
-	dx=0.0
-        dy=0.0
-        dz=0.0
+	dx=0.d0
+        dy=0.d0
+        dz=0.d0
 	
-      dscalar=2.0*ramber(1,at2)-ramber(1,at1)-
+      dscalar=2.d0*ramber(1,at2)-ramber(1,at1)-
      .        ramber(1,at3)
       dr12r32=(r32*(-ramber(1,at1)+ramber(1,at2))/r12)+
      .        (r12*(-ramber(1,at3)+ramber(1,at2))/r32)
-      dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
-      dx=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dx
+      dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
+      dx=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dx
  
-      dscalar=2.0*ramber(2,at2)-ramber(2,at1)-
+      dscalar=2.d0*ramber(2,at2)-ramber(2,at1)-
      .        ramber(2,at3)
       dr12r32=(r32*(-ramber(2,at1)+ramber(2,at2))/r12)+
      .        (r12*(-ramber(2,at3)+ramber(2,at2))/r32)
-      dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
-      dy=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dy
+      dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
+      dy=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dy
  
-      dscalar=2.0*ramber(3,at2)-ramber(3,at1)-
+      dscalar=2.d0*ramber(3,at2)-ramber(3,at1)-
      .        ramber(3,at3)
       dr12r32=(r32*(-ramber(3,at1)+ramber(3,at2))/r12)+
      .        (r12*(-ramber(3,at3)+ramber(3,at2))/r32)
-      dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-      dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
-      dz=2.0*kangle(k)*(angulo-angleeq(k))*
-     .                (pi/180)*dz
+      dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+      dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
+      dz=2.d0*kangle(k)*(angulo-angleeq(k))*
+     .                (pi/180d0)*dz
 
 c central atom force 
         flink(1,at2)=flink(1,at2)-dx
@@ -749,6 +766,11 @@ c central atom force
 
 c enddo for each possible x 
  55	enddo
+
+c        write(*,*) "Hlink angulos"
+c        write(*,*) i, Elink(i), flink
+
+
 
 c********************************************************
 c	dihedrals  X--Cq -- Cmm--Y parameters 5 to 13
@@ -762,8 +784,16 @@ c	for each 3 Y
 	at2=linkqm(i,1)   
 	at3=natot-namber+linkmm(i,1)
 	at4=natot-namber+linkmm(i,jm)      
-	
-	
+
+c	write(*,*) "flag Js", jq,jm,at1, at2, at3,at4
+
+	dihedral=0
+	do m=1,4
+	k=parametro(i,4+3*(jq-2)+jm-1,m)
+	  if (k.ne.0) then 
+c modificacion para debug, Nick
+c antes queria calcular diedros usando un atomo 0
+c y luego mataba el calculo con k=0
 	dihedral=dihedro(ramber(1,at1),ramber(2,at1),ramber(3,at1),
      .   ramber(1,at2),ramber(2,at2),
      .   ramber(3,at2),
@@ -771,26 +801,34 @@ c	for each 3 Y
      .   ramber(3,at3),
      .   ramber(1,at4),ramber(2,at4),
      .   ramber(3,at4))
+c	  else
+c	    dihedral=0
+	  end if
+	end do
 
+c	write(*,*) "diedro", dihedral
 
 c who many parameters for dihedrals 5 to 13
 	do m=1,4		
         k=parametro(i,4+3*(jq-2)+jm-1,m)
 	if(k.ne.0) then	
 
-      Elink(i) =Elink(i)+(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180)*(perdihe2(k)*dihedral-diheeq(k))))
-        
+c	write(*,*) "Emod", k, kdihe(k), multidihe(k), perdihe2(k),diheeq(k)
 
+      Elink(i) =Elink(i)+(kdihe(k)/multidihe(k))*
+     .  (1+dCOS((pi/180d0)*(perdihe2(k)*dihedral-diheeq(k))))
+c	write(*,*) "Elink", i,jq,jm,m,Elink(i)
+        
 c	write(*,*) 'contrib x-cq-cm-y ',i,jq,jm,(kdihe(k)/multidihe(k))*
 c     .  (1+dCOS((pi/180)*(perdihe2(k)*dihedral-diheeq(k))))
 	
 c force for each 4 atoms 
 	do j=1,4
-        call diheforce(namber,ramber,
+        call diheforce(natot,ramber,
+!cmabie namber por natot, parece q sino esta mal la dimension de ramber en diheforce, Nick
      .                 at1,at2,at3,at4,j,
      .                 kdihe(k),diheeq(k),perdihe2(k),multidihe(k),fce)
- 
+
 c force assignation 
 	flink(1,at1)=flink(1,at1)-fce(1)
         flink(2,at1)=flink(2,at1)-fce(2)
@@ -850,14 +888,16 @@ c more than 1 paramter
         if(k.ne.0) then
  
       Elink(i) =Elink(i)+(kdihe(k)/multidihe(k))*
-     .  (1+dCOS((pi/180)*(perdihe2(k)*dihedral-diheeq(k))))
+     .  (1+dCOS((pi/180d0)*(perdihe2(k)*dihedral-diheeq(k))))
  
 c force over 4 atoms
         do j=1,4
-        call diheforce(namber,ramber,
+        call diheforce(natot,ramber,
+!idem antes namber -> natot
      .                 at1,at2,at3,at4,j,
      .                 kdihe(k),diheeq(k),perdihe2(k),multidihe(k),fce)
- 
+
+
 c force assignation 
         flink(1,at1)=flink(1,at1)-fce(1)
         flink(2,at1)=flink(2,at1)-fce(2)
@@ -884,6 +924,7 @@ c enddo to Y and Z
    80   enddo
    81   enddo
 
+
 c ***************************************************
 c For each LA Force over HL scaling and sum where corresponds 
 c HL force division in parallel fpar and perpendicular fpp
@@ -903,19 +944,22 @@ c unitary versor dversor(3) at3=LA
 	dversor(1:3)=dversor(1:3)/rij
 
 c angle proyection calculation, to proyect forces 
+	angulo=0.d0
        angulo=angle(fdummy(1,at3),fdummy(2,at3),fdummy(3,at3),
-     .          0.0,0.0,0.0,
+     .          0.d0,0.d0,0.d0,
      .          dversor(1),dversor(2),dversor(3) )
 
-	angulo=angulo*pi/180.0
+	angulo=angulo*pi/180.d0
+c        write(*,*) "angulo", angulo
 
 c  product  modF and dversor
-	 fmod=sqrt(fdummy(1,at3)**2+
-     .   fdummy(2,at3)**2+fdummy(3,at3)**2)
+	 fmod=sqrt(fdummy(1,at3)**2d0+
+     .   fdummy(2,at3)**2d0+fdummy(3,at3)**2d0)
 
 	fpar(1:3)=fmod*dversor(1:3)*dCOS(angulo)
+c	write(*,*) "fpar calc", fmod, dversor(1:3), dCOS(angulo)
 	fpp(1:3)=fdummy(1:3,at3)-fpar(1:3) 
-
+c	write(*,*) "fpp calc", fdummy(1:3,at3),fpar(1:3)
 
 c perpendicular fce division and sum to CMM y CQM
 c parallel fce sum over CM and HL fce eq cero
@@ -928,13 +972,15 @@ c distance HL--CQ and CM--CQ
 	rqm=dist(ramber(1,at1),ramber(2,at1),ramber(3,at1),
      .  ramber(1,at2),ramber(2,at2),ramber(3,at2))
 	
+
+
 	flink(1,at2)=flink(1,at2)+fpp(1)*rhq/rqm
         flink(2,at2)=flink(2,at2)+fpp(2)*rhq/rqm 
         flink(3,at2)=flink(3,at2)+fpp(3)*rhq/rqm 
 
-	flink(1,at1)=flink(1,at1)+fpp(1)*(1.0-rhq/rqm)
-        flink(2,at1)=flink(2,at1)+fpp(2)*(1.0-rhq/rqm)
-        flink(3,at1)=flink(3,at1)+fpp(3)*(1.0-rhq/rqm)
+	flink(1,at1)=flink(1,at1)+fpp(1)*(1.d0-rhq/rqm)
+        flink(2,at1)=flink(2,at1)+fpp(2)*(1.d0-rhq/rqm)
+        flink(3,at1)=flink(3,at1)+fpp(3)*(1.d0-rhq/rqm)
 
 
 	Ener=Ener+Elink(i)
@@ -942,12 +988,13 @@ c distance HL--CQ and CM--CQ
 c      enddo numlink
  	enddo	
 
+
 	fdummy(1:3,1:natot)=fdummy(1:3,1:natot)+flink(1:3,1:natot)    
 
 c	write(*,*) 'Total LA energy: ',Ener 
 
 c change units 
-        ramber(1:3,1:natot)=ramber(1:3,1:natot)/0.529177
+        ramber(1:3,1:natot)=ramber(1:3,1:natot)/0.529177d0
 
 	end
 
@@ -970,13 +1017,13 @@ c calculates HL position
         data frstme /.true./
 
 c change units
-        ramber(1:3,1:natot)=ramber(1:3,1:natot)*0.529177
+        ramber(1:3,1:natot)=ramber(1:3,1:natot)*0.529177d0
 
 C dist HL-CQM  
 	do i=1,numlink
-       distl(i)=sqrt((ramber(1,linkqm(i,1))-ramber(1,linkat(i)))**2
-     . +(ramber(2,linkqm(i,1))-ramber(2,linkat(i)))**2
-     . +(ramber(3,linkqm(i,1))-ramber(3,linkat(i)))**2)
+       distl(i)=sqrt((ramber(1,linkqm(i,1))-ramber(1,linkat(i)))**2d0
+     . +(ramber(2,linkqm(i,1))-ramber(2,linkat(i)))**2d0
+     . +(ramber(3,linkqm(i,1))-ramber(3,linkat(i)))**2d0)
 	enddo
 
 C sets HL-CQM dist first time
@@ -1031,7 +1078,7 @@ c enndo numlink
 	enddo
 
 c change units
-        ramber(1:3,1:natot)=ramber(1:3,1:natot)/0.529177
+        ramber(1:3,1:natot)=ramber(1:3,1:natot)/0.529177d0
 
 	end
 

@@ -1,0 +1,7 @@
+&lio
+nmax=200
+diis=t
+ndiis=30
+&end
+
+

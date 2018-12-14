@@ -17,9 +17,6 @@ C
       use precision
       use ionew
       use fdf
-#ifdef MPI
-      use mpi_siesta
-#endif
 
       implicit none
 
@@ -37,18 +34,10 @@ C  Internal variables .................................................
      .  count, Node, length, lun, lun_tmp
 
       logical debug_input, file_exists
-#ifdef MPI
-      integer
-     .  MPIerror
-#endif
 
 
 C Get Node number
-#ifdef MPI
-      call MPI_Comm_Rank(MPI_Comm_World,Node,MPIerror)
-#else
       Node = 0
-#endif
 
 C Print Welcome and Presentation .......................................
       if (Node.eq.0) then
@@ -138,14 +127,6 @@ C Defile System Label (short name to label files) ...
         write(6,'(a,71(1h-))') 'reinit: '
 C ...
       endif
-
-C Global broadcast of strings
-#ifdef MPI
-      call MPI_Bcast(sname,59,MPI_character,0,MPI_Comm_World,
-     .  MPIerror)
-      call MPI_Bcast(slabel,20,MPI_character,0,MPI_Comm_World,
-     .  MPIerror)
-#endif
 
       return
       end

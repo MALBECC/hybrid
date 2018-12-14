@@ -86,7 +86,8 @@ c read variables
 	else
 	call die('constr opt: You must specify the ConstraindeOpt block')
 	endif
-	write(6,'(/,a)') 'constr opt: Starting a Constrained optimization run'
+	write(6,'(/,a)') 'constr opt: Starting a Constrained 
+     . optimization run'
 
 c calculates initial ro for all types of constraints
         dr=(rfin-rini)/nstepconstr
@@ -134,17 +135,18 @@ c****************************************************************************
 	
 	integer at1,at2,at3,at4,at5,at6,at7,at8
 	double precision rclas(3,natot),fdummy(3,natot)
-	double precision fce,fnew(3,10),rp(3),r12,r34,r56,r78,dist,dx,dy,dz
+	double precision fce,fnew(3,10),rp(3),r12,r34,r56,r78,dist,
+     .  dx,dy,dz
 	double precision pi,fdihe(12),F,dihedro2,rtot,req,kf
 	double precision angle,scal,scalar,dscalar,r32,dr12r32
 	pi = acos(-1.0d0)
 
 c change units 
-        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177
+        rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0
 
 c loop over nconstr
         do iconstr=1,nconstr
-        fnew = 0.0
+        fnew = 0.d0
 
 c loop over typeconstr
       if (typeconstr(iconstr).eq.1) then
@@ -165,29 +167,29 @@ c loop over typeconstr
         kf=kforce(iconstr)
 
 c atom1: dr12
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r12)*(rclas(1,at1)-rclas(1,at2))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r12)*(rclas(2,at1)-rclas(2,at2))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r12)*(rclas(3,at1)-rclas(3,at2))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r12)*(rclas(1,at1)-rclas(1,at2))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r12)*(rclas(2,at1)-rclas(2,at2))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r12)*(rclas(3,at1)-rclas(3,at2))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,1)=dx
         fnew(2,1)=dy
         fnew(3,1)=dz
 
 c atom3: dr34
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r34)*(rclas(1,at3)-rclas(1,at4))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r34)*(rclas(2,at3)-rclas(2,at4))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r34)*(rclas(3,at3)-rclas(3,at4))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r34)*(rclas(1,at3)-rclas(1,at4))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r34)*(rclas(2,at3)-rclas(2,at4))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r34)*(rclas(3,at3)-rclas(3,at4))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,3)=-dx
         fnew(2,3)=-dy
         fnew(3,3)=-dz
@@ -208,6 +210,11 @@ c adding fnew to fdummy
         fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3) 
         fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)      
 
+c test write de fuerzas
+	write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
+
+
+
       elseif (typeconstr(iconstr).eq.2) then
 
         at1=atmsconstr(iconstr,1)
@@ -221,15 +228,15 @@ c adding fnew to fdummy
         kf=kforce(iconstr)
  
 c atom1: dr12
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/rtot)*(rclas(1,at1)-rclas(1,at2))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/rtot)*(rclas(2,at1)-rclas(2,at2))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/rtot)*(rclas(3,at1)-rclas(3,at2))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/rtot)*(rclas(1,at1)-rclas(1,at2))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/rtot)*(rclas(2,at1)-rclas(2,at2))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/rtot)*(rclas(3,at1)-rclas(3,at2))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,1)=-dx
         fnew(2,1)=-dy
         fnew(3,1)=-dz
@@ -242,6 +249,9 @@ c atom2: -fce over atom1
 c adding fnew to fdummy 
         fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
+
+
+        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
       elseif(typeconstr(iconstr).eq.3) then
         
@@ -264,46 +274,46 @@ c adding fnew to fdummy
      .          rclas(1,at2),rclas(2,at2),rclas(3,at2))
        r32=dist(rclas(1,at3),rclas(2,at3),rclas(3,at3),
      .          rclas(1,at2),rclas(2,at2),rclas(3,at2))
-       fce=2.0*kf*(rtot-req)*pi/180
+       fce=2.d0*kf*(rtot-req)*pi/180d0
 
 c atom1:
        dscalar=(rclas(1,at3)-rclas(1,at2))
        dr12r32=r32*(rclas(1,at1)-rclas(1,at2))/(r12)
-       dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-       dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
+       dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+       dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
        dx=fce*dx
        dscalar=(rclas(2,at3)-rclas(2,at2))
        dr12r32=r32*(rclas(2,at1)-rclas(2,at2))/(r12)
-       dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-       dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
+       dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+       dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
        dy=fce*dy
        dscalar=(rclas(3,at3)-rclas(3,at2))
        dr12r32=r32*(rclas(3,at1)-rclas(3,at2))/(r12)
-       dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-       dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
+       dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+       dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
        dz=fce*dz
        fnew(1,1)=-dx
        fnew(2,1)=-dy
        fnew(3,1)=-dz
 
 c atom2:
-       dscalar=2.0*rclas(1,at2)-rclas(1,at1)-rclas(1,at3)
+       dscalar=2.d0*rclas(1,at2)-rclas(1,at1)-rclas(1,at3)
        dr12r32=(r32*(-rclas(1,at1)+rclas(1,at2))/r12)+
      .         (r12*(-rclas(1,at3)+rclas(1,at2))/r32)
-       dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-       dx=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dx
+       dx=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+       dx=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dx
        dx=fce*dx
-       dscalar=2.0*rclas(2,at2)-rclas(2,at1)-rclas(2,at3)
+       dscalar=2.d0*rclas(2,at2)-rclas(2,at1)-rclas(2,at3)
        dr12r32=(r32*(-rclas(2,at1)+rclas(2,at2))/r12)+
      .         (r12*(-rclas(2,at3)+rclas(2,at2))/r32)
-       dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-       dy=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dy
+       dy=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+       dy=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dy
        dy=fce*dy
-       dscalar=2.0*rclas(3,at2)-rclas(3,at1)-rclas(3,at3)
+       dscalar=2.d0*rclas(3,at2)-rclas(3,at1)-rclas(3,at3)
        dr12r32=(r32*(-rclas(3,at1)+rclas(3,at2))/r12)+
      .         (r12*(-rclas(3,at3)+rclas(3,at2))/r32)
-       dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.0)
-       dz=-1.0/(sqrt(1.0-(scal/(r12*r32))**2.0))*dz
+       dz=(dscalar*r12*r32-scal*dr12r32)/(r12*r32)**(2.d0)
+       dz=-1.d0/(sqrt(1.d0-(scal/(r12*r32))**2.d0))*dz
        dz=fce*dz
        fnew(1,2)=-dx
        fnew(2,2)=-dy
@@ -338,9 +348,9 @@ c adding fnew to fdummy
         kf=kforce(iconstr)
 
 c forces
-        if(req.lt.90 .and.rtot.gt.180) rtot=rtot-360.
-        if(req.gt.270.and.rtot.lt.180) rtot=rtot+360. 
-        F=2.0*kf*(rtot-req)*pi/180.0
+        if(req.lt.90 .and.rtot.gt.180) rtot=rtot-360.d0
+        if(req.gt.270.and.rtot.lt.180) rtot=rtot+360.d0 
+        F=2.d0*kf*(rtot-req)*pi/180.d0
         call diheforce2(natot,rclas,at1,at2,at3,at4,
      .          1,F,fdihe)
         fnew(1:3,1)=fdihe(1:3)
@@ -356,7 +366,7 @@ c forces
 
 c adding fnew to fdummy
         if((rtot.ge.0..and.rtot.le.180.).or.(rtot.gt.360)) then
-         fnew(1:3,1:4)=(-1.0)*fnew(1:3,1:4)
+         fnew(1:3,1:4)=(-1.d0)*fnew(1:3,1:4)
         elseif((rtot.gt.180..and.rtot.lt.360).or.(rtot.lt.0)) then
          fnew(1:3,1:4)=fnew(1:3,1:4)
         else
@@ -386,29 +396,29 @@ c adding fnew to fdummy
         kf=kforce(iconstr)
 
 c atom1: dr12
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r12)*(rclas(1,at1)-rclas(1,at2))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r12)*(rclas(2,at1)-rclas(2,at2))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r12)*(rclas(3,at1)-rclas(3,at2))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r12)*(rclas(1,at1)-rclas(1,at2))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r12)*(rclas(2,at1)-rclas(2,at2))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r12)*(rclas(3,at1)-rclas(3,at2))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,1)=-dx
         fnew(2,1)=-dy
         fnew(3,1)=-dz
 
 c atom3: dr34
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r34)*(rclas(1,at3)-rclas(1,at4))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r34)*(rclas(2,at3)-rclas(2,at4))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r34)*(rclas(3,at3)-rclas(3,at4))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r34)*(rclas(1,at3)-rclas(1,at4))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r34)*(rclas(2,at3)-rclas(2,at4))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r34)*(rclas(3,at3)-rclas(3,at4))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,3)=-dx
         fnew(2,3)=-dy
         fnew(3,3)=-dz
@@ -428,6 +438,9 @@ c adding fnew to fdummy
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
         fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3)
         fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)
+
+c test write de fuerzas
+        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
       elseif (typeconstr(iconstr).eq.6) then
 
@@ -455,29 +468,29 @@ c adding fnew to fdummy
         kf=kforce(iconstr)
 
 c atom1: dr12
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r12)*(rclas(1,at1)-rclas(1,at2))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r12)*(rclas(2,at1)-rclas(2,at2))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r12)*(rclas(3,at1)-rclas(3,at2))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r12)*(rclas(1,at1)-rclas(1,at2))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r12)*(rclas(2,at1)-rclas(2,at2))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r12)*(rclas(3,at1)-rclas(3,at2))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,1)=-dx
         fnew(2,1)=-dy
         fnew(3,1)=-dz
 
 c atom3: dr34
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r34)*(rclas(1,at3)-rclas(1,at4))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r34)*(rclas(2,at3)-rclas(2,at4))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r34)*(rclas(3,at3)-rclas(3,at4))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r34)*(rclas(1,at3)-rclas(1,at4))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r34)*(rclas(2,at3)-rclas(2,at4))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r34)*(rclas(3,at3)-rclas(3,at4))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,3)=-dx
         fnew(2,3)=-dy
         fnew(3,3)=-dz
@@ -493,29 +506,29 @@ c atom4: -dr34
         fnew(3,4)=-fnew(3,3)
 
 c atom5: dr56
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r56)*(rclas(1,at5)-rclas(1,at6))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r56)*(rclas(2,at5)-rclas(2,at6))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r56)*(rclas(3,at5)-rclas(3,at6))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r56)*(rclas(1,at5)-rclas(1,at6))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r56)*(rclas(2,at5)-rclas(2,at6))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r56)*(rclas(3,at5)-rclas(3,at6))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,5)=dx
         fnew(2,5)=dy
         fnew(3,5)=dz
 
 c atom7: dr78
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/r78)*(rclas(1,at7)-rclas(1,at8))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/r78)*(rclas(2,at7)-rclas(2,at8))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/r78)*(rclas(3,at7)-rclas(3,at8))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/r78)*(rclas(1,at7)-rclas(1,at8))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/r78)*(rclas(2,at7)-rclas(2,at8))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/r78)*(rclas(3,at7)-rclas(3,at8))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,7)=dx
         fnew(2,7)=dy
         fnew(3,7)=dz
@@ -548,9 +561,9 @@ c adding fnew to fdummy
         at4=atmsconstr(iconstr,4)
         at5=atmsconstr(iconstr,5)
 
-        rp(1)=(rclas(1,at2)+rclas(1,at3)+rclas(1,at4)+rclas(1,at5))/4.0
-        rp(2)=(rclas(2,at2)+rclas(2,at3)+rclas(2,at4)+rclas(2,at5))/4.0
-        rp(3)=(rclas(3,at2)+rclas(3,at3)+rclas(3,at4)+rclas(3,at5))/4.0
+        rp(1)=(rclas(1,at2)+rclas(1,at3)+rclas(1,at4)+rclas(1,at5))/4.d0
+        rp(2)=(rclas(2,at2)+rclas(2,at3)+rclas(2,at4)+rclas(2,at5))/4.d0
+        rp(3)=(rclas(3,at2)+rclas(3,at3)+rclas(3,at4)+rclas(3,at5))/4.d0
 
         rtot=dist(rclas(1,at1),rclas(2,at1),rclas(3,at1),
      .   rp(1),rp(2),rp(3))
@@ -560,15 +573,15 @@ c adding fnew to fdummy
         kf=kforce(iconstr)
 
 c atom1: dr12
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/rtot)*(rclas(1,at1)-rp(1))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/rtot)*(rclas(2,at1)-rp(2))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/rtot)*(rclas(3,at1)-rp(3))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/rtot)*(rclas(1,at1)-rp(1))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/rtot)*(rclas(2,at1)-rp(2))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/rtot)*(rclas(3,at1)-rp(3))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,1)=-dx
         fnew(2,1)=-dy
         fnew(3,1)=-dz
@@ -577,7 +590,7 @@ c adding fnew to fdummy
         fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
 
       elseif (typeconstr(iconstr).eq.8) then
-        rtot=0.0
+        rtot=0.d0
         do i=1,ndists(iconstr)
         at1=atmsconstr(iconstr,i)
         at2=atmsconstr(iconstr,i+1)
@@ -598,15 +611,15 @@ c ndists
         at2=atmsconstr(iconstr,i+1)
 
 c atom1: dr12
-        dx=0.0
-        dy=0.0
-        dz=0.0
-          dx=(1.0/rtot)*(rclas(1,at1)-rclas(1,at2))
-          dx=2.0*kf*(rtot-req)*dx
-          dy=(1.0/rtot)*(rclas(2,at1)-rclas(2,at2))
-          dy=2.0*kf*(rtot-req)*dy
-          dz=(1.0/rtot)*(rclas(3,at1)-rclas(3,at2))
-          dz=2.0*kf*(rtot-req)*dz
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+          dx=(1.d0/rtot)*(rclas(1,at1)-rclas(1,at2))
+          dx=2.d0*kf*(rtot-req)*dx
+          dy=(1.d0/rtot)*(rclas(2,at1)-rclas(2,at2))
+          dy=2.d0*kf*(rtot-req)*dy
+          dz=(1.d0/rtot)*(rclas(3,at1)-rclas(3,at2))
+          dz=2.d0*kf*(rtot-req)*dz
         fnew(1,1)=-dx*coef(iconstr,i)
         fnew(2,1)=-dy*coef(iconstr,i)
         fnew(3,1)=-dz*coef(iconstr,i)
@@ -703,7 +716,7 @@ c nconstr
         enddo 
 
 c change units 
-        rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177
+        rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177d0
         end
 
 c**************************************************************
@@ -711,7 +724,8 @@ c**************************************************************
 
         implicit none
         double precision ro,rt,dr,E,eV,Ang
-        data eV /13.60580d0/
+c        data eV /13.60580d0/
+        data eV / 27.211396132d0/
         data Ang /0.529177d0/
         save eV,Ang 
 

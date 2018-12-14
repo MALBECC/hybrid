@@ -1,6 +1,6 @@
 c Reads the required QM information
 
-      subroutine read_qm(na_u,nesp,isa,iza,xa,atsym)
+      subroutine read_qm(na_u,nesp,isa,iza,xa,atsym, charge, spin)
 
       use precision
       use sys
@@ -88,10 +88,12 @@ c Calculates the total number of electrons
       charge=int(charnet)
       nelec=0
       do i=1,na_u
-        if(iza(i).eq.1)                   nelec=nelec+iza(i)
-        if(iza(i).gt.2.and.iza(i).lt.10)  nelec=nelec+iza(i)-2
-        if(iza(i).gt.10.and.iza(i).lt.18) nelec=nelec+iza(i)-10
-        if(iza(i).gt.18.and.iza(i).lt.36) nelec=nelec+iza(i)-18
+	nelec=nelec+iza(i)
+c  no more ECP used, Nick
+c        if(iza(i).eq.1)                   nelec=nelec+iza(i)
+c        if(iza(i).gt.2.and.iza(i).lt.10)  nelec=nelec+iza(i)-2
+c        if(iza(i).gt.10.and.iza(i).lt.18) nelec=nelec+iza(i)-10
+c        if(iza(i).gt.18.and.iza(i).lt.36) nelec=nelec+iza(i)-18
       enddo
       nelec=nelec-charge
         write(6,'(a,i5)')
@@ -174,31 +176,6 @@ C Kind of dynamics
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
      .     usesavecg
-      else if (leqi(dyntype,'verlet')) then
-        idyn = 1
-          write(6,'(a,a)') 
-     .     'read: Dynamics option                  = ',
-     .     '    Velocity Verlet MD run'
-      else if (leqi(dyntype,'nose')) then
-        idyn = 2
-          write(6,'(a,a)') 
-     .     'read: Dynamics option                  = ',
-     .     '    Nose termostat MD run'
-      else if (leqi(dyntype,'anneal')) then
-        idyn = 3
-          write(6,'(a,a)') 
-     .     'read: Dynamics option                  = ',
-     .     '    Annealing MD run'
-      else if (leqi(dyntype,'Berendsen')) then
-        idyn = 4
-          write(6,'(a,a)')
-     .     'read: Dynamics option                  = ',
-     .     '    Berendsen'
-      else if (leqi(dyntype,'fc')) then
-        idyn = 5
-          write(6,'(a,a)')
-     .     'read: Dynamics option                  = ',
-     .     '    Force Constants Matrix Calculation'
       else
         write(6,100) 
         write(6,101) 
@@ -206,11 +183,6 @@ C Kind of dynamics
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
         write(6,'(a)') 'read:      - CG                             '
-        write(6,'(a)') 'read:      - Velocity Verlet                '
-        write(6,'(a)') 'read:      - Berendsen                      '
-        write(6,'(a)') 'read:      - Nose                           '
-        write(6,'(a)') 'read:      - Anneal                         '
-        write(6,'(a)') 'read:      - FC                             '
         write(6,102)
         call die
       endif 
@@ -438,8 +410,10 @@ C Subroutine to read a crd file from an Amber run
 	if(nat.ne.natoms)  stop 'Wrong number of atoms!!!' 
 	
         if(.not.linkatom) then
-	read(iu,err=1,end=1,fmt='(6f12.7)') ((rclas(i,j),i=1,3),j=1,natoms)
-	read(iu,err=1,end=1,fmt='(6f12.7)') ((vat(i,j),i=1,3),j=1,natoms)
+	read(iu,err=1,end=1,fmt='(6f12.7)')
+     .  ((rclas(i,j),i=1,3),j=1,natoms)
+	read(iu,err=1,end=1,fmt='(6f12.7)')
+     .  ((vat(i,j),i=1,3),j=1,natoms)
 	else !linkatom=.true.
 	if(linkat(1).eq.(na_u-numlink+1)) then
 	read(iu,err=1,end=1,fmt='(6f12.7)') 
@@ -458,8 +432,8 @@ C Subroutine to read a crd file from an Amber run
 	endif
 	call io_close(iu)
 
-        rclas(1:3,1:natoms)=rclas(1:3,1:natoms)/0.5291772
-        vat(1:3,1:natoms)=vat(1:3,1:natoms)/0.5291772*20.455/1000
+        rclas(1:3,1:natoms)=rclas(1:3,1:natoms)/0.5291772d0
+        vat(1:3,1:natoms)=vat(1:3,1:natoms)/0.5291772d0*20.455d0/1000d0
 
       write(6,'(/a)') 
      .'readcrd: Reading Coordinates and Velocities from CRD file'

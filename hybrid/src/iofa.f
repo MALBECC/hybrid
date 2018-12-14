@@ -29,19 +29,25 @@ c -------------------------------------------------------------------
 
       if (frstme) then
         Ang    = 1.d0 / 0.529177d0
-        eV     = 1.d0 / 13.60580d0
+c        eV     = 1.d0 / 13.60580d0
+        eV     = 1.d0 / 27.211396132d0
         sname  = fdf_string( 'SystemLabel', 'siesta' )
         fname  = paste( sname, '.FA' )
         frstme = .false.
       endif
 
-      call io_assign( iu )
-      open( iu, file=fname, form='formatted', status='unknown' )      
+c      call io_assign( iu )
+c      open( iu, file=fname, form='formatted', status='unknown' )      
+c      write(iu,'(i6)') na
+c      write(iu,'(i6,3f12.6)') (ia, (fa(ix,ia)*Ang/eV,ix=1,3), ia=1,na)
+c      call io_close( iu )
+c cambio salida, Nick
 
-      write(iu,'(i6)') na
-      write(iu,'(i6,3f12.6)') (ia, (fa(ix,ia)*Ang/eV,ix=1,3), ia=1,na)
 
-      call io_close( iu )
+      open( 1534, file=fname, form='formatted', status='unknown' )      
+      write(1534,'(i6)') na
+      write(1534,'(i6,3f18.6)') (ia, (fa(ix,ia)*Ang/eV,ix=1,3), ia=1,na)
+      close(1534)
 
       return
       end

@@ -43,9 +43,6 @@ C  Modules
 C
       use precision
       use fdf
-#ifdef MPI
-      use mpi_siesta
-#endif
 
       implicit          none
 
@@ -57,7 +54,6 @@ C
      .                  xa(3,na), fa(3,na),
      .                  tp, ftol, strtol, volume, dxmax
 
-      external          memory
 c ---------------------------------------------------------------------------
 
 c Internal variables and arrays
@@ -65,10 +61,6 @@ c Internal variables and arrays
       logical           tarstr, frstme, found
 
       integer           iu, ia, ndeg, i, j, n, indi, linmin, Node
-
-#ifdef MPI
-      integer           MPIerror
-#endif
 
       double precision  
      .                  cgcntr(0:20), tstres(3,3), celli(3,3), 
@@ -87,21 +79,13 @@ c Internal variables and arrays
 
 c ---------------------------------------------------------------------------
 
-C Get Node number
-#ifdef MPI
-      call MPI_Comm_Rank(MPI_Comm_World,Node,MPIerror)
-#else
       Node = 0
-#endif
 
 C Allocate local memory
       allocate(gfa(na*3 + 6))
-      call memory('A','D',3*na+6,'cgvc')
       allocate(gxa(na*3 + 6))
-      call memory('A','D',3*na+6,'cgvc')
       if (.not.allocated(cgaux)) then
         allocate(cgaux(2*(na*3 + 6)))
-        call memory('A','D',6*na+12,'cgvc')
       endif
 
 c If first call to cgvc, check dim and get target stress --------------------
@@ -156,17 +140,6 @@ c write target stress down --------------------------------------------------
      .       tstres(3,3)/kBar
           endif
 
-#ifdef MPI
-c globalise information
-#ifdef NODAT
-          call MPI_Bcast(tstres(1,1),9,MPI_double_precision,0,
-     .      MPI_Comm_World,MPIerror)
-#else
-          call MPI_Bcast(tstres(1,1),9,DAT_double,0,MPI_Comm_World,
-     .      MPIerror)
-#endif
-#endif
-
 c moduli of original cell vectors for fractional coor scaling back to au ---
 
           do n = 1, 3
@@ -185,16 +158,6 @@ c           precon = modcel(1)
             precon = fdf_physical('MD.PreconditionVariableCell',
      .                           9.4486344d0,'Bohr')
           endif
-#ifdef MPI
-c globalise information
-#ifdef NODAT
-          call MPI_Bcast(precon,1,MPI_double_precision,0,MPI_Comm_World,
-     .      MPIerror)
-#else
-          call MPI_Bcast(precon,1,DAT_double,0,MPI_Comm_World,
-     .      MPIerror)
-#endif
-#endif
 
 c dimension of space where E is minimized -----------------------------------
 
@@ -222,24 +185,6 @@ c initialize and read cgaux and cgcntr if present and wanted ---------------
           if (Node.eq.0) then
             call iocg( 'read', ndeg*2, cgaux, cgcntr, relaxd, found )
           endif
-#ifdef MPI
-c globalise information
-#ifdef NODAT
-          call MPI_Bcast(cgaux,2*(na*3+6),MPI_double_precision,0,
-     .      MPI_Comm_World,MPIerror)
-          call MPI_Bcast(cgcntr,21,MPI_double_precision,0,
-     .      MPI_Comm_World,MPIerror)
-#else
-          call MPI_Bcast(cgaux,2*(na*3+6),DAT_double,0,MPI_Comm_World,
-     .      MPIerror)
-          call MPI_Bcast(cgcntr,21,DAT_double,0,MPI_Comm_World,
-     .      MPIerror)
-#endif
-          call MPI_Bcast(relaxd,1,MPI_logical,0,MPI_Comm_World,
-     .      MPIerror)
-          call MPI_Bcast(found,1,MPI_logical,0,MPI_Comm_World,
-     .      MPIerror)
-#endif
           if ( found ) then
             linmin = cgcntr(1)
           else
@@ -387,9 +332,7 @@ c save cgaux ----------------------------------------------------------------
      .  call iocg( 'write', ndeg*2, cgaux, cgcntr, relaxd, found )
 
 C Deallocate local memory
-      call memory('D','D',size(gfa),'cgvc')
       deallocate(gfa)
-      call memory('D','D',size(gxa),'cgvc')
       deallocate(gxa)
 
       return

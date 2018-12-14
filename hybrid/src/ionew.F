@@ -13,11 +13,6 @@ c
 c     Logical units min_lun to min_max are managed by this module.
 
       use sys
-
-#ifdef MPI
-      use mpi_siesta
-#endif
-
       implicit none
 c
 
@@ -37,13 +32,7 @@ c
       subroutine io_setup
 !
 !     Sets IOnode
-#ifdef MPI
-      integer MPIerror, Node
-      call MPI_Comm_Rank( MPI_Comm_World, Node, MPIerror )
-      ionode = (node .eq. 0)
-#else
       ionode = .true.
-#endif
       end subroutine io_setup
 
       subroutine io_seterr(unit)

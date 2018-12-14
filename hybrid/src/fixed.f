@@ -7,7 +7,8 @@ c subroutine that read the constrained atom block
         use fdf
         use sys
 	implicit none
-	integer i,j,k,l,iunit,na_u,nac,natot,nroaa,aanum(nac),blocklist(natot)
+	integer i,j,k,l,iunit,na_u,nac,natot,nroaa,aanum(nac),
+     .  blocklist(natot)
 	character*4 atname(nac),aaname(nac)
 	double precision rclas(3,natot)
 	logical wat
@@ -27,7 +28,8 @@ c reads 'PositionConstraints' block
 	  read(iunit,*,err=100,end=100) exp,type(i)
 
 	if(nac.eq.0.and.type(i).gt.1) then
-	call die('fixed: constrained type for only QM atoms must be only 1')
+	call die('fixed: constrained type for only QM atoms
+     .  must be only 1')
 	endif
 	  if(type(i).le.2) then
 
@@ -52,7 +54,8 @@ c reads 'PositionConstraints' block
 
 	do k=1,ncon(i)
 	if(con2(i,k).lt.con1(i,k)) then
-	call die('fixed: sets of constraints must be defined in correct order')
+	call die('fixed: sets of constraints must be defined
+     .  in correct order')
 	endif
 	enddo
 
@@ -140,7 +143,7 @@ c blocklist assignation
             endif
           enddo
 	elseif(type(i).eq.6) then
-        r(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177
+        r(1:3,1:nac)=rclas(1:3,na_u+1:natot)*0.529177d0
         cqm=0.0
         k=0
         do j=1,nac

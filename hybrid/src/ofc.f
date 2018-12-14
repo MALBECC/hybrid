@@ -26,7 +26,7 @@ C *******************************************************************
       implicit          none
       integer           na, ia1, ia2
       double precision  dx, fa(3,na)
-      external          chkdim, paste, timer, memory
+      external          chkdim, paste
 
 c     Internal variables and arrays
       character fname*33, sname*30, line*132, paste*33
@@ -42,13 +42,12 @@ c     Internal variables and arrays
 c     Allocate local array for storing residual forces
       if (.not.allocated(fres)) then
         allocate(fres(3,na))
-        call memory('A','D',3*na,'ofc')
       endif
 
 c     Define conversion factors
       Ang = 1.d0 / 0.529177d0
-      eV  = 1.d0 / 13.60580d0
-
+c      eV  = 1.d0 / 13.60580d0
+      eV     = 1.d0 / 27.211396132d0
 c     Find file name
       if (frstme) then
         sname = fdf_string('SystemLabel','siesta')
