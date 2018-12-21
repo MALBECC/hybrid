@@ -1,3 +1,6 @@
+*.o
+*.mod
+### LIO files, remove when eliminate LIO from this code ###
 ###########################################################
 # Ignoring compiled objects, logs and backups
 ###########################################################
@@ -10,77 +13,66 @@
 *.optrpt
 *.bak
 *~
-liosolo/liosolo
+LIO/liosolo/liosolo
 #
 ###########################################################
 ## Ignoring outputs from test runs
 ###########################################################
-test/*/*.orb
-test/*/*.out
-dtest/*/*.xyz
+LIO/test/*/*.orb
+LIO/test/*/*.out
+LIO/dtest/*/*.xyz
 fort.*
 mulliken
 qm.xyz
 salida
 #
 ###########################################################
-# What is this?
-###########################################################
-fortran/garcha-g2g
-fortran/garcha
-fortran/hibrido-g2g
-fortran/hibrido
-fortran/obj
-ecuaciones.pdf
-/g2g/nbproject/private/
-#
-###########################################################
 # Isn't this redundant?
 # (at least after adding *.cu_o)
 ###########################################################
-g2g/*.o
-g2g/*.so
-g2g/*/*.o
-g2g/*/*.cu_o
-g2g/analytic_integral/*.o
-g2g/analytic_integral/*/*.o
-lioamber/*.log
-lioamber/*.mod
-liosolo/*.x
-test/performance-measures/*
-lioamber/utests/*.x
-lioamber/liosubs/utests/*.x
-lioamber/liosubs/utests/Output-*
+LIO/g2g/*.o
+LIO/g2g/*.so
+LIO/g2g/*/*.o
+LIO/g2g/*/*.cu_o
+LIO/g2g/analytic_integral/*.o
+LIO/g2g/analytic_integral/*/*.o
+LIO/lioamber/*.log
+LIO/lioamber/*.mod
+LIO/liosolo/*.x
+LIO/test/performance-measures/*
+LIO/lioamber/utests/*.x
+LIO/lioamber/liosubs/utests/*.x
+LIO/lioamber/liosubs/utests/Output-*
 #
 ###########################################################
 # Unit test
 ###########################################################
-test/unit_test/accumulate_point/main_gpu
-test/unit_test/accumulate_point/main_cpu
-test/unit_test/accumulate_point/output/*
-test/unit_test/libxc_proxy/main_gpu
-test/unit_test/libxc_proxy/output/*
-test/unit_test/matrix/matrix_test
-test/unit_test/timers/timers_test
-test/unit_test/iteration/main_gpu
-test/unit_test/iteration/output/*
-test/unit_test/libxc_proxy/main_cpu
-test/unit_test/libxc_proxy/main_gpu
-test/*/output/*
+LIO/test/unit_test/accumulate_point/main_gpu
+LIO/test/unit_test/accumulate_point/main_cpu
+LIO/test/unit_test/accumulate_point/output/*
+LIO/test/unit_test/libxc_proxy/main_gpu
+LIO/test/unit_test/libxc_proxy/output/*
+LIO/test/unit_test/matrix/matrix_test
+LIO/test/unit_test/timers/timers_test
+LIO/test/unit_test/iteration/main_gpu
+LIO/test/unit_test/iteration/output/*
+LIO/test/unit_test/libxc_proxy/main_cpu
+LIO/test/unit_test/libxc_proxy/main_gpu
+LIO/test/*/output/*
 ###########################################################
 # Integration test
 ###########################################################
-test/integration_test/accumulate_point/main_cpu
-test/integration_test/accumulate_point/main_gpu
-test/integration_test/iteration/main_gpu
+LIO/test/integration_test/accumulate_point/main_cpu
+LIO/test/integration_test/accumulate_point/main_gpu
+LIO/test/integration_test/iteration/main_gpu
 ###########################################################
 # Stress test
 ###########################################################
-test/stress_test/0_aguaGPU/*
-test/stress_tess/2_hemoGPU/*
-test/stress_test/5_caffeineGPU/*
-tess/stress_test/9_carotenoGPU/*
+LIO/test/stress_test/0_aguaGPU/*
+LIO/test/stress_tess/2_hemoGPU/*
+LIO/test/stress_test/5_caffeineGPU/*
+LIO/tess/stress_test/9_carotenoGPU/*
 ###########################################################
 # Profiling
 ###########################################################
-test/profiling/*
+LIO/test/profiling/*
