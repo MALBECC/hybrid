@@ -9,7 +9,7 @@ default: what hybrid
 FC =
 FFLAGS =
 OBJPATH := .
-LIO_PATH = ../..
+LIO_PATH = ../LIO
 include ${LIO_PATH}/lioamber/Makefile.optchck
 include ${LIO_PATH}/lioamber/Makefile.options
 include Makefile.rulz
