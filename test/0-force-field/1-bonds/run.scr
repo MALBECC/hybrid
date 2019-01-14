@@ -1,14 +1,10 @@
 #!/bin/bash
 rm Energy.dat Forces.dat Test.out
 
-for i in {00..09}; do
-for j in {10..90..10}; do
-
+for i in {0..99}; do
+j=$(python -c "print($i/10.0)")
 cp base.fdf Test.fdf
-
-sed -i -e s/NN/$i/g Test.fdf
-sed -i -e s/XX/$j/g Test.fdf
-
+sed -i -e s/NN.XX/$j/g Test.fdf
 ../../../bin/hybrid < Test.fdf >> Test.out
 
 grep "Etots:" Test.out >> Energy.dat
@@ -16,7 +12,6 @@ tail Pos_forces.dat >> Forces.dat
 rm Test.out
 
 
-done
 done
 rm INPUT_TMP.*
 
