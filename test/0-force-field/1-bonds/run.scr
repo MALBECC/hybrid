@@ -1,12 +1,12 @@
 #!/bin/bash
 rm Energy.dat Forces.dat Test.out
 
-for i in {0..9}; do
-for j in {01..10}; do
+for i in {00..09}; do
+for j in {10..90..10}; do
 
 cp base.fdf Test.fdf
 
-sed -i -e s/NN/0$i/g Test.fdf
+sed -i -e s/NN/$i/g Test.fdf
 sed -i -e s/XX/$j/g Test.fdf
 
 ../../../bin/hybrid < Test.fdf >> Test.out
