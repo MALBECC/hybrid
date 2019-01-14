@@ -293,9 +293,11 @@
 
 ! Assignation of masses and species 
       call assign(na_u,nac,atname,iza,izs,masst)
-      if (idyn .ne. 1) then ! Read cell shape and atomic positions from a former run
+      if (idyn .ne. 1 ) then ! Read cell shape and atomic positions from a former run
+      if (usesavexv) then
         call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1) 
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
+      end if
       else 
 	call init_hybrid("NEB")
 	call NEB_make_initial_band(usesavecg)
@@ -812,12 +814,14 @@ C Write atomic forces
 
       if (idyn .ne. 1 ) then !Move atoms with a CG algorithm
 
-        if (writeRF .eq. 1) then!save coordinates and forces for integration 
+        if (writeRF .eq. 1) then!save coordinates and forces for integration
+	   open(unit=969, file="Pos_forces.dat")
            do itest=1, natot
 	      write(969,423) itest, rclas(1:3,itest)*Ang,
 c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
      .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA saco *0.5 
            end do
+	   close(969)
         end if
 
 	Ekinion=0.d0
