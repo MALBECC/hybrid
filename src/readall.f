@@ -262,7 +262,7 @@ C Mass of Nose variable
 
 
 C Read if use saved XV data
-      usesavexv = fdf_boolean('MD.UseSaveXV', .false.)
+      usesavexv = fdf_boolean('MD.UseSaveXV', .true.)
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for XV    = ',
      .     usesavexv
