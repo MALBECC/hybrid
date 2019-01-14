@@ -1,0 +1,40 @@
+SystemName     Test-Bonds
+SystemLabel    Test-Bonds      
+CenterMolecule T    
+NumberOfAtoms        0
+NumberOfSpecies      0
+NetCharge 0.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.04 eV/Ang 
+NumberOfSolventAtoms      2
+PFIntegrationOutput 1
+MD.UseSaveXV F
+
+%block ChemicalSpeciesLabel   
+%endblock ChemicalSpeciesLabel
+ 
+AtomicCoordinatesFormat  Ang  
+%block AtomicCoordinatesAndAtomicSpecies
+%endblock AtomicCoordinatesAndAtomicSpecies
+ 
+%block SoluteAtomTypes   
+%endblock SoluteAtomTypes
+ 
+MD.TypeOfRun    CG        
+MD.NumCGsteps   0       
+MD.UseSaveXV f
+ 
+%block CutOffRadius       
+QM  0.2                   
+QMMM 100.0                 
+MM 80.0                    
+BLO 80.0      
+MMBLO 50.0             
+%endblock CutOffRadius    
+
+%block SolventInput
+ATOM      1  H1  NICKH   1       0.000   0.000   0.000
+ATOM      2  H2  NICKH   1      NN.XX0   0.000   0.000
+%endblock SolventInput
+
