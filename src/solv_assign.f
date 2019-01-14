@@ -145,6 +145,7 @@ c	  write(*,*) "ch4 vale ", ch1, " Nick"
 	endif
 
 c read cutoff radious
+	radblommbond=100.d0
       if ( fdf_block('CutOffRadius',iunit) )
      .     then
       read(iunit,*,err=30,end=30) exp, rcorteqm
