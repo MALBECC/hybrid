@@ -5,7 +5,7 @@
 default: module
 FC =
 OBJPATH := .
-LIO_PATH = ../../..
+LIO_PATH = ../../lio
 include ${LIO_PATH}/lioamber/Makefile.optchck
 include ${LIO_PATH}/lioamber/Makefile.options
 include ../Makefile.rulz

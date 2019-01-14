@@ -9,7 +9,7 @@ default: what hybrid
 FC =
 FFLAGS =
 OBJPATH := .
-LIO_PATH = ../LIO
+LIO_PATH = ../lio
 include ${LIO_PATH}/lioamber/Makefile.optchck
 include ${LIO_PATH}/lioamber/Makefile.options
 include Makefile.rulz
@@ -90,7 +90,7 @@ version:
 LIO_OBJS = $(wildcard $(LIO_PATH)/lioamber/obj/*.o) 
 
 
-HFLAGS += -O2 -L../../g2g
+HFLAGS += -O2 -L../lio/g2g
 
 hybrid: version $(FDF) $(ALL_OBJS)
 	@mkdir -p ../bin
