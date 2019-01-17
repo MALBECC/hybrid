@@ -598,13 +598,11 @@ C Terminó asignación
 c calcula la E y F de dihedros 
 c para los dihes en la esquina
         do i=1,ndihe       !ndihe es el número total de dihedros
-        if(perdihe(i).lt.0.d0) then   ! perdihe(i) es el 
-        perdihe(i)=-perdihe(i)
-        endif
+	  if(perdihe(i).lt.0.d0) perdihe(i)=-perdihe(i)
         enddo
+
         do i=1,nac
          do j=1,dihexat(i)
-c     .   atdihe(i,j,3)
          dihedral=dihedro(ramber(1,i),ramber(2,i),ramber(3,i),
      .   ramber(1,atdihe(i,j,1)),ramber(2,atdihe(i,j,1)),
      .   ramber(3,atdihe(i,j,1)),
@@ -614,18 +612,16 @@ c     .   atdihe(i,j,3)
      .   ramber(3,atdihe(i,j,3)))
 
 c si el dihedro es 500 es error y sale
-        if(dihedral.lt.500.1.and.dihedral.gt.499.9) then
-        write(*,*) 'ERROR EN EL DIHEDRO(esq)',i,j
-        STOP
-        endif
-
-       if(evaldihelog(i,j)) then
-	do m=1,5
-       k=evaldihe(i,j,m)
-
+	  if(dihedral.lt.500.1.and.dihedral.gt.499.9) then
+	    write(*,*) 'ERROR EN EL DIHEDRO(esq)',i,j
+	    STOP
+	  endif
+	  if(evaldihelog(i,j)) then
+	    do m=1,5
+	      k=evaldihe(i,j,m)
 	 if(k.ne.0) then
            if(multidihe(k).ne.0) then
-
+	write(*,*) k,kdihe(k),multidihe(k),perdihe(k),dihedral,diheeq(k)
 c      k=evaldihe(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))    !multidihe explota (0)
@@ -728,7 +724,7 @@ c       k=evaldihm(i,j,m)
         enddo
        enddo
 
-      Edihe_amber=Edihe_amber/4.d0 !4 porque cuenta 4 energias (una por atomo del dihe)
+      Edihe_amber=Edihe_amber/4.d0 !4 porque cuenta 4 veces la misma contribucion a la energia (una por cada atomo del dihedro)
 
       do i=1,nac
       fcedihe_amber(1,i)=fesq(1,i)+fmedio(1,i)
