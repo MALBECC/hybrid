@@ -298,24 +298,24 @@ c assign atsinres
 
 c checking ST and SV parameters
 	do i=1,na_u
-	if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
-	if(Rm(i).eq.0.or.Em(i).eq.0) then
-	write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter, atom:', i
-	STOP
-	endif
-	endif
+	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
+	  if(Rm(i).eq.0.or.Em(i).eq.0) then
+	    write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter, atom:', i
+	    STOP
+	  endif
+	  endif
 	enddo
 
 	do i=1,nac
-        if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
-        if(Rm(i+na_u).eq.0.or.Em(i+na_u).eq.0.or.pc(i).eq.0) then
-	write(*,*) "Rm(i+na_u)", Rm(i+na_u)
-	 write(*,*) "Em(i+na_u)", Em(i+na_u)
-	write(*,*) "pc(i)", pc(i)
-	write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter, atom:', i
-        STOP
-	endif
-	endif
+	  if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
+	  if(Rm(i+na_u).eq.0.or.Em(i+na_u).eq.0.or.pc(i).eq.0) then
+	    write(*,*) "Rm(i+na_u)", Rm(i+na_u)
+	    write(*,*) "Em(i+na_u)", Em(i+na_u)
+	    write(*,*) "pc(i)", pc(i)
+	    write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter, atom:', i
+	    STOP
+	  endif
+	  endif
 	enddo	
 
        return
@@ -507,7 +507,7 @@ c lee el archivo con los parametros
         do while (search)
         read (ui,*,err=1,end=1) option
         if (option.eq.'ljs') then
-        read(ui,*,err=1,end=1) nlj
+        read(ui,*,err=1,end=1) nlj !cantidad de lennard jones en el amber.parm
         do  i=1,nlj
         if(nlj.ge.200) stop 'solvent: LJ parameters must not exeed 200'
                 read (ui,*,err=1,end=1) ljtype(i),pRm(i),pEm(i)
@@ -520,10 +520,10 @@ c lee el archivo con los parametros
         call io_close(ui)
 
 c  pasa los LJ a las unidades del siesta
-        do i=1,nlj
-        pRm(i) = (2.0d0*pRm(i)/0.529177d0)/(2.d0**(1.d0/6.d0))
-        pEm(i) = (pEm(i)/627.5108d0)
-        enddo
+	do i=1,nlj
+	  pRm(i) = (2.0d0*pRm(i)/0.529177d0)/(2.d0**(1.d0/6.d0))
+	  pEm(i) = (pEm(i)/627.5108d0)
+	enddo
  
 c asigna el LJ corresp al attypea xa el solvente
         do i=1,nroaa
@@ -539,32 +539,33 @@ c asigna el LJ corresp al attypea xa el solvente
      .  attypea(i,j).eq.'CY'.or.attypea(i,j).eq.'CD')
      .  then
  
-        do k=1,nlj
-        if (ljtype(k).eq.'C') then
-        Rma(i,j) = pRm(k)
-        Ema(i,j) = pEm(k)
-        endif
-        enddo
+	  do k=1,nlj
+	    if (ljtype(k).eq.'C') then
+	      Rma(i,j) = pRm(k)
+	      Ema(i,j) = pEm(k)
+	    endif
+	  enddo
  
         elseif (attypea(i,j).eq.'N'.or.attypea(i,j).eq.'NA'.or.
      .  attypea(i,j).eq.'NB'.or.attypea(i,j).eq.'NC'.or.
      .  attypea(i,j).eq.'N*'.or.attypea(i,j).eq.'N2'.or.
      .  attypea(i,j).eq.'NO'.or.attypea(i,j).eq.'NP') then
  
-        do k=1,nlj
-        if (ljtype(k).eq.'N') then
-        Rma(i,j) = pRm(k)
-        Ema(i,j) = pEm(k)
-        endif
-        enddo
+	  do k=1,nlj
+	    if (ljtype(k).eq.'N') then
+	      Rma(i,j) = pRm(k)
+	      Ema(i,j) = pEm(k)
+	    endif
+	  enddo
  
         else
-	do k=1,nlj
-	if (attypea(i,j).eq.ljtype(k)) then
- 	Rma(i,j) = pRm(k)
-        Ema(i,j) = pEm(k)
-        endif
-        enddo
+
+	  do k=1,nlj
+	    if (attypea(i,j).eq.ljtype(k)) then
+ 	      Rma(i,j) = pRm(k)
+	      Ema(i,j) = pEm(k)
+	    endif
+	  enddo
 	
 	endif
 	enddo
@@ -616,9 +617,9 @@ c pasa los LJ del sv
         k=na_u+1
         do i=1,nroaa
         do j=1,atxres(i)
-        Em(k)=Ema(i,j)
-        Rm(k)=Rma(i,j)     
-        k=k+1
+	  Em(k)=Ema(i,j)
+	  Rm(k)=Rma(i,j)     
+	  k=k+1
         enddo
         enddo
 
