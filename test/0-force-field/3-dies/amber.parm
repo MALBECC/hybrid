@@ -1,0 +1,30 @@
+bonds
+1
+X -X     0.0     1.000             
+angles   
+1
+X -X -X     0.      45.00    
+dihes    
+1
+X -X -X -X    4   14.50        180.0             2.         !tipo,multiplicidad,constante,valor de equilibrio,periodicidad
+imps     
+0
+residues
+1
+NICK 4
+ "H1" "X" 0 1 131072 1 7 0.000010
+ "H2" "X" 0 1 131072 2 1 0.000010
+ "H3" "X" 0 1 131072 3 1 0.000010
+ "H4" "X" 0 1 131072 4 1 0.000010
+ljs  
+1       
+  X           0.1000  0.0001
+connectivity 
+1
+NICK 3
+ 1 2 
+ 2 3 
+ 3 4 
+impropers 
+0
+DONE     
