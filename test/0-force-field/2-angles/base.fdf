@@ -1,0 +1,21 @@
+SystemName     Test-Bonds
+SystemLabel    Test-Bonds      
+CenterMolecule T    
+NumberOfAtoms        0
+NumberOfSpecies      0
+NetCharge 0.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.04 eV/Ang 
+NumberOfSolventAtoms      3
+PFIntegrationOutput 1
+MD.UseSaveXV F
+MD.TypeOfRun    CG        
+MD.NumCGsteps   0       
+ 
+%block SolventInput
+ATOM      1  H1  NICKH   1      -1.000   0.000   0.000
+ATOM      2  H2  NICKH   1       0.000   0.000   0.000
+ATOM      3  H3  NICKH   1      XXXXXX  YYYYYY   0.000
+%endblock SolventInput
+

@@ -1,0 +1,27 @@
+#!/bin/bash
+rm Energy.dat Forces.dat Test.out traj.pdb
+
+
+for i in {-190..190}; do
+z=$(python -c "import math; print('%+4.3f' %(0.866*math.cos($i*math.pi/180.0)))")
+y=$(python -c "import math; print('%+4.3f' %(0.866*math.sin($i*math.pi/180.0)))")
+cp base.fdf Test.fdf
+sed -i -e s/YYYYYY/$y/g Test.fdf
+sed -i -e s/ZZZZZZ/$z/g Test.fdf
+
+../../../bin/hybrid < Test.fdf >> Test.out
+
+grep "Etots:" Test.out >> Energy.dat
+tail Pos_forces.dat >> Forces.dat
+rm Test.out
+
+tail Test-Bonds.init.pdb >> traj.pdb
+
+done
+rm INPUT_TMP.*
+
+
+
+
+
+

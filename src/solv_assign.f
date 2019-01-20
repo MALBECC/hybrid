@@ -145,6 +145,7 @@ c	  write(*,*) "ch4 vale ", ch1, " Nick"
 	endif
 
 c read cutoff radious
+	radblommbond=100.d0
       if ( fdf_block('CutOffRadius',iunit) )
      .     then
       read(iunit,*,err=30,end=30) exp, rcorteqm
@@ -297,24 +298,24 @@ c assign atsinres
 
 c checking ST and SV parameters
 	do i=1,na_u
-	if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
-	if(Rm(i).eq.0.or.Em(i).eq.0) then
-	write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter, atom:', i
-	STOP
-	endif
-	endif
+	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
+	  if(Rm(i).eq.0.or.Em(i).eq.0) then
+	    write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter, atom:', i
+	    STOP
+	  endif
+	  endif
 	enddo
 
 	do i=1,nac
-        if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
-        if(Rm(i+na_u).eq.0.or.Em(i+na_u).eq.0.or.pc(i).eq.0) then
-	write(*,*) "Rm(i+na_u)", Rm(i+na_u)
-	 write(*,*) "Em(i+na_u)", Em(i+na_u)
-	write(*,*) "pc(i)", pc(i)
-	write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter, atom:', i
-        STOP
-	endif
-	endif
+	  if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
+	  if(Rm(i+na_u).eq.0.or.Em(i+na_u).eq.0.or.pc(i).eq.0) then
+	    write(*,*) "Rm(i+na_u)", Rm(i+na_u)
+	    write(*,*) "Em(i+na_u)", Em(i+na_u)
+	    write(*,*) "pc(i)", pc(i)
+	    write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter, atom:', i
+	    STOP
+	  endif
+	  endif
 	enddo	
 
        return
@@ -367,16 +368,16 @@ c ahora va a leer todos los  aminoacidos y sus variables
         do while (search)
         read (ui,*,err=1,end=1) option
         if (option.eq.'residues') then
-	read(ui,*,err=1,end=1)  pnaas
+	  read(ui,*,err=1,end=1)  pnaas !number of residues in amber.parm
 
         allocate(patnamea(pnaas,100),pcoord(pnaas,100,3),
      .  pattype(pnaas,100),patxres(pnaas),paanamea(pnaas),
      .	patmas(pnaas,100),pqaa(pnaas,100),pnataa(pnaas,100))
 
 	do i=1,pnaas
-		read(ui,*,err=1,end=1) paanamea(i), patxres(i)
+		read(ui,*,err=1,end=1) paanamea(i), patxres(i) !residue name and number of atoms in it
                 do j=1,patxres(i)
-                	read(ui,*,err=1,end=1) patnamea(i,j),pattype(i,j),
+                	read(ui,*,err=1,end=1) patnamea(i,j),pattype(i,j), !atom name, atom type
      .  n1,n2,n3,pnataa(i,j),patmas(i,j),pqaa(i,j)
 		enddo
         enddo
@@ -387,22 +388,21 @@ c ahora va a leer todos los  aminoacidos y sus variables
 
 c si funciona como subrutina asigna las cargas y attypeas seguna amber
 	qaa=0.0
-        do i=1,nroaa
-         do k=1,pnaas
-          if(resname(i).eq.paanamea(k)) then
-           do j=1,patxres(k)
-            do m=1,patxres(k)
-             if (atnamea(i,j).eq.patnamea(k,m)) then
-              qaa(i,j) = pqaa(k,m)
-              attypea(i,j) = pattype(k,m)
-              nataa(i,j) = pnataa(k,m)
-             endif
-            enddo
-           enddo
-	  else
-          endif
-         enddo
-        enddo
+	do i=1,nroaa !residues in .fdf
+	  do k=1,pnaas !residues in amber.parm
+	    if(resname(i).eq.paanamea(k)) then !compare name of residues
+	      do j=1,patxres(k)
+	      do m=1,patxres(k)
+	        if (atnamea(i,j).eq.patnamea(k,m)) then !compare atom names
+	          qaa(i,j) = pqaa(k,m) !charge
+	          attypea(i,j) = pattype(k,m) !type
+	          nataa(i,j) = pnataa(k,m) !atom number
+	        endif
+	      enddo
+	      enddo
+	    endif
+	  enddo
+	enddo
 
         k=1
         do i=1,nroaa
@@ -507,7 +507,7 @@ c lee el archivo con los parametros
         do while (search)
         read (ui,*,err=1,end=1) option
         if (option.eq.'ljs') then
-        read(ui,*,err=1,end=1) nlj
+        read(ui,*,err=1,end=1) nlj !cantidad de lennard jones en el amber.parm
         do  i=1,nlj
         if(nlj.ge.200) stop 'solvent: LJ parameters must not exeed 200'
                 read (ui,*,err=1,end=1) ljtype(i),pRm(i),pEm(i)
@@ -520,10 +520,10 @@ c lee el archivo con los parametros
         call io_close(ui)
 
 c  pasa los LJ a las unidades del siesta
-        do i=1,nlj
-        pRm(i) = (2.0d0*pRm(i)/0.529177d0)/(2.d0**(1.d0/6.d0))
-        pEm(i) = (pEm(i)/627.5108d0)
-        enddo
+	do i=1,nlj
+	  pRm(i) = (2.0d0*pRm(i)/0.529177d0)/(2.d0**(1.d0/6.d0))
+	  pEm(i) = (pEm(i)/627.5108d0)
+	enddo
  
 c asigna el LJ corresp al attypea xa el solvente
         do i=1,nroaa
@@ -539,32 +539,33 @@ c asigna el LJ corresp al attypea xa el solvente
      .  attypea(i,j).eq.'CY'.or.attypea(i,j).eq.'CD')
      .  then
  
-        do k=1,nlj
-        if (ljtype(k).eq.'C') then
-        Rma(i,j) = pRm(k)
-        Ema(i,j) = pEm(k)
-        endif
-        enddo
+	  do k=1,nlj
+	    if (ljtype(k).eq.'C') then
+	      Rma(i,j) = pRm(k)
+	      Ema(i,j) = pEm(k)
+	    endif
+	  enddo
  
         elseif (attypea(i,j).eq.'N'.or.attypea(i,j).eq.'NA'.or.
      .  attypea(i,j).eq.'NB'.or.attypea(i,j).eq.'NC'.or.
      .  attypea(i,j).eq.'N*'.or.attypea(i,j).eq.'N2'.or.
      .  attypea(i,j).eq.'NO'.or.attypea(i,j).eq.'NP') then
  
-        do k=1,nlj
-        if (ljtype(k).eq.'N') then
-        Rma(i,j) = pRm(k)
-        Ema(i,j) = pEm(k)
-        endif
-        enddo
+	  do k=1,nlj
+	    if (ljtype(k).eq.'N') then
+	      Rma(i,j) = pRm(k)
+	      Ema(i,j) = pEm(k)
+	    endif
+	  enddo
  
         else
-	do k=1,nlj
-	if (attypea(i,j).eq.ljtype(k)) then
- 	Rma(i,j) = pRm(k)
-        Ema(i,j) = pEm(k)
-        endif
-        enddo
+
+	  do k=1,nlj
+	    if (attypea(i,j).eq.ljtype(k)) then
+ 	      Rma(i,j) = pRm(k)
+	      Ema(i,j) = pEm(k)
+	    endif
+	  enddo
 	
 	endif
 	enddo
@@ -616,9 +617,9 @@ c pasa los LJ del sv
         k=na_u+1
         do i=1,nroaa
         do j=1,atxres(i)
-        Em(k)=Ema(i,j)
-        Rm(k)=Rma(i,j)     
-        k=k+1
+	  Em(k)=Ema(i,j)
+	  Rm(k)=Rma(i,j)     
+	  k=k+1
         enddo
         enddo
 
@@ -660,6 +661,7 @@ c subrutina q asigna los 1eros vecinos
         read(ui,*,err=20,end=20) nresid
         allocate(presname(nresid),bondxres(nresid),png1(nresid,100,2))
 
+	png1=0
         do i=1,nresid
         read(ui,*,err=20,end=20) presname(i),bondxres(i)
            do j=1,bondxres(i)
@@ -673,32 +675,33 @@ c subrutina q asigna los 1eros vecinos
 	call io_close(ui)
 
 c asigna los 1eros vecinos de cada atomo      
-         do i=1,nroaa
-           do k=1,nresid
-             if (resname(i).eq.presname(k)) then
-               do j=1,atxres(i)
-                 n=1  
-                 do l=1,bondxres(k)
-                   if (nataa(i,j).eq.png1(k,l,1)) then
-                     do m=1,atxres(i)
-                       if (nataa(i,m).eq.png1(k,l,2)) then 
-                         ng1(atnu(i,j),n) = atnu(i,m)
-                         n=n+1
-                       endif
-                     enddo
-                   elseif(nataa(i,j).eq.png1(k,l,2)) then
-                     do m=1,atxres(i)
-                       if (nataa(i,m).eq.png1(k,l,1)) then
-                         ng1(atnu(i,j),n) = atnu(i,m)
-                         n=n+1
-                       endif
-                     enddo 
-                   endif 
-                 enddo
-               enddo
-             endif
-           enddo
-         enddo
+	do i=1,nroaa
+	  do k=1,nresid
+	    if (resname(i).eq.presname(k)) then
+	      do j=1,atxres(i)
+	        n=1  
+	        do l=1,bondxres(k)
+	          if (nataa(i,j).eq.png1(k,l,1)) then !nataa(i,j) numero de atomo para el atomo j del residuo i
+	            do m=1,atxres(i)
+	              if (nataa(i,m).eq.png1(k,l,2)) then 
+	                ng1(atnu(i,j),n) = atnu(i,m)
+	                n=n+1
+	              endif
+	            enddo
+	          elseif(nataa(i,j).eq.png1(k,l,2)) then
+	            do m=1,atxres(i)
+	              if (nataa(i,m).eq.png1(k,l,1)) then
+	                ng1(atnu(i,j),n) = atnu(i,m)
+	                n=n+1
+	              endif
+	            enddo 
+	          endif 
+
+	        enddo
+	      enddo
+	    endif
+	  enddo
+	enddo
 
 c calcula los vecinos entre 2 aa seguidos
 c esto es lo q hay q modificar parta omitir bonds entre residuos que no correspondan, Nick
@@ -924,28 +927,28 @@ c asignacion del numero de impropios imxpat
         deallocate(impnum,presname,pimpxres,impatnamea)
 
 c aca calcula bonds, angulos y dihedros
-         do i=1,nac
-         bondxat(i)=0
-         do j=1,6
-         if (ng1(i,j).ne.0) bondxat(i)=bondxat(i)+1
-         enddo
-         enddo
+	do i=1,nac
+	  bondxat(i)=0
+	  do j=1,6
+	    if (ng1(i,j).ne.0) bondxat(i)=bondxat(i)+1
+	  enddo
+	enddo
  
 c       busca angulos con i en la esquina(e)
-        do i=1,nac
-         k=1
-         do j=1,bondxat(i)
-          t=ng1(i,j)
-          do m=1,bondxat(t)
-           if(ng1(t,m).ne.i) then
-                 atange(i,k,1)=ng1(i,j)
-             atange(i,k,2)=ng1(t,m)
-             k=k+1
-           endif
-          enddo
-         enddo
-        angexat(i)=k-1
-      enddo
+	do i=1,nac
+	  k=1
+	  do j=1,bondxat(i)
+	    t=ng1(i,j)
+	    do m=1,bondxat(t)
+	      if(ng1(t,m).ne.i) then
+	        atange(i,k,1)=ng1(i,j)
+	        atange(i,k,2)=ng1(t,m)
+	        k=k+1
+	      endif
+	    enddo
+	  enddo
+	  angexat(i)=k-1
+	enddo
  
 c       busca angulos con i en el medio(m)
         do i=1,nac
@@ -964,21 +967,21 @@ c       busca angulos con i en el medio(m)
 
 c      busca los atdihedros con i en el extremo(e)
         do i=1,nac
-         k=1
-         do j=1,angexat(i)
-           t=atange(i,j,2)
-          do m=1,bondxat(t)
-            t2=ng1(t,m)
-           if(t2.ne.atange(i,j,1)) then
-                 atdihe(i,k,1)=atange(i,j,1)
-             atdihe(i,k,2)=t
-             atdihe(i,k,3)=t2
-             k=k+1
-            endif
-           enddo
-         enddo
-        dihexat(i)=k-1
-        enddo
+	  k=1
+	  do j=1,angexat(i)
+	    t=atange(i,j,2)
+	    do m=1,bondxat(t)
+	      t2=ng1(t,m)
+	      if(t2.ne.atange(i,j,1)) then
+	        atdihe(i,k,1)=atange(i,j,1)
+	        atdihe(i,k,2)=t
+	        atdihe(i,k,3)=t2
+	        k=k+1
+	      endif
+	    enddo
+	  enddo
+	  dihexat(i)=k-1
+	enddo
  
 c       busca los atdihedros con i en el medio(m)
 c       primero a partir de angulos con i en la esquina
