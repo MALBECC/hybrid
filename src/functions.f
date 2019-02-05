@@ -103,6 +103,8 @@ c       scalar product n*m
         m = m**(0.5d0)
         n = nx**2d0 + ny**2d0 + nz**2d0
         n = n**(0.5d0)
+
+	if (m*n.eq.0.d0) STOP "problem in bias dihedral definition"
         dihedro2 = ACOS(scalar/(m*n))
         dihedro2 = dihedro2*180d0/pi
  
@@ -118,7 +120,6 @@ c	distance(l) at4 to ABCD=0 plane
         l2 = (A**2d0+B**2d0+C**2d0)
         l2 = l2**0.5d0
         l= l1/l2
- 
 c	if l>0 -> dihe<0 , else >0
         if(l.lt.0) then
                 dihedro2 = 360d0-dihedro2
@@ -148,8 +149,6 @@ c variables generales
         character exp
         double precision pi
 	pi=DACOS(-1.d0)
-
-c	write(*,*) "i1 i2 i3 i4", i1, i2, i3, i4
 
        call dihevars(   ramber(1,i1),ramber(2,i1),ramber(3,i1),
      .                  ramber(1,i2),ramber(2,i2),ramber(3,i2),
