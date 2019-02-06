@@ -147,6 +147,7 @@ c****************************************************************************
      .  dx,dy,dz
 	double precision pi,fdihe(12),F,dihedro2,rtot,req,kf
 	double precision angle,scal,scalar,dscalar,r32,dr12r32
+
 	pi = acos(-1.0d0)
 
 c change units 
@@ -360,9 +361,14 @@ c adding fnew to fdummy
         req=ro(iconstr)
         kf=kforce(iconstr)
 
-c forces
-        if(req.lt.90 .and.rtot.gt.180) rtot=rtot-360.d0
-        if(req.gt.270.and.rtot.lt.180) rtot=rtot+360.d0 
+c Normalize req to 0-360 range
+        do while (req .gt. 360.d0 .or. req .lt.0.d0)
+          if (req .lt. 0.d0) req=req+360.d0
+          if (req .gt. 360.d0) req=req-360.d0
+        end do
+
+        if(req.le.90 .and.rtot.gt.180) rtot=rtot-360.d0
+        if(req.ge.270.and.rtot.le.180) rtot=rtot+360.d0 
         F=2.d0*kf*(rtot-req)*pi/180.d0
         call diheforce2(natot,rclas,at1,at2,at3,at4,
      .          1,F,fdihe)

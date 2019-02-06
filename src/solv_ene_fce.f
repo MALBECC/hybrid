@@ -621,7 +621,6 @@ c si el dihedro es 500 es error y sale
 	      k=evaldihe(i,j,m)
 	 if(k.ne.0) then
            if(multidihe(k).ne.0) then
-	write(*,*) k,kdihe(k),multidihe(k),perdihe(k),dihedral,diheeq(k)
 c      k=evaldihe(i,j,m)
        E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))    !multidihe explota (0)
