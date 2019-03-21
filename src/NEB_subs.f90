@@ -46,6 +46,9 @@
 	MAX_FORCE_REPLICA=-1
 	MAX_FORCE_ATOM=-1
 	
+	NEB_firstimage=2
+	NEB_lastimage=NEB_Nimages-1
+
 	do replica_number=NEB_firstimage, NEB_lastimage
 	  if ( replica_number .gt. 1 .and. replica_number .lt. NEB_Nimages) then
 !	  write(222,*) "cambio con sprimg en: ", replica_number
@@ -66,8 +69,14 @@
 ! select image to move in this step
 	NEB_firstimage=MAX_FORCE_REPLICA-1
 	NEB_lastimage=MAX_FORCE_REPLICA+1
+
 	if (NEB_firstimage .lt. 1) NEB_firstimage=1
 	if (NEB_lastimage .gt. NEB_Nimages) NEB_lastimage=NEB_Nimages
+
+! full band move until more test
+	NEB_firstimage=2
+	NEB_lastimage=NEB_Nimages-1
+
 
 	if (.not. relaxd) then
 	  call NEB_movement_algorithm(NEB_move_method,istep, MAXFmod_total, NEB_firstimage, NEB_lastimage) !move systems
@@ -79,6 +88,10 @@
 ! recompute SCF only in image that was move	
 	NEB_firstimage=MAX_FORCE_REPLICA
 	NEB_lastimage=MAX_FORCE_REPLICA
+
+! full band move until more test
+	NEB_firstimage=2
+	NEB_lastimage=NEB_Nimages-1
 
 	if (NEB_move_method .eq. 1) THEN
 	  if (istep.eq.0) NEB_MAXFmod=MAXFmod_total

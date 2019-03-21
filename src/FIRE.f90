@@ -15,6 +15,7 @@
 	logical :: damp
    	damp=.false.
 	Fmod=0.d0
+
 	do i=1, natot
 	  acel_new(1:3, i) = Force(1:3, i)/masst(i)
 	  do j=1,3
@@ -31,8 +32,8 @@
 	  do j=1,3
 	    velocity_proyected_at=velocity_proyected_at+vel(j,i)*Force(j,i)
 	    velocity_mod=velocity_mod+vel(j,i)*vel(j,i)
+	    if (vel(j,i).ne.vel(j,i)) STOP "NAN in VEL FIRE"
 	  end do
-!	  write(*,*) "atom", i, "VP ", velocity_proyected_at
 	  velocity_proyected=velocity_proyected+velocity_proyected_at
 	  if (velocity_proyected_at .lt. 0.d0) damp=.true.
 	end do
@@ -56,7 +57,11 @@
 	    end do
 	     velocity_mod=sqrt(velocity_mod)
 	     Fmod=sqrt(Fmod)
-	    vel(1:3,i)=(1.d0-alpha)*vel(1:3,i)+alpha*velocity_mod*Force(1:3,i)/Fmod
+	     if (Fmod.ne. 0.d0) then
+	       vel(1:3,i)=(1.d0-alpha)*vel(1:3,i)+alpha*velocity_mod*Force(1:3,i)/Fmod
+	     else
+	        vel(1:3,i)=(1.d0-alpha)*vel(1:3,i)
+	     end if
 	  end do
 	else
 	  Ndamped=Ndamped+1
