@@ -927,20 +927,20 @@ c asignacion del numero de impropios imxpat
         deallocate(impnum,presname,pimpxres,impatnamea)
 
 c aca calcula bonds, angulos y dihedros
-	do i=1,nac
-	  bondxat(i)=0
+	do i=1,nac !barre atomos
+	  bondxat(i)=0 
 	  do j=1,6
-	    if (ng1(i,j).ne.0) bondxat(i)=bondxat(i)+1
+	    if (ng1(i,j).ne.0) bondxat(i)=bondxat(i)+1 !ng1 es la conectividad definida en el amber.parm, asigna lantidad de bonds a cada atmo
 	  enddo
 	enddo
  
 c       busca angulos con i en la esquina(e)
-	do i=1,nac
+	do i=1,nac !barre atomos
 	  k=1
-	  do j=1,bondxat(i)
-	    t=ng1(i,j)
-	    do m=1,bondxat(t)
-	      if(ng1(t,m).ne.i) then
+	  do j=1,bondxat(i) !barre bonds por atomo
+	    t=ng1(i,j) !numero de atomo al q esta unido i
+	    do m=1,bondxat(t) !barre bonds de t
+	      if(ng1(t,m).ne.i) then !si t no es i asigna un angulo
 	        atange(i,k,1)=ng1(i,j)
 	        atange(i,k,2)=ng1(t,m)
 	        k=k+1
@@ -951,12 +951,12 @@ c       busca angulos con i en la esquina(e)
 	enddo
  
 c       busca angulos con i en el medio(m)
-        do i=1,nac
+        do i=1,nac !barre atomod
          k=1
-           do j=1,bondxat(i)
-           do m=1,bondxat(i)
-            if(ng1(i,m).gt.ng1(i,j)) then
-               atangm(i,k,1)=ng1(i,j)
+           do j=1,bondxat(i) !barre bonds de i
+           do m=1,bondxat(i) !barre nuevamente bonds de i
+            if(ng1(i,m).gt.ng1(i,j)) then !si i se encuentra unido a 2 atomos distintos asigna un angulo
+             atangm(i,k,1)=ng1(i,j)
              atangm(i,k,2)=ng1(i,m)
              k=k+1
             endif
@@ -966,13 +966,13 @@ c       busca angulos con i en el medio(m)
         enddo
 
 c      busca los atdihedros con i en el extremo(e)
-        do i=1,nac
+        do i=1,nac ! barre atomos
 	  k=1
-	  do j=1,angexat(i)
-	    t=atange(i,j,2)
-	    do m=1,bondxat(t)
-	      t2=ng1(t,m)
-	      if(t2.ne.atange(i,j,1)) then
+	  do j=1,angexat(i) !barre angulos con i en el extremo
+	    t=atange(i,j,2) !otro atomo del extremo del angulo
+	    do m=1,bondxat(t) !barre bonds de t
+	      t2=ng1(t,m) !atomo unido a t en el bond bondxat(t)
+	      if(t2.ne.atange(i,j,1)) then !si t2 no es el atomo central del angulo entre i y t asigna un diedro
 	        atdihe(i,k,1)=atange(i,j,1)
 	        atdihe(i,k,2)=t
 	        atdihe(i,k,3)=t2
@@ -985,13 +985,13 @@ c      busca los atdihedros con i en el extremo(e)
  
 c       busca los atdihedros con i en el medio(m)
 c       primero a partir de angulos con i en la esquina
-        do i=1,nac
+        do i=1,nac!barre atomos
          k=1
-           do j=1,angexat(i)
-           t=atange(i,j,1)
-                do m=1,bondxat(i)
-             t2=ng1(i,m)
-                 if(t2.ne.t) then
+           do j=1,angexat(i) !barre angulos con i en el extremo
+           t=atange(i,j,1) !atomos central del angulo angexat(i)
+                do m=1,bondxat(i) !barrre bonds de i
+             t2=ng1(i,m) !atomo unido a i en el bond m
+                 if(t2.ne.t) then ! asigna diedro
                 atdihm(i,k,1)=t2
              atdihm(i,k,2)=t
              atdihm(i,k,3)=atange(i,j,2)
