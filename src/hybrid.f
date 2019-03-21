@@ -30,7 +30,7 @@
       use fdf
       use ionew, only: io_setup, IOnode    
       use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
-     . natot,na_u,qm, mm, atsym, nparm, 
+     . natot,na_u,nroaa,qm, mm, atsym, nparm, 
      . xa, fa,
      . masst,isa, iza, pc, 
      . nac, atname, aaname, attype, qmattype, aanum, ng1, bondtype,
@@ -95,7 +95,7 @@
 !!!!
       integer :: nfree !number of atoms without a contrain of movement
       integer :: mmsteps !number of MM steps for each QM step, not tested
-      integer :: nroaa !number of residues
+!      integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
       integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
       double precision :: Etot_amber !total MM energy
@@ -123,7 +123,7 @@
       double precision :: rcorteqmmm ! distance for QM-MM interaction
       double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
-      double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
+      double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a adblommbond
       double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
       integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA  
       logical ::  recompute_cuts
@@ -209,8 +209,6 @@
       spin=0.d0
       do_SCF=.true.
       do_QM_forces=.true.
-      rcorteqmmm=0.d0
-      radbloqmmm=0.d0
       do_properties=.false.
       Nick_cent=.false.
       foundxv=.false.
@@ -229,7 +227,7 @@
       call init_hybrid('Constants')
 
 ! Initialise read 
-      call reinit(slabel) !, sname)
+      call reinit(slabel) 
 
 ! Read and initialize basics variables 
       call init_hybrid('Jolie')
@@ -267,6 +265,49 @@
 
 ! Read and assign Solvent variables 
       if(mm) then
+	write(*,*) "test", nac, na_u, natot
+        call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, 
+     .  nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
+     .  radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
+     .  nangle)
+
+
+	write(78569,*) "Nuevo"
+!	write(78569,*) "atname", atname
+!	write(78569,*) "aaname", aaname
+!	write(78569,*) "rclas", rclas
+!	write(78569,*) "nroaa", nroaa
+!        write(78569,*) "aanum", aanum
+!        write(78569,*) "qmattype", qmattype
+!        write(78569,*) "rcorteqm", rcorteqm
+!        write(78569,*) "rcorteqmmm", rcorteqmmm
+!        write(78569,*) "rcortemm", rcortemm
+!        write(78569,*) "radbloqmmm", radbloqmmm
+!        write(78569,*) "radblommbond", radblommbond
+!        write(78569,*) "radinnerbloqmmm", radinnerbloqmmm
+!        write(78569,*) "res_ref", res_ref
+        write(78569,*) "nbond",nbond
+        write(78569,*) "kbond", kbond
+        write(78569,*) "bondeq", bondeq
+        write(78569,*) "bondtype", bondtype
+	write(78569,*) "angletype", angletype
+	write(78569,*) "kangle", kangle
+	write(78569,*) "angleeq", angleeq
+
+
+!parche para test
+	deallocate(kbond,bondeq,bondtype, angletype, kangle, angleeq)
+	allocate(kbond(500),bondeq(500),bondtype(500), angletype(500),
+     .   kangle(500), angleeq(500))
+	kbond=0
+	bondeq=0
+	bondtype=""
+	angletype=""
+	kangle=0
+	angleeq=0
+	nparm=500
+
+	write(*,*) "flag 1"
         call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
      .  dihmxat,atdihm,impxat,atimp,
@@ -277,6 +318,30 @@
      .  nparm,aaname,atname,aanum,qmattype,rclas,
      .  rcorteqmmm,rcorteqm,rcortemm,sfc,
      .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm,res_ref)
+	write(*,*) "flag 2"
+
+        write(78570,*) "Viejo"
+!        write(78570,*) "atname", atname
+!        write(78570,*) "aaname", aaname
+!        write(78570,*) "rclas", rclas
+!        write(78570,*) "aanum", aanum
+!        write(78570,*) "qmattype", qmattype
+!        write(78570,*) "rcorteqm", rcorteqm
+!        write(78570,*) "rcorteqmmm", rcorteqmmm
+!        write(78570,*) "rcortemm", rcortemm
+!        write(78570,*) "radbloqmmm", radbloqmmm
+!        write(78570,*) "radblommbond", radblommbond
+!        write(78570,*) "radinnerbloqmmm", radinnerbloqmmm
+!        write(78570,*) "res_ref", res_ref
+        write(78570,*) "nbond",nbond
+        write(78570,*) "kbond", kbond
+        write(78570,*) "bondeq", bondeq
+        write(78570,*) "bondtype", bondtype
+        write(78569,*) "angletype", angletype
+        write(78569,*) "kangle", kangle
+        write(78569,*) "angleeq", angleeq
+
+
       endif !mm
 
 ! changing cutoff to atomic units

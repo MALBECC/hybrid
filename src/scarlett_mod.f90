@@ -52,6 +52,7 @@
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms
 	integer :: natot !total number of atoms
+	integer :: nroaa !number of residues
 	double precision, dimension(:), allocatable :: masst !atomic mass
 
 
