@@ -53,6 +53,8 @@
 	integer :: na_u !number of QM atoms
 	integer :: natot !total number of atoms
 	integer :: nroaa !number of residues
+	integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
+
 	double precision, dimension(:), allocatable :: masst !atomic mass
 
 

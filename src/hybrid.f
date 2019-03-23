@@ -33,7 +33,8 @@
      . natot,na_u,nroaa,qm, mm, atsym, nparm, 
      . xa, fa,
      . masst,isa, iza, pc, 
-     . nac, atname, aaname, attype, qmattype, aanum, ng1, bondtype,
+     . nac, atname, aaname, atxres, attype, qmattype, aanum, ng1,
+     . bondtype,
      . kbond,bondeq, bondxat, angletype, kangle,angleeq, angexat,
      . angmxat,dihetype, kdihe,diheeq, perdihe, multidihe, dihexat, 
      . dihmxat, imptype, kimp,impeq,perimp, multiimp, impxat, 
@@ -97,7 +98,7 @@
       integer :: mmsteps !number of MM steps for each QM step, not tested
 !      integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
-      integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
+!      integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
       double precision :: Etot_amber !total MM energy
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
@@ -192,7 +193,7 @@
 
 !--------------------------------------------------------------------
 !need to move this to an initializacion subroutine
-      allocate(atxres(20000))
+!      allocate(atxres(20000))
       allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
       allocate(atmsconstr(20,20), ndists(20))
 
@@ -269,7 +270,11 @@
         call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, 
      .  nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
      .  radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
-     .  nangle)
+     .  nangle, ndihe, nimp, attype, pc,  Rm, Em)
+
+
+! Falta chekear atxres
+!	 if (allocated(atxres)) write(*,*) "aloateada 2"
 
 
 	write(78569,*) "Nuevo"
@@ -286,19 +291,52 @@
 !        write(78569,*) "radblommbond", radblommbond
 !        write(78569,*) "radinnerbloqmmm", radinnerbloqmmm
 !        write(78569,*) "res_ref", res_ref
-        write(78569,*) "nbond",nbond
-        write(78569,*) "kbond", kbond
-        write(78569,*) "bondeq", bondeq
-        write(78569,*) "bondtype", bondtype
-	write(78569,*) "angletype", angletype
-	write(78569,*) "kangle", kangle
-	write(78569,*) "angleeq", angleeq
+	 write(78569,*) "BOND PARAMS"
+!        write(78569,*) "nbond",nbond
+!        write(78569,*) "kbond", kbond
+!        write(78569,*) "bondeq", bondeq
+!        write(78569,*) "bondtype", bondtype
+	 write(78569,*) "ANGLE PARAMS"
+!	write(78569,*) "angletype", angletype
+!	write(78569,*) "kangle", kangle
+!	write(78569,*) "angleeq", angleeq
+!	 write(78569,*) "DIHE PARAMS"
+!	 write(78569,*) "dihetype",dihetype
+!	 write(78569,*) "multidihe", multidihe
+!	 write(78569,*) "kdihe", kdihe
+!	 write(78569,*) "diheeq", diheeq
+	 write(78569,*) "perdihe", perdihe
+	write(78569,*) "IMP PARAMS"
+	write(78569,*) "imptype", imptype
+	write(78569,*)"multiimp", multiimp
+	write(78569,*)"kimp", kimp
+	write(78569,*)"impeq", impeq
+	write(78569,*)"perimp", perimp
+
+
+!	write(78569,*)"atxres",atxres
+	 write(78569,*)"attype", attype
+	 write(78569,*)"pc", pc
+	 write(78569,*)"Rm", Rm
+	 write(78569,*)"Em", Em
+	 write(78569,*)
+	 write(78569,*)
+
+
 
 
 !parche para test
 	deallocate(kbond,bondeq,bondtype, angletype, kangle, angleeq)
+	deallocate(dihetype,multidihe,kdihe,diheeq,perdihe)
+	deallocate(imptype,multiimp,kimp,impeq,perimp)
+	if (allocated(atxres)) deallocate(atxres)
+
 	allocate(kbond(500),bondeq(500),bondtype(500), angletype(500),
-     .   kangle(500), angleeq(500))
+     .   kangle(500), angleeq(500), dihetype(500),multidihe(500),
+     .   kdihe(500),diheeq(500),perdihe(500),imptype(500),multiimp(500)
+     .   ,kimp(500),impeq(500),perimp(500))
+	allocate(atxres(200000))
+
 	kbond=0
 	bondeq=0
 	bondtype=""
@@ -307,6 +345,7 @@
 	angleeq=0
 	nparm=500
 
+	
 	write(*,*) "flag 1"
         call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
@@ -333,13 +372,34 @@
 !        write(78570,*) "radblommbond", radblommbond
 !        write(78570,*) "radinnerbloqmmm", radinnerbloqmmm
 !        write(78570,*) "res_ref", res_ref
-        write(78570,*) "nbond",nbond
-        write(78570,*) "kbond", kbond
-        write(78570,*) "bondeq", bondeq
-        write(78570,*) "bondtype", bondtype
-        write(78569,*) "angletype", angletype
-        write(78569,*) "kangle", kangle
-        write(78569,*) "angleeq", angleeq
+	 write(78570,*) "BOND PARAMS"
+!        write(78570,*) "nbond",nbond
+!        write(78570,*) "kbond", kbond
+!        write(78570,*) "bondeq", bondeq
+!        write(78570,*) "bondtype", bondtype
+!	 write(78570,*) "ANGLE PARAMS"
+!        write(78570,*) "angletype", angletype
+!        write(78570,*) "kangle", kangle
+!        write(78570,*) "angleeq", angleeq
+!         write(78570,*) "DIHE PARAMS"
+!         write(78570,*) "dihetype",dihetype
+!         write(78570,*) "multidihe", multidihe
+!         write(78570,*) "kdihe", kdihe
+!         write(78570,*) "diheeq", diheeq
+         write(78570,*) "perdihe", perdihe
+
+        write(78570,*) "IMP PARAMS"
+        write(78570,*) "imptype", imptype
+        write(78570,*)"multiimp", multiimp
+        write(78570,*)"kimp", kimp
+        write(78570,*)"impeq", impeq
+        write(78570,*)"perimp", perimp
+        write(78570,*)"atxres",atxres
+         write(78570,*)"attype", attype
+         write(78570,*)"pc", pc
+         write(78570,*)"Rm",Rm 
+         write(78570,*)"Em", Em
+
 
 
       endif !mm
