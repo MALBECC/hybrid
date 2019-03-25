@@ -33,7 +33,6 @@ OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	ljef.o solv_ene_fce.o linkatom.o recipes.o list_qmmm.o \
 	assignation.o center_rotation.o init_hybrid.o NEB_subs.o\
 	quickmin.o FIRE.o check_convergence.o dynamics.o vmb.o\
-        check_and_debug.o \
         hybrid.o \
 
 # FDF Module
