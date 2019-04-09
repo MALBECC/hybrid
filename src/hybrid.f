@@ -270,7 +270,8 @@
         call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, 
      .  nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
      .  radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
-     .  nangle, ndihe, nimp, attype, pc,  Rm, Em)
+     .  nangle, ndihe, nimp, attype, pc,  Rm, Em, ng1)
+
 
 
 ! Falta chekear atxres
@@ -319,9 +320,12 @@
 	 write(78569,*)"pc", pc
 	 write(78569,*)"Rm", Rm
 	 write(78569,*)"Em", Em
+	 write(78569,*) "ng1"
+	 do i=1, nac
+	 write(78569,*) i, ng1(i,1:6)
+	 end do
 	 write(78569,*)
-	 write(78569,*)
-
+	ng1=0
 
 
 
@@ -399,6 +403,10 @@
          write(78570,*)"pc", pc
          write(78570,*)"Rm",Rm 
          write(78570,*)"Em", Em
+         write(78570,*) "ng1"
+         do i=1, nac
+         write(78570,*) i, ng1(i,1:6)
+         end do
 
 
 
