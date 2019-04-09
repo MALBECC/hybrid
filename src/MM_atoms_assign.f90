@@ -8,11 +8,11 @@
 	subroutine MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, &
 	nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, radbloqmmm, &
 	radblommbond, radinnerbloqmmm, res_ref, nbond, nangle, ndihe, nimp, &
-	attype, pc, Rm, Em)
+	attype, pc, Rm, Em, ng1)
 
 
 !        (na_u,natot,nac,nroaa,Em,Rm,attype,pc,
-!     .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
+!     .  bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
 !     .  dihmxat,atdihm,impxat,atimp,
 !     .  nbond,kbond,bondeq,bondtype,
 !     .  nangle,kangle,angleeq,angletype,
@@ -46,7 +46,8 @@
 	integer :: ncon !aditional conectivities defined in .fdf
 	integer, dimension(:,:), allocatable :: con     
 	logical :: foundamber
-
+	integer :: number_conect_ommit
+	integer, dimension(:,:), allocatable :: conect_ommit
 !
 	integer, intent(out) :: nbond, nangle, ndihe, nimp !number of bonds, angles, sihesral and impropers in amber.parm file
 	integer :: FF_residues, FF_max_at_by_res !number of residues and max number of atoms by residue in force field
@@ -64,7 +65,8 @@
 
 !        integer i,j,k,l,m,n,natot,nac,na_u,nroaa,iunit,                                                              
 !     .  ncon,nparm,nbond,nangle,ndihe,nimp,atsinres(20000)     
-!        integer ng1(nac,6),con2(2,1000)
+	integer, intent(out) :: ng1(nac,6)
+!,con2(2,1000)
 	double precision, dimension(:,:), allocatable, save:: Rma,Ema
 !     .  qaa
 	double precision, dimension(0:nac), intent(out) :: pc
@@ -131,9 +133,7 @@
 	nangle = 0
 	ndihe = 0
 	nimp = 0
-
-! nullify some solvent vbles
-!      ng1 = 0
+	ng1 = 0
 !      sfc=2.d0
 
 ! Read MM system from .fdf file
@@ -259,14 +259,41 @@
 	aaname,atxres,resname, nac, atname, atnu, attypea, nataa, attype, pc)
 	write(*,*) "FF4"
 
-! Read Lenard-Jones parameters and asiign to .fdf atoms using attypea
+! Read Lenard-Jones parameters and asign to .fdf atoms using attypea
 	allocate(Ema(nroaa,FF_max_at_by_res),Rma(nroaa,FF_max_at_by_res))
 	call FF_lj(nroaa,FF_max_at_by_res,attypea,Ema,Rma,na_u,natot, &
 	Em,Rm,qmattype,atxres)
 
-	write(*,*) "FF4"
+	write(*,*) "FF5"
 
-!aca empieza la verdadera asignacion: segun atomo xa c/aa
+	number_conect_ommit=0
+	if ( fdf_block('SolventOmmit',iunit) ) then
+	  read(iunit,*) number_conect_ommit
+	  allocate(conect_ommit(number_conect_ommit,2))
+	  conect_ommit=-2
+	  do i=1, number_conect_ommit
+	    read(iunit,*,err=51,end=51) conect_ommit(i,1), conect_ommit(i,2)
+	  end do
+	else
+	 allocate(conect_ommit(1,2))
+	 conect_ommit=-2
+	end if
+
+	write(*,*) "FF6"
+
+!Asign conectivity
+	call FF_conectivity(nac,nataa,nroaa,atxres,atnu,resname, ng1, &
+	number_conect_ommit, conect_ommit, atnamea,ncon,con, FF_max_at_by_res)
+
+	write(*,*) "FF7"
+
+! calculate bonds, angles, dihed & improp
+	call FF_bon_ang_dih_imp() !voy por aca
+!(nac,ng1,atange,atangm,atdihe,atdihm,
+!     .                      bondxat,angexat,angmxat,dihexat,dihmxat,
+!     .               atnamea,nroaa,atxres,atnu,resname,atimp,impxat)
+
+
 
 !	deallocate()
 	Return
@@ -290,8 +317,233 @@
  41    continue
 	  write(*,*) "Error reading solvent connectivities in .fdf"
 	  stop 
-
+ 51    continue
+	  write(*,*) "Error reading SolventOmmit block in .fdf"
+          stop
 	end subroutine MM_atoms_assign
+
+
+!****************************************************
+! This subroutine assign conectivity to each residue using amber.parm 
+
+
+	subroutine FF_conectivity(nac,nataa,nroaa,atxres,atnu,resname,ng1, &
+	number_conect_ommit, conect_ommit, atnamea,ncon,con, FF_max_at_by_res)
+!nac,nataa,nroaa,atxres,atnu,resname,ng1,atnamea,ncon,con)
+	use ionew, only : io_assign, io_close
+	use precision, only:dp
+	implicit none
+	integer, intent(in) :: nac,nroaa, FF_max_at_by_res
+	integer, intent(in), dimension(nroaa) :: atxres
+	integer, intent(in), dimension(nroaa,100) :: atnu
+	integer, intent(in), dimension(nroaa,100) :: nataa
+	character*4, intent(in), dimension(nroaa)  :: resname
+	integer, intent(out), dimension(nac,6) :: ng1
+	integer, intent(in) :: ncon
+	integer, intent(in), dimension(2,ncon) :: con
+	character*4, intent(in), dimension(nroaa,FF_max_at_by_res) :: atnamea
+!        integer na_u,nresid,                                                                   
+	integer, intent(in) :: number_conect_ommit
+	integer, dimension(number_conect_ommit,2), intent(in) :: conect_ommit
+
+	character*4, dimension(:), allocatable :: presname
+	integer, dimension(:,:,:), allocatable :: png1
+	integer, dimension(:), allocatable :: bondxres
+	integer :: maxconect !max number of conectivities in amber.parm
+	integer :: nresid !number of residuer in amber.parm
+	logical :: search
+	logical :: include_conect
+	character*12 :: option
+	character*1 :: c1
+	character*2 :: c2
+	character*4 :: c4*4
+	integer :: i, ii, j, k, l, m, n
+	integer :: ui
+
+	maxconect=-1
+	call io_assign(ui)
+	open(unit=ui,file="amber.parm")
+	search=.true.
+	do while (search)
+	  read (ui,*,err=20,end=20) option
+	  if (option.eq.'connectivity') then
+	    read(ui,*,err=20,end=20) nresid
+	    allocate(presname(nresid),bondxres(nresid))
+	    presname=""
+	    bondxres=-1
+	    do i=1,nresid
+	      read(ui,*,err=20,end=20) presname(i),bondxres(i)
+	      do j=1,bondxres(i)
+	        read(ui,*,err=20,end=20)
+	        if (bondxres(i).gt.maxconect) maxconect=bondxres(i)
+	      enddo
+	    enddo 
+	    search=.false.
+	  endif
+	enddo
+	call io_close(ui)
+	allocate(png1(nresid,maxconect,2))
+
+
+	call io_assign(ui)
+	open(unit=ui,file="amber.parm")
+	search=.true.
+	do while (search)
+	  read (ui,*,err=20,end=20) option
+	  if (option.eq.'connectivity') then
+	    read(ui,*,err=20,end=20) nresid
+	    png1=0
+	    presname=""
+	    bondxres=-1
+	    do i=1,nresid
+	      read(ui,*,err=20,end=20) presname(i),bondxres(i) !residue, number of bonds
+	      do j=1,bondxres(i)
+	        read(ui,*,err=20,end=20) png1(i,j,1),png1(i,j,2) !number of atoms conected in amber.parm definition
+	      enddo
+	    enddo    
+	    search=.false.
+	  endif
+	enddo
+	call io_close(ui)
+
+
+!assign conectivity na los 1eros vecinos de cada atomo      
+	do i=1,nroaa !residues in .fdf
+	  do k=1,nresid !residues in amber.parm
+	    if (resname(i).eq.presname(k)) then !check residue name
+	      do j=1,atxres(i) !atoms in i-th residue
+	        n=1  
+	
+	        do l=1,bondxres(k) !number of bond defined in amber.parm for l-th residue
+	          if (nataa(i,j).eq.png1(k,l,1)) then !nataa(i,j) atom number for j-th atom in i-th residue check 1st atom for conectivity
+	
+	            do m=1,atxres(i) ! all atoms in residue i-th
+	              if (nataa(i,m).eq.png1(k,l,2)) then !check 2nd atom for conectivity
+	                ng1(atnu(i,j),n) = atnu(i,m) !asing conectivity
+	                n=n+1
+	              endif
+	            enddo
+	
+	          elseif(nataa(i,j).eq.png1(k,l,2)) then !check 1st atom for conectivity
+	
+	            do m=1,atxres(i)
+	              if (nataa(i,m).eq.png1(k,l,1)) then !check 2nd atom for conectivity
+	                ng1(atnu(i,j),n) = atnu(i,m)
+	                n=n+1
+	              endif
+	            enddo 
+	
+	          endif 
+	
+	        enddo
+	      enddo
+	    endif
+	  enddo
+	enddo
+
+
+
+
+
+
+! generate conectivity between different aminoacids
+	do i=2,nroaa !all residues in .fdf
+	  include_conect=.false.
+	  c4=resname(i)
+	  c1=c4(1:1)
+	  if(c1.eq.'N') then
+	    if(c4.eq.'NME') then
+	      include_conect=.true.
+	    endif
+	  else 
+	    include_conect=.true.
+	  endif
+
+	  do ii=1, number_conect_ommit
+	    if (conect_ommit(ii,1).eq.i) then
+	      if (conect_ommit(ii,2).eq.i-1) then !skip conectivities for TER case in pdb, not tested yed
+	        include_conect=.false.
+		write(*,*) "omiting 1 conectivity!, this is not tested YED"
+	      end if
+	    end if
+	  end do
+
+	  if (include_conect) then
+	    do j=1,atxres(i)
+	      if(atnamea(i,j).eq.'N') then ! se fija si hay exclusion por connectivity extra 1er num -1 segundo el N
+	        do k=1,ncon
+	          if(con(1,k).eq.-1.and.con(2,k).eq.atnu(i,j)) then
+	            write(*,*) 'skiping N atom number',atnu(i,j)
+	            goto 5    
+	          endif    
+	        enddo      
+
+	        write(*,*) 'Connecting N atom number',atnu(i,j)
+
+	        do m=1,atxres(i-1)
+	          if(atnamea(i-1,m).eq.'C') then
+	            ng1(atnu(i,j),3) = atnu(i-1,m)
+	            ng1(atnu(i-1,m),3) = atnu(i,j)
+	            write(*,*) 'with ', atnu(i-1,m)
+	          endif
+	        enddo
+
+	      endif
+	    enddo
+	  endif
+ 5	enddo
+
+
+! generate conectivity between different nucleotids
+	do i=2,nroaa
+	  c4=resname(i)
+	  c1=c4(3:3)
+	  include_conect=.true.
+	  if(c1.eq.'5') include_conect=.false.
+
+	  if (include_conect) then
+	    do j=1,atxres(i)
+	      if(atnamea(i,j).eq.'P') then
+	        do m=1,atxres(i-1)
+	          c4=atnamea(i-1,m)
+	          c2=c4(1:2)
+	          if(c2.eq.'O3') then
+	            ng1(atnu(i,j),4) = atnu(i-1,m)
+	            ng1(atnu(i-1,m),2) = atnu(i,j)
+	          endif
+	        enddo
+	      endif
+	    enddo
+	  endif
+	enddo
+
+
+! include extra conectivities defined in .fdf
+	do i=1,ncon !extra conectivities 
+	  if(con(1,i).eq.-1) goto 10
+
+	  do k=1,6
+	    if(ng1(con(1,i),k).eq.0) then
+	      ng1(con(1,i),k)=con(2,i)
+	      write(*,*) "included conectivity", con(1,i), con(2,i), k
+	      do j=1,6
+	        if(ng1(con(2,i),j).eq.0) then        
+	          ng1(con(2,i),j)=con(1,i)   
+	          write(*,*) "included conectivity", con(1,i), con(2,i), j
+	          goto 10
+	        endif
+	      enddo
+	    endif
+	  enddo
+ 10       continue                 
+	enddo
+
+	deallocate(presname,bondxres,png1)      
+	return
+ 20     stop &
+	'solvent: Problem reading connectivity block in amber.parm file'
+	end subroutine FF_conectivity
+
 
 !****************************************************
 ! This subroutine read Lenard-Jones parameters from amber.parm and asign it
