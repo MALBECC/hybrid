@@ -268,9 +268,10 @@
       if(mm) then
 	write(*,*) "test", nac, na_u, natot
         call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, 
-     .  nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
-     .  radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
-     .  nangle, ndihe, nimp, attype, pc,  Rm, Em, ng1)
+     . nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
+     . radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
+     . nangle, ndihe, nimp, attype, pc, Rm, Em, ng1, bondxat,angexat,
+     . angmxat, dihexat, dihmxat, impxat)
 
 
 
@@ -324,15 +325,23 @@
 	 do i=1, nac
 	 write(78569,*) i, ng1(i,1:6)
 	 end do
-	 write(78569,*)
+	 write(78569,*) "bondxat", bondxat
+	 write(78569,*) "angexat", angexat
+	 write(78569,*) "angmxat", angmxat
+	 write(78569,*) "dihexat", dihexat
+	 write(78569,*) "dihmxat", dihmxat
+	 write(78569,*) "impxat", impxat
+
 	ng1=0
 
 
-
+	if (.false.) then
 !parche para test
 	deallocate(kbond,bondeq,bondtype, angletype, kangle, angleeq)
 	deallocate(dihetype,multidihe,kdihe,diheeq,perdihe)
 	deallocate(imptype,multiimp,kimp,impeq,perimp)
+	deallocate(atimp)
+	deallocate(atange, atangm, atdihe, atdihm)
 	if (allocated(atxres)) deallocate(atxres)
 
 	allocate(kbond(500),bondeq(500),bondtype(500), angletype(500),
@@ -340,6 +349,10 @@
      .   kdihe(500),diheeq(500),perdihe(500),imptype(500),multiimp(500)
      .   ,kimp(500),impeq(500),perimp(500))
 	allocate(atxres(200000))
+	allocate(atimp(nac,25,4))
+	allocate(atange(nac,25,2), atangm(nac,25,2))
+	allocate(atdihe(nac,100,3), atdihm(nac,100,3))
+
 
 	kbond=0
 	bondeq=0
@@ -407,8 +420,13 @@
          do i=1, nac
          write(78570,*) i, ng1(i,1:6)
          end do
-
-
+         write(78570,*) "bondxat", bondxat
+         write(78570,*) "angexat", angexat
+         write(78570,*) "angmxat", angmxat
+         write(78570,*) "dihexat", dihexat
+         write(78570,*) "dihmxat", dihmxat
+         write(78570,*) "impxat", impxat
+	end if
 
       endif !mm
 
