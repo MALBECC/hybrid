@@ -8,16 +8,17 @@
 	subroutine MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, &
 	nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, radbloqmmm, &
 	radblommbond, radinnerbloqmmm, res_ref, nbond, nangle, ndihe, nimp, &
-	attype, pc, Rm, Em, ng1)
+	attype, pc, Rm, Em, ng1, bondxat,angexat, angmxat, dihexat, dihmxat,&
+	impxat)
 
 
-!        (na_u,natot,nac,nroaa,Em,Rm,attype,pc,
-!     .  bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
-!     .  dihmxat,atdihm,impxat,atimp,
-!     .  nbond,kbond,bondeq,bondtype,
-!     .  nangle,kangle,angleeq,angletype,
-!     .  ndihe,kdihe,diheeq,dihetype,multidihe,perdihe,
-!     .  nimp,kimp,impeq,imptype,multiimp,perimp,
+!        (attype,pc,
+!     .  atange,atangm,atdihe,
+!     .  atdihm,atimp,
+!     .  kbond,bondeq,bondtype,
+!     .  kangle,angleeq,angletype,
+!     .  kdihe,diheeq,dihetype,multidihe,perdihe,
+!     .  kimp,impeq,imptype,multiimp,perimp,
 !     .  nparm,aaname,atname,aanum,qmattype,rclas,
 !     .  rcorteqmmm,rcorteqm,rcortemm,sfc,
 !     .  radbloqmmm,atsinres,radblommbond,radinnerbloqmmm,res_ref)
@@ -26,11 +27,13 @@
 	use precision, only : dp
 	use sys,only : die
 	use fdf,only : fdf_block
-	use scarlett, only: Ang
+	use scarlett, only: Ang, atxres
 
 	implicit none
 	integer, intent(in) :: nac, na_u, natot !number of QM and MM and total atoms
 	character*4, dimension(nac), intent(out) :: atname, aaname !atom and residue name in .fdf
+	integer, intent(out), dimension(nac) :: bondxat, angexat,angmxat, &
+	dihexat,dihmxat, impxat !number of bonds, angle(extreme), angle(middle), dihedral(extreme), dihedral(middle) and impropers for each atom
 	integer, dimension(nac) :: resnum !residue number in .fdf
 	double precision, dimension(3,natot), intent(inout) :: rclas !postion of all atoms
 	integer :: ivalue(natot*2) !relation between atom number and atom position in .fdf
@@ -67,7 +70,7 @@
 !     .  ncon,nparm,nbond,nangle,ndihe,nimp,atsinres(20000)     
 	integer, intent(out) :: ng1(nac,6)
 !,con2(2,1000)
-	double precision, dimension(:,:), allocatable, save:: Rma,Ema
+	double precision, dimension(:,:), allocatable :: Rma,Ema
 !     .  qaa
 	double precision, dimension(0:nac), intent(out) :: pc
 	double precision, dimension(natot), intent(out) :: Rm, Em
@@ -81,12 +84,10 @@
 	integer, dimension(:,:), allocatable :: atnu
 	integer, dimension(:,:), allocatable :: nataa
 !     .  nataa,con
-	integer, dimension(:), allocatable :: atxres
+!	integer, dimension(:), allocatable :: atxres
 !        integer atange(nac,25,2),atangm(nac,25,2),
 !     .  atdihe(nac,100,3),atdihm(nac,100,3)
-!        integer bondxat(nac),angexat(nac),
-!     .  dihexat(nac),dihmxat(nac),angmxat(nac)
-!        integer  impxat(nac),atimp(nac,25,4)
+!        integer  atimp(nac,25,4)
 	character*4, dimension(:), allocatable ::  aanamea
 	integer, dimension(:), allocatable :: atomsxaa
 !        integer aanum(nac),resnum(nac)
@@ -288,16 +289,63 @@
 	write(*,*) "FF7"
 
 ! calculate bonds, angles, dihed & improp
-	call FF_bon_ang_dih_imp() !voy por aca
-!(nac,ng1,atange,atangm,atdihe,atdihm,
-!     .                      bondxat,angexat,angmxat,dihexat,dihmxat,
-!     .               atnamea,nroaa,atxres,atnu,resname,atimp,impxat)
+	call FF_bon_ang_dih_imp(nac,nroaa,FF_max_at_by_res, ng1, &
+	bondxat, angexat,angmxat,dihexat,dihmxat, impxat, atnamea, atxres, &
+	resname, atnu)
 
 
+!change WAT name to HOH, need to remove this in future. Nick
+	do i=1,nac
+	  if(aaname(i).eq.'WAT') aaname(i)='HOH'
+	enddo
 
-!	deallocate()
+
+!check correct order for atoms in water residues
+	do i=1,nroaa
+	  if(resname(i).eq.'HOH') then
+	    do j=1,atxres(i)
+	      if(atnamea(i,j).eq.'O') then
+	        if(j.ne.1) then
+	          write(6,*)  'solvent: Wrong order in water residue :',i
+	          stop
+	        endif
+	      endif
+	    enddo
+	  endif
+	enddo
+
+	deallocate(atnamea,atnu,resname) !,atxres)
+	deallocate(attypea,nataa)
+	deallocate(Ema,Rma)
+
+
+!c checking ST and SV parameters
+	do i=1,na_u
+!	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
+	  if(Rm(i).lt.0.or.Em(i).lt.0) then
+	    write(6,'(a,i6)') 'Wrong QM LJ parameter, atom:', i
+	    STOP
+	  endif
+!	  endif
+	enddo
+
+	do i=1,nac
+!a          if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
+	  if(Rm(i+na_u).lt.0.or.Em(i+na_u).lt.0) then
+	    write(6,'(a,i6)') 'Wrong MM LJ parameter, atom:', i
+	    write(*,*) "Rm(i+na_u)", Rm(i+na_u)
+	    write(*,*) "Em(i+na_u)", Em(i+na_u)
+	    STOP
+	  end if
+	  if (pc(i).gt.900000000.d0) then
+	    write(6,'(a,i6)') 'Wrong MM charge, atom:', i
+	    write(*,*) "pc(i)", pc(i)
+	    STOP
+          endif
+!          endif
+	enddo   
+
 	Return
-
 ! Errors
  11    continue
 	  write(*,*) "Error reading MM coordinates in .fdf"
@@ -321,6 +369,331 @@
 	  write(*,*) "Error reading SolventOmmit block in .fdf"
           stop
 	end subroutine MM_atoms_assign
+
+
+
+!--------------------------------------------------
+
+	subroutine FF_bon_ang_dih_imp(nac,nroaa,FF_max_at_by_res, ng1, &
+	bondxat, angexat,angmxat,dihexat,dihmxat, impxat, atnamea, atxres, &
+	resname, atnu)
+
+!aFF_bon_ang_dih_imp(nac,nroaa,FF_max_at_by_res, ng1, &
+!	bondxat, angexat,angmxat,dihexat,dihmxat, atnamea, atxres,     &
+!	resname, impxat)
+
+	use ionew, only: io_assign, io_close
+	use scarlett, only: atange, atangm, atdihe,atdihm, atimp
+	implicit none
+	integer, intent(in) :: nac
+	integer, intent(in) :: nroaa !number of residues in .fdf
+	integer, intent(in) :: FF_max_at_by_res
+	integer, intent(in) :: ng1(nac,6)
+	integer, intent(out), dimension(nac) :: bondxat, angexat,angmxat, &
+	dihexat,dihmxat, impxat
+	character*4, intent(in), dimension(nroaa,FF_max_at_by_res) :: atnamea
+	integer, intent(in), dimension(nroaa) ::  atxres
+	integer, intent(in), dimension(nroaa,FF_max_at_by_res) :: atnu
+	character*4, intent(in), dimension(nroaa) :: resname
+
+!c       parametros asoc a la asignacion de angulos y dihedros
+!        integer k,l,m,n,t,t2,
+!c       parametros asoc a la asignacion de impropers
+!     .  atimp(nac,25,4),nataa(nroaa,100), size
+	integer :: imptot !number of impropers in .fdf
+	integer :: nresid !number of improper angles in amber.parm
+	character*4, dimension(:,:,:), allocatable :: impatnamea
+	character*4, dimension(:), allocatable :: presname !Residue name
+	integer, dimension(:), allocatable :: pimpxres !number of impropers for each residue
+	integer :: max_angle_ex, max_angle_mid
+	integer :: max_dihe_ex, max_dihe_mid
+	integer :: max_improp, max_improp_at
+	integer, dimension(:,:), allocatable :: impnum !impnum(i,j) = atom number for j-th atom in i-th improper
+	character*10 :: option
+	logical :: search, assignimp
+	integer :: ui
+	integer :: i,j, k, m, n, t, t2
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+! %%%%% improper angles
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	max_improp=0
+! reed improper angles & allocate variables
+	call io_assign(ui)
+	open(unit=ui,file="amber.parm")
+	search=.true.
+	do while (search)
+	  read (ui,*,err=1,end=1) option
+	  if (option.eq.'impropers') then
+	    read(ui,*,err=2,end=2) nresid
+	    allocate(presname(nresid),pimpxres(nresid))
+	    do i=1,nresid
+	      read(ui,*,err=3,end=3) presname(i),pimpxres(i)
+	      do j=1,pimpxres(i)
+	        read(ui,*,err=4,end=4)
+	      end do
+	      if (pimpxres(i) .gt. max_improp) max_improp=pimpxres(i)
+	write(*,*) "flag 1.12"
+	    enddo
+	write(*,*) "flag 1.13"
+	    search=.false.
+	write(*,*) "flag 1.14"
+	  endif
+	write(*,*) "flag 1.15"
+	enddo
+	write(*,*) "flag 1.16"
+	call io_close(ui)
+	write(*,*) "flag 2"
+	allocate(impatnamea(nresid,max_improp,4))
+
+	call io_assign(ui)
+	open(unit=ui,file="amber.parm")
+	search=.true.
+	do while (search)
+	  read (ui,*,err=1,end=1) option
+	  if (option.eq.'impropers') then
+	    read(ui,*,err=2,end=2) nresid
+	    do i=1,nresid
+	      read(ui,*,err=3,end=3) presname(i),pimpxres(i)
+	      do j=1,pimpxres(i)
+	        read(ui,*,err=4,end=4) impatnamea(i,j,1),impatnamea(i,j,2), &
+	                               impatnamea(i,j,3),impatnamea(i,j,4)
+	      enddo
+	    enddo
+	    search=.false.
+	  endif
+	enddo
+	call io_close(ui)
+	write(*,*) "flag 3"
+
+
+! asignacion segun el atomo a partir del aa(2)
+! asignacion del numero de impropios imxpat
+	imptot=1
+	do i=1,nresid !number of improper angles in amber.parm
+	do m=1,nroaa !number of residues
+	  if(presname(i).eq.resname(m)) then !check residue name = amber.parm name
+	    do j=1,pimpxres(i) !impropers resid i in amber.parm
+	      imptot=imptot+1 !count number of impropers
+	    enddo
+	  endif
+	enddo
+	enddo
+
+	allocate(impnum(imptot,4))
+	impnum=0
+
+	imptot=1
+	do i=1,nresid !number of improper angles in amber.parm
+	do m=1,nroaa !number of residues
+	  if(presname(i).eq.resname(m)) then !check residue name = amber.parm name
+	    do j=1,pimpxres(i) !impropers resid i in amber.parm
+	    do k=1,4 !atom name involved in impropers
+	      if(impatnamea(i,j,k).eq.'+M'.and. m.ne.nroaa) then !atom name = +M
+	        do n=1,atxres(m+1) !atoms in next residue
+	          if(atnamea(m+1,n).eq.'N') impnum(imptot,k)=atnu(m+1,n) !atom name = N on next residue => assign atom number
+	        enddo
+	      elseif(impatnamea(i,j,k).eq.'-M'.and. m.ne.1) then !atom name = -M
+	        do n=1,atxres(m-1) !atoms in previous residue
+	          if(atnamea(m-1,n).eq.'C') impnum(imptot,k)=atnu(m-1,n) !atom name = C on previous residue => assign atom number
+	        enddo
+	      else !impropers inside one residue
+	        do n=1,atxres(m) !atoms in actual residue
+	          if(atnamea(m,n).eq.impatnamea(i,j,k)) impnum(imptot,k)=atnu(m,n) ! => assign atom number
+	        enddo
+	      endif
+	    enddo
+	    imptot=imptot+1
+	    enddo
+	  endif
+	enddo
+	enddo
+
+
+	write(*,*) "flag 4"
+	do i=1,imptot
+	do j=1,4
+	 if (impnum(i,j).eq.0) then
+	   do k=1,4
+	     impnum(i,k)=0
+	   enddo
+	 endif
+	enddo
+	enddo
+ 
+	max_improp_at=0
+	do i=1,nac !all MM atoms
+	  k=0
+	  do j=1,imptot !all impropers in system
+	    assignimp=(impnum(j,1).eq.i).or.(impnum(j,2).eq.i).or.(impnum(j,3).eq.i).or.(impnum(j,4).eq.i) !i atom have an improper 
+	    if (assignimp) k=k+1 !impropers for i-th atom
+	  enddo
+	  if (k.gt.max_improp_at) max_improp_at=k !max number of impropers for any atom
+	enddo
+
+	allocate(atimp(nac,max_improp_at,4))
+
+	do i=1,nac !all MM atoms
+	  k=0
+	  do j=1,imptot !all impropers in system
+	    assignimp=(impnum(j,1).eq.i).or.(impnum(j,2).eq.i).or.(impnum(j,3).eq.i).or.(impnum(j,4).eq.i) !i atom have an improper 
+	    if (assignimp) then
+	      k=k+1
+	      atimp(i,k,1)=impnum(j,1) !1st atom number for k-th improper of i-th atom
+	      atimp(i,k,2)=impnum(j,2) !2nd atom number for k-th improper of i-th atom
+	      atimp(i,k,3)=impnum(j,3) !3rd atom number for k-th improper of i-th atom
+	      atimp(i,k,4)=impnum(j,4) !4th atom number for k-th improper of i-th atom
+	    endif
+	  enddo
+	  impxat(i)=k !total number of impropers for i-th atom
+	enddo
+
+	deallocate(impnum,presname,pimpxres,impatnamea)
+
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+! %%%%% END improper angles
+! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+! count bonds for each atom
+	do i=1,nac !all atoms
+	  bondxat(i)=0 !number of bonds for i-th atom
+	  do j=1,6 !all posible conectivity
+	    if (ng1(i,j).ne.0) bondxat(i)=bondxat(i)+1 !increase number of bonds (+1) for each atom conected to i
+	  enddo
+	enddo
+
+! count angles for each atom in extreme(e)
+	max_angle_ex=0
+	do i=1,nac !all atoms
+	  k=1
+	  do j=1,bondxat(i) !all bonds for atom i-th
+	    t=ng1(i,j) !atom number of bondxat(i) bond
+	    do m=1,bondxat(t) !all bonds for t-th atom
+	      if(ng1(t,m).ne.i) k=k+1  !if i in not t there are an angle
+	    enddo
+	  enddo
+	  if (k.gt.max_angle_ex) max_angle_ex=k
+	enddo
+
+	allocate(atange(nac,max_angle_ex,2))
+	do i=1,nac !all atoms
+	  k=1
+	  do j=1,bondxat(i) !all bonds for atom i-th
+	    t=ng1(i,j) !atom number of bondxat(i) bond
+	    do m=1,bondxat(t) !all bonds for t-th atom
+	      if(ng1(t,m).ne.i) then !if i in not t assign an angle 
+	        atange(i,k,1)=ng1(i,j) !assing atom number for middle atom of the k-th angle for i-th atom
+	        atange(i,k,2)=ng1(t,m) !assing atom number for extreme atom of the k-th angle for i-th atom 
+	        k=k+1
+	      endif
+	    enddo
+	  enddo
+	  angexat(i)=k-1 !number of angles for i-th atom in extreme
+	enddo
+ 
+! count angles for each atom in middle(m)
+	max_angle_mid=0
+	do i=1,nac !all atoms
+	  k=1
+	  do j=1,bondxat(i) !all bonds for atom i-th
+	    do m=1,bondxat(i) !all bonds for atom i-th again 
+	      if(ng1(i,m).gt.ng1(i,j)) k=k+1 !if both bonds are conected to different atoms there are an angle
+	    enddo
+	  enddo
+	  if (k.gt.max_angle_mid) max_angle_mid=k
+	enddo
+
+	allocate(atangm(nac,max_angle_mid,2))
+	do i=1,nac !all atoms
+	  k=1
+	  do j=1,bondxat(i) !all bonds for atom i-th
+	    do m=1,bondxat(i) !all bonds for atom i-th again 
+	      if(ng1(i,m).gt.ng1(i,j)) then !if both bonds are conected to different atoms assign an angle
+	        atangm(i,k,1)=ng1(i,j) !assing atom number for extreme atom 1 of the k-th angle for i-th atom
+	        atangm(i,k,2)=ng1(i,m) !assing atom number for extreme atom 2 of the k-th angle for i-th atom
+	        k=k+1
+	      endif
+	    enddo
+	  enddo
+	  angmxat(i)=k-1 !number of angles for i-th atom in middle
+	enddo
+
+! count dihedral angles for each atom in extreme(e)
+	max_dihe_ex=0
+	do i=1,nac !all atoms
+	  k=1
+	  do j=1,angexat(i) !all angles with i in extreme
+	    t=atange(i,j,2) !other atom in extreme for j angle
+	    do m=1,bondxat(t) !all bonds of j
+	      t2=ng1(t,m) !atom number bount to t 
+	      if(t2.ne.atange(i,j,1)) k=k+1 !if t2 is not middle atom of angle between i and t there are a dihedral
+	    enddo
+	  enddo
+	  if (k.gt.max_dihe_ex) max_dihe_ex=k
+	enddo
+
+	allocate(atdihe(nac,max_dihe_ex,3))
+	do i=1,nac !all atoms
+	  k=1
+	  do j=1,angexat(i) !all angles with i in extreme
+	    t=atange(i,j,2) !other atom in extreme for j angle
+	    do m=1,bondxat(t) !all bonds of j
+	      t2=ng1(t,m) !atom number bount to t 
+	      if(t2.ne.atange(i,j,1)) then !if t2 is not middle atom of angle between i and t assign a dihedral
+	        atdihe(i,k,1)=atange(i,j,1)
+	        atdihe(i,k,2)=t
+	        atdihe(i,k,3)=t2
+	        k=k+1
+	      endif
+	    enddo
+	  enddo
+	  dihexat(i)=k-1 !number of dihedral angles for i-th atom in extreme
+	enddo
+ 
+! count dihedral angles for each atom in middle(m)
+	max_dihe_mid=0
+	do i=1,nac!all atoms
+	  k=1
+	  do j=1,angexat(i) !all angles with i in extreme
+	    t=atange(i,j,1) !middle atom of j-th angle (then extreme atom is guaranteed)
+	    do m=1,bondxat(i) !all bonds to i
+	      t2=ng1(i,m) !atom bound to i
+	      if(t2.ne.t) k=k+1 ! if t2 is not t there are an angle
+	    enddo
+	  enddo
+	  if (k.gt.max_dihe_mid) max_dihe_mid=k
+	enddo
+
+	allocate(atdihm(nac,max_dihe_mid,3))
+	do i=1,nac!all atoms
+	  k=1
+	  do j=1,angexat(i) !all angles with i in extreme
+	    t=atange(i,j,1) !middle atom of j-th angle (then extreme atom is guaranteed)
+	    do m=1,bondxat(i) !all bonds to i
+	      t2=ng1(i,m) !atom bound to i
+	      if(t2.ne.t) then ! if t2 is not t assign and dihedral
+	        atdihm(i,k,1)=t2
+	        atdihm(i,k,2)=t
+	        atdihm(i,k,3)=atange(i,j,2)
+	        k=k+1
+	      endif
+	    enddo
+	  enddo
+	  dihmxat(i)=k-1
+	enddo
+
+	return
+ 1      write(*,*) 'Problem reading amber.parm in impropers'
+	stop
+ 2      write(*,*) 'Problem reading nresid in amber.parm from impropers'
+	stop
+ 3      write(*,*) 'Problem reading impropers block in amber.parm file residue ',i
+	stop
+ 4      write(*,*) 'Problem reading impropers block in amber.parm file  ',i,j
+        stop
+
+	end subroutine FF_bon_ang_dih_imp
 
 
 !****************************************************
@@ -570,8 +943,8 @@
 	integer :: nlj
 !auxiliars
 	integer :: i,j,k
-	Rm=0.d0
-	Em=0.d0
+	Rm=-1.d0
+	Em=-1.d0
 
 	call io_assign(ui)
 	open(unit=ui,file="amber.parm")
@@ -749,7 +1122,7 @@
 	double precision, dimension(:,:), allocatable :: pqaa
 	character*4, dimension(:), allocatable :: paanamea
 	character*4, dimension(:,:), allocatable :: patnamea,pattype
-	integer, dimension(:,:), allocatable :: pnataa,patmas !atnu
+	integer, dimension(:,:), allocatable :: pnataa,patmas 
 	integer, dimension(:), allocatable :: patxres
 	logical :: search
 	character*12 :: option 
@@ -851,7 +1224,7 @@
 	   enddo
 	enddo
  
-	pc=0
+	pc=987654321.d0
 	k=1
 	do i=1,nroaa
 	  do j=1,atxres(i)
