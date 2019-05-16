@@ -67,7 +67,10 @@
 !Lio
      . charge, spin,
 !outputs
-     . writeRF, slabel, traj_frec
+     . writeRF, slabel, traj_frec,
+!solo hasta q termine con el forcefield
+     . max_angle_ex, max_angle_mid, max_dihe_ex, max_dihe_mid, 
+     . max_improp, max_improp_at, max_improp_at
 
       implicit none
 ! General Variables
@@ -307,35 +310,64 @@
 !	 write(78569,*) "multidihe", multidihe
 !	 write(78569,*) "kdihe", kdihe
 !	 write(78569,*) "diheeq", diheeq
-	 write(78569,*) "perdihe", perdihe
-	write(78569,*) "IMP PARAMS"
-	write(78569,*) "imptype", imptype
-	write(78569,*)"multiimp", multiimp
-	write(78569,*)"kimp", kimp
-	write(78569,*)"impeq", impeq
-	write(78569,*)"perimp", perimp
+!	 write(78569,*) "perdihe", perdihe
+!	write(78569,*) "IMP PARAMS"
+!	write(78569,*) "imptype", imptype
+!	write(78569,*)"multiimp", multiimp
+!	write(78569,*)"kimp", kimp
+!	write(78569,*)"impeq", impeq
+!	write(78569,*)"perimp", perimp
 
 
 !	write(78569,*)"atxres",atxres
-	 write(78569,*)"attype", attype
-	 write(78569,*)"pc", pc
-	 write(78569,*)"Rm", Rm
-	 write(78569,*)"Em", Em
-	 write(78569,*) "ng1"
-	 do i=1, nac
-	 write(78569,*) i, ng1(i,1:6)
-	 end do
-	 write(78569,*) "bondxat", bondxat
-	 write(78569,*) "angexat", angexat
-	 write(78569,*) "angmxat", angmxat
-	 write(78569,*) "dihexat", dihexat
-	 write(78569,*) "dihmxat", dihmxat
-	 write(78569,*) "impxat", impxat
-
-	ng1=0
-
+!	 write(78569,*)"attype", attype
+!	 write(78569,*)"pc", pc
+!	 write(78569,*)"Rm", Rm
+!	 write(78569,*)"Em", Em
+!	 write(78569,*) "ng1"
+!	 do i=1, nac
+!	 write(78569,*) i, ng1(i,1:6)
+!	 end do
+!	 write(78569,*) "bondxat", bondxat
+!	 write(78569,*) "angexat", angexat
+!	 write(78569,*) "angmxat", angmxat
+!	 write(78569,*) "dihexat", dihexat
+!	 write(78569,*) "dihmxat", dihmxat
+!	 write(78569,*) "impxat", impxat
+!	do i=1, nac
+!	do j=1,2
+!	write(78569,*) "atange",i,j, atange(i,:,j)
+!	end do
+!	end do
+!        do i=1, nac
+!	do j=1,2
+!	write(78569,*) "atangm",i,j, atangm(i,:,j)
+!	end do
+!	end do
+!        do i=1, nac
+!	do j=1,3
+!	write(78569,*) "atdihe",i,j, atdihe(i,:,j)
+!	end do
+!	end do
+!        do i=1, nac
+!	do j=1,3
+!	write(78569,*) "atdihm",i,j, atdihm(i,:,j)
+!	end do
+!	end do
+!        do i=1, nac
+!	do j=1,4
+!	write(78569,*) "atimp",i,j, atimp(i,:,j)
+!	end do
+!	end do
 
 	if (.false.) then
+	ng1=0
+	max_angle_ex=25
+	max_angle_mid=25
+	max_dihe_ex=25
+	max_dihe_mid=25
+	max_improp=25
+	max_improp_at=25
 !parche para test
 	deallocate(kbond,bondeq,bondtype, angletype, kangle, angleeq)
 	deallocate(dihetype,multidihe,kdihe,diheeq,perdihe)
@@ -361,6 +393,10 @@
 	kangle=0
 	angleeq=0
 	nparm=500
+	atange=0
+	atangm=0
+	atdihe=0
+	atdihm=0
 
 	
 	write(*,*) "flag 1"
@@ -403,29 +439,59 @@
 !         write(78570,*) "multidihe", multidihe
 !         write(78570,*) "kdihe", kdihe
 !         write(78570,*) "diheeq", diheeq
-         write(78570,*) "perdihe", perdihe
+!         write(78570,*) "perdihe", perdihe
 
-        write(78570,*) "IMP PARAMS"
-        write(78570,*) "imptype", imptype
-        write(78570,*)"multiimp", multiimp
-        write(78570,*)"kimp", kimp
-        write(78570,*)"impeq", impeq
-        write(78570,*)"perimp", perimp
-        write(78570,*)"atxres",atxres
-         write(78570,*)"attype", attype
-         write(78570,*)"pc", pc
-         write(78570,*)"Rm",Rm 
-         write(78570,*)"Em", Em
-         write(78570,*) "ng1"
-         do i=1, nac
-         write(78570,*) i, ng1(i,1:6)
-         end do
-         write(78570,*) "bondxat", bondxat
-         write(78570,*) "angexat", angexat
-         write(78570,*) "angmxat", angmxat
-         write(78570,*) "dihexat", dihexat
-         write(78570,*) "dihmxat", dihmxat
-         write(78570,*) "impxat", impxat
+!        write(78570,*) "IMP PARAMS"
+!        write(78570,*) "imptype", imptype
+!        write(78570,*)"multiimp", multiimp
+!        write(78570,*)"kimp", kimp
+!        write(78570,*)"impeq", impeq
+!        write(78570,*)"perimp", perimp
+!        write(78570,*)"atxres",atxres
+!         write(78570,*)"attype", attype
+!         write(78570,*)"pc", pc
+!         write(78570,*)"Rm",Rm 
+!         write(78570,*)"Em", Em
+!         write(78570,*) "ng1"
+!         do i=1, nac
+!         write(78570,*) i, ng1(i,1:6)
+!         end do
+!         write(78570,*) "bondxat", bondxat
+!         write(78570,*) "angexat", angexat
+!         write(78570,*) "angmxat", angmxat
+!         write(78570,*) "dihexat", dihexat
+!         write(78570,*) "dihmxat", dihmxat
+!         write(78570,*) "impxat", impxat
+!        do i=1, nac
+!	do j=1,2
+!        write(78570,*) "atange", i,j,atange(i,:,j)
+!	end do
+!        end do
+!        do i=1, nac
+!	do j=1,2
+!        write(78570,*) "atangm",i,j,atangm(i,:,j)
+!	end do
+!        end do
+!        do i=1, nac
+!	do j=1,3
+!        write(78570,*) "atdihe",i,j, atdihe(i,:,j)
+!	end do
+!        end do
+!        do i=1, nac
+!	do j=1,3
+!        write(78570,*) "atdihm",i,j, atdihm(i,:,j)
+!	end do
+!        end do
+!        do i=1, nac
+!	do j=1, 4
+!        write(78570,*) "atimp", i,j,atimp(i,:,j)
+!	end do
+!        end do
+
+	ndihe=nparm
+
+
+
 	end if
 
       endif !mm
@@ -655,7 +721,7 @@ C Calculate Rcut & block list QM-MM
             if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
  
             call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm,
-     .      rcorteqmmm,nroaa,atxres)
+     .      rcorteqmmm,nroaa)!,atxres)
 
             allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
      .      F_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
@@ -957,7 +1023,7 @@ C Write atomic forces
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
-      if (mn .eq. 0 .and. idyn .eq. 6) then
+      if (mn .eq. 0.d0 .and. idyn .eq. 6) then
         mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
         write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
         write(6,999) "mn =", mn
@@ -998,17 +1064,16 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         elseif (idyn .eq. 6) then
           call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
-
 !tauber, tt
 !iunit fijado en 3
-
 	else
 	  STOP "Wrong idyn value"
 	end if
 
-	write(6,999)
-     .  'hybrid: Temperature Antes:', tempion, ' K' 
        if(idyn .gt. 3) then
+	write(6,999)
+     .  'hybrid: Temperature Antes:', tempion, ' K'
+
          call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,
      . nfree,cmcf)
 
@@ -1061,7 +1126,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         endif !qm & mm
 
 ! Save last atomic positions and velocities
-        call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
+	call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1)
 ! write atomic constraints each step
         call wrtcrd(natot,rclas)
 

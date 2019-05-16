@@ -8,7 +8,7 @@ c subroutine that calculates the rcut and block QM-MM only in the first step
 	use ionew
 	use sys
 	implicit none
-        integer na_u,nac,natot,iu,nroaa,atxres(20000)
+        integer na_u,nac,natot,iu,nroaa,atxres(nroaa)
         double precision cm(3,20000),dist,dist2,rcorteqm,
      .  rcorteqmmm,radiobloqmmm,rclas(3,natot),Ang,radinnerbloqmmm,
      .  distinner2

@@ -11,7 +11,7 @@ NumberOfSolventAtoms   22
 MD.UseSaveXV F
 MD.UseSaveCG  F
 MD.TypeOfRun CG
-MD.NumCGsteps  50
+MD.NumCGsteps  500
 
 %block ConstrainedOpt
 nconstr 1

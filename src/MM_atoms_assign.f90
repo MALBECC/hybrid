@@ -122,8 +122,8 @@
 	res_ref=1
 	rcorteqm = 1.d-06
 	rcortemm = 100.d0
-	rcorteqmmm=0.d0
-	radbloqmmm=0.d0
+	rcorteqmmm=100.d0
+	radbloqmmm=100.d0
 	radblommbond=999999999999.99999
 	radinnerbloqmmm=0.d0
 	res_ref=1
@@ -137,6 +137,7 @@
 	ng1 = 0
 !      sfc=2.d0
 
+
 ! Read MM system from .fdf file
 	if ( fdf_block('SolventInput',iunit) ) then !asing unit number to iunit for read SolventInput block
 	  do i=1,nac ! barre todos los atomos clasicos del sistema
@@ -147,8 +148,8 @@
 	    ivalue(j)=i !relation between atom number and atom position in .fdf
 	 enddo
 	else
-	  call die("solvent: You must specify the solvent coordinates  &
-	  if NumberOfSolventAtoms not equal 0")      
+	  call die("You must specify the solvent coordinates if & 
+	NumberOfSolventAtoms not equal 0")      
 	endif
 
 ! Change coordinates to atomic units
@@ -177,16 +178,14 @@
 	    do i=1,na_u+1
 	      read(iunit,*,end=21,err=21) ch4
 	        ch1=ch4(1:1)
-
 	        if(i.le.na_u) then
+		  qmattype(i)=ch4 !type of QM atom in amber.parm
 		  if(ch1.eq.'%') &
 		    call die('Atom types in SoluteAtomTypes are lower than na_u')
 		else
-		  if(ch1.eq.'%') &
+		  if(ch1.ne.'%') &
 		    call die('Atom types in SoluteAtomTypes are greater than na_u')
 		end if
-
-	        qmattype(i)=ch4 !type of QM atom in amber.parm
   	    enddo
 	  else
 	    call die('SoluteAtomTypes Block if not defined')
@@ -230,13 +229,14 @@
 	  if(ncon.ne.0) write(6,'(/,a)') 'Reading new connectivities block'
 	  ncon=i-1
 	  allocate(con(2,ncon)) !arreglo esto para conectividades correctas segun el numero de atomo en el fdf, Nick
-
+	  con=0
 	  do j=1, ncon
 	    con(1:2,1:ncon)=con2(1:2,1:ncon)
 	    write(*,*) "extra interaction added ",con(1,j)," & ",con(2,j)
           end do
 	else
 	  allocate(con(2,1)) !agregado nick, sino trae problemas cuando ncon=0
+	  con=0
 	endif
 
 
@@ -254,6 +254,12 @@
 	allocate(atnamea(nroaa,FF_max_at_by_res), resname(nroaa), &
 	atxres(nroaa), atnu(nroaa,FF_max_at_by_res), &
 	attypea(nroaa,FF_max_at_by_res), nataa(nroaa,FF_max_at_by_res))
+	atnamea=""
+	resname=""
+	atxres=0
+	atnu=0
+	attypea=""
+	nataa=0
 
 ! Read charge and atom type, and assign to .fdf. atoms in  attype & pc
 	call FF_atoms_types(FF_residues,FF_max_at_by_res, nroaa, atnamea,&
@@ -262,6 +268,8 @@
 
 ! Read Lenard-Jones parameters and asign to .fdf atoms using attypea
 	allocate(Ema(nroaa,FF_max_at_by_res),Rma(nroaa,FF_max_at_by_res))
+	Ema=0.d0
+	Rma=0.d0
 	call FF_lj(nroaa,FF_max_at_by_res,attypea,Ema,Rma,na_u,natot, &
 	Em,Rm,qmattype,atxres)
 
@@ -319,7 +327,7 @@
 	deallocate(Ema,Rma)
 
 
-!c checking ST and SV parameters
+! checking ST and SV parameters
 	do i=1,na_u
 !	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
 	  if(Rm(i).lt.0.or.Em(i).lt.0) then
@@ -383,7 +391,8 @@
 !	resname, impxat)
 
 	use ionew, only: io_assign, io_close
-	use scarlett, only: atange, atangm, atdihe,atdihm, atimp
+	use scarlett, only: atange, atangm, atdihe,atdihm, atimp, max_angle_ex,&
+	max_angle_mid, max_dihe_ex, max_dihe_mid, max_improp, max_improp_at
 	implicit none
 	integer, intent(in) :: nac
 	integer, intent(in) :: nroaa !number of residues in .fdf
@@ -405,9 +414,9 @@
 	character*4, dimension(:,:,:), allocatable :: impatnamea
 	character*4, dimension(:), allocatable :: presname !Residue name
 	integer, dimension(:), allocatable :: pimpxres !number of impropers for each residue
-	integer :: max_angle_ex, max_angle_mid
-	integer :: max_dihe_ex, max_dihe_mid
-	integer :: max_improp, max_improp_at
+!	integer :: max_angle_ex, max_angle_mid
+!	integer :: max_dihe_ex, max_dihe_mid
+!	integer :: max_improp, max_improp_at
 	integer, dimension(:,:), allocatable :: impnum !impnum(i,j) = atom number for j-th atom in i-th improper
 	character*10 :: option
 	logical :: search, assignimp
@@ -426,25 +435,22 @@
 	  if (option.eq.'impropers') then
 	    read(ui,*,err=2,end=2) nresid
 	    allocate(presname(nresid),pimpxres(nresid))
+	    presname=""
+	    pimpxres=0
 	    do i=1,nresid
 	      read(ui,*,err=3,end=3) presname(i),pimpxres(i)
 	      do j=1,pimpxres(i)
 	        read(ui,*,err=4,end=4)
 	      end do
 	      if (pimpxres(i) .gt. max_improp) max_improp=pimpxres(i)
-	write(*,*) "flag 1.12"
 	    enddo
-	write(*,*) "flag 1.13"
 	    search=.false.
-	write(*,*) "flag 1.14"
 	  endif
-	write(*,*) "flag 1.15"
 	enddo
-	write(*,*) "flag 1.16"
 	call io_close(ui)
-	write(*,*) "flag 2"
 	allocate(impatnamea(nresid,max_improp,4))
-
+	impatnamea=""
+	
 	call io_assign(ui)
 	open(unit=ui,file="amber.parm")
 	search=.true.
@@ -463,7 +469,6 @@
 	  endif
 	enddo
 	call io_close(ui)
-	write(*,*) "flag 3"
 
 
 ! asignacion segun el atomo a partir del aa(2)
@@ -508,8 +513,6 @@
 	enddo
 	enddo
 
-
-	write(*,*) "flag 4"
 	do i=1,imptot
 	do j=1,4
 	 if (impnum(i,j).eq.0) then
@@ -531,6 +534,7 @@
 	enddo
 
 	allocate(atimp(nac,max_improp_at,4))
+	atimp=0
 
 	do i=1,nac !all MM atoms
 	  k=0
@@ -570,13 +574,15 @@
 	  do j=1,bondxat(i) !all bonds for atom i-th
 	    t=ng1(i,j) !atom number of bondxat(i) bond
 	    do m=1,bondxat(t) !all bonds for t-th atom
-	      if(ng1(t,m).ne.i) k=k+1  !if i in not t there are an angle
+	      if(ng1(t,m).ne.i ) k=k+1  !if i in not t there are an angle
 	    enddo
 	  enddo
 	  if (k.gt.max_angle_ex) max_angle_ex=k
 	enddo
 
 	allocate(atange(nac,max_angle_ex,2))
+	atange=0
+	angexat=0
 	do i=1,nac !all atoms
 	  k=1
 	  do j=1,bondxat(i) !all bonds for atom i-th
@@ -604,7 +610,10 @@
 	  if (k.gt.max_angle_mid) max_angle_mid=k
 	enddo
 
+
 	allocate(atangm(nac,max_angle_mid,2))
+	atangm=0
+	angmxat=0
 	do i=1,nac !all atoms
 	  k=1
 	  do j=1,bondxat(i) !all bonds for atom i-th
@@ -634,6 +643,8 @@
 	enddo
 
 	allocate(atdihe(nac,max_dihe_ex,3))
+	atdihe=0
+	dihexat=0
 	do i=1,nac !all atoms
 	  k=1
 	  do j=1,angexat(i) !all angles with i in extreme
@@ -666,6 +677,8 @@
 	enddo
 
 	allocate(atdihm(nac,max_dihe_mid,3))
+	atdihm=0
+	dihmxat=0
 	do i=1,nac!all atoms
 	  k=1
 	  do j=1,angexat(i) !all angles with i in extreme
@@ -756,7 +769,7 @@
 	enddo
 	call io_close(ui)
 	allocate(png1(nresid,maxconect,2))
-
+	png1=0
 
 	call io_assign(ui)
 	open(unit=ui,file="amber.parm")
@@ -956,6 +969,9 @@
 	  if (option.eq.'ljs') then
 	    read(ui,*,err=1,end=1) nlj !cantidad de lennard jones en el amber.parm
 	    allocate(ljtype(nlj),pRm(nlj),pEm(nlj))
+	    ljtype=""
+	    pRm=0.d0
+	    pEm=0.d0
 	    do  i=1,nlj
 	      read (ui,*,err=1,end=1) ljtype(i),pRm(i),pEm(i)
 	    enddo
@@ -1146,8 +1162,18 @@
 	pnataa(FF_residues,FF_max_at_by_res), &
 	patmas(FF_residues,FF_max_at_by_res), &
 	pqaa(FF_residues,FF_max_at_by_res))
-
 	allocate(qaa(nroaa, FF_max_at_by_res))
+
+
+	paanamea=""
+	patxres=0
+	patnamea=""
+	pattype=""
+	pnataa=0
+	patmas=0
+	pqaa=0.d0
+	qaa=0.d0
+
 
 	search=.true.
 	do while (search)
