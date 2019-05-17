@@ -1,5 +1,8 @@
+c This subroutines are not used anymore, will be removed comming soon
+
 c this subroutine do everything related to reading and parameters
 c assignation of solvent atoms
+
 
       subroutine solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,

@@ -40,12 +40,7 @@
 	integer, dimension(:,:), allocatable :: conect_ommit
 	integer, intent(out) :: nbond, nangle, ndihe, nimp !number of bonds, angles, sihesral and impropers in amber.parm file
 	integer :: FF_residues, FF_max_at_by_res !number of residues and max number of atoms by residue in force field
-!auxiliars
-	integer :: i, j, k
-	character*4 :: atom, ch4
-	character*1 ::  ch, ch1, exp
 	integer, dimension(2,1000) :: con2
-
 	integer, intent(out) :: ng1(nac,6)
 	double precision, dimension(:,:), allocatable :: Rma,Ema
 	double precision, dimension(0:nac), intent(out) :: pc
@@ -57,6 +52,12 @@
 	character*4, dimension(:), allocatable ::  aanamea
 	integer, dimension(:), allocatable :: atomsxaa
 	character*4, dimension(nac), intent(out) ::  attype
+
+!auxiliars
+	integer :: i, j, k
+	character*4 :: atom, ch4
+	character*1 ::  ch, ch1, exp
+
 
 ! Initialice variables
 	rclas = 0.d0
@@ -81,8 +82,6 @@
 	ndihe = 0
 	nimp = 0
 	ng1 = 0
-!      sfc=2.d0
-
 
 ! Read MM system from .fdf file
 	if ( fdf_block('SolventInput',iunit) ) then !asing unit number to iunit for read SolventInput block
@@ -141,7 +140,7 @@
 
 ! Cutoff & Freezing Radious
 	if ( fdf_block('CutOffRadius',iunit) ) then
-	  read(iunit,*,err=31,end=31) exp, rcorteqm ! not used
+	  read(iunit,*,err=31,end=31) exp, rcorteqm ! not used, just keeep for retrocompatibiity
 	  read(iunit,*,err=31,end=31) exp, rcorteqmmm ! distance for QM-MM interaction
 	  read(iunit,*,err=31,end=31) exp, rcortemm ! distance for LJ & Coulomb MM interaction
 	  read(iunit,*,err=31,end=31) exp, radbloqmmm ! distance that allow to move MM atoms from QM sub-system
@@ -161,18 +160,21 @@
 
 ! Aditional MM Connectivity block
 	if ( fdf_block('SolventConnectivity',iunit) ) then
-	i=1
-	exp= 'N'
-	do while (exp.ne.'%' .or. i.eq.1000)
-	  read(iunit,'(a)',advance='no',err=41,end=41) exp
-	  if(exp.ne.'%') then
-	    read(iunit,*,err=41,end=41) exp, con2(1:2,i)
-	    i=i+1
-	  end if
-	end do
-	if(i.eq.1000) &
-	  call die('SolventConnectivity block must not exeed 1000 lines')
+	  i=1
+	  exp= 'N'
+	  do while (exp.ne.'%' .or. i.eq.1000)
+	    read(iunit,'(a)',advance='no',err=41,end=41) exp
+	    if(exp.ne.'%') then
+	      read(iunit,*,err=41,end=41) exp, con2(1:2,i)
+	      i=i+1
+	    end if
+	  end do
+	
+	  if(i.eq.1000) &
+	    call die('SolventConnectivity block must not exeed 1000 lines')
+	
 	  if(ncon.ne.0) write(6,'(/,a)') 'Reading new connectivities block'
+	
 	  ncon=i-1
 	  allocate(con(2,ncon)) !arreglo esto para conectividades correctas segun el numero de atomo en el fdf, Nick
 	  con=0
@@ -266,16 +268,13 @@
 
 ! checking ST and SV parameters
 	do i=1,na_u
-!	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
 	  if(Rm(i).lt.0.or.Em(i).lt.0) then
 	    write(6,'(a,i6)') 'Wrong QM LJ parameter, atom:', i
 	    STOP
 	  endif
-!	  endif
 	enddo
 
 	do i=1,nac
-!a          if(attype(i).ne.'HO'.and.attype(i).ne.'HW') then
 	  if(Rm(i+na_u).lt.0.or.Em(i+na_u).lt.0) then
 	    write(6,'(a,i6)') 'Wrong MM LJ parameter, atom:', i
 	    write(*,*) "Rm(i+na_u)", Rm(i+na_u)
@@ -287,7 +286,6 @@
 	    write(*,*) "pc(i)", pc(i)
 	    STOP
           endif
-!          endif
 	enddo   
 
 	Return
@@ -322,10 +320,6 @@
 	subroutine FF_bon_ang_dih_imp(nac,nroaa,FF_max_at_by_res, ng1, &
 	bondxat, angexat,angmxat,dihexat,dihmxat, impxat, atnamea, atxres, &
 	resname, atnu)
-
-!aFF_bon_ang_dih_imp(nac,nroaa,FF_max_at_by_res, ng1, &
-!	bondxat, angexat,angmxat,dihexat,dihmxat, atnamea, atxres,     &
-!	resname, impxat)
 
 	use ionew, only: io_assign, io_close
 	use scarlett, only: atange, atangm, atdihe,atdihm, atimp, max_angle_ex,&
@@ -648,7 +642,7 @@
  3      write(*,*) 'Problem reading impropers block in amber.parm file residue ',i
 	stop
  4      write(*,*) 'Problem reading impropers block in amber.parm file  ',i,j
-        stop
+	stop
 
 	end subroutine FF_bon_ang_dih_imp
 
@@ -952,14 +946,11 @@
 	  call io_close(uiout)
 	end if
 
-
-
 ! transform unit to hybrid 
 	do i=1,nlj
 	  pRm(i) = (2.0d0*pRm(i)*Ang)/(2.d0**(1.d0/6.d0))
 	  pEm(i) = (pEm(i)*eV/kcal) !(pEm(i)/627.5108d0)
 	enddo
-
 
 ! asignation of LJ parameters to MM atoms using attypea 
 	do i=1,nroaa
@@ -1263,10 +1254,8 @@
 		  do j2=1,atxres(i2)
 		    if (i .eq. i2 .and. j2.eq.j) then
 		      write(6,*) k, resname(i2),atnamea(i2,j2),"<--- this one"
-! attypea(i2,j2),"<--- this one"
 		    else
 		      write(6,*) k, resname(i2),atnamea(i2,j2)
-!attypea(i2,j2)
 		    end if
 		    k=k+1
 		  end do

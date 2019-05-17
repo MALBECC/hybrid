@@ -1,5 +1,5 @@
 &lio
-nmax=70
+nmax=2
 diis=f
 gold=20
 ndiis=30
