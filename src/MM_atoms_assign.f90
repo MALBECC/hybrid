@@ -11,19 +11,6 @@
 	attype, pc, Rm, Em, ng1, bondxat,angexat, angmxat, dihexat, dihmxat,&
 	impxat)
 
-
-!        (attype,pc,
-!     .  atange,atangm,atdihe,
-!     .  atdihm,atimp,
-!     .  kbond,bondeq,bondtype,
-!     .  kangle,angleeq,angletype,
-!     .  kdihe,diheeq,dihetype,multidihe,perdihe,
-!     .  kimp,impeq,imptype,multiimp,perimp,
-!     .  nparm,aaname,atname,aanum,qmattype,rclas,
-!     .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-!     .  radbloqmmm,atsinres,radblommbond,radinnerbloqmmm,res_ref)
-
-
 	use precision, only : dp
 	use sys,only : die
 	use fdf,only : fdf_block
@@ -51,66 +38,25 @@
 	logical :: foundamber
 	integer :: number_conect_ommit
 	integer, dimension(:,:), allocatable :: conect_ommit
-!
 	integer, intent(out) :: nbond, nangle, ndihe, nimp !number of bonds, angles, sihesral and impropers in amber.parm file
 	integer :: FF_residues, FF_max_at_by_res !number of residues and max number of atoms by residue in force field
-
-
-!	double precision, dimension(:), intent(out) :: kbond,bondeq
-!	character*5, dimension(:), intent(out) :: bondtype
-
-
 !auxiliars
 	integer :: i, j, k
 	character*4 :: atom, ch4
 	character*1 ::  ch, ch1, exp
 	integer, dimension(2,1000) :: con2
 
-!        integer i,j,k,l,m,n,natot,nac,na_u,nroaa,iunit,                                                              
-!     .  ncon,nparm,nbond,nangle,ndihe,nimp,atsinres(20000)     
 	integer, intent(out) :: ng1(nac,6)
-!,con2(2,1000)
 	double precision, dimension(:,:), allocatable :: Rma,Ema
-!     .  qaa
 	double precision, dimension(0:nac), intent(out) :: pc
 	double precision, dimension(natot), intent(out) :: Rm, Em
-!     .  pc(0:nac),rclas(3,natot)
-!cagregue 0 apc
-!        character ch*1,exp
-! 	character*4 atom
 	character*4, dimension(:), allocatable :: resname
 	character*4, dimension(:,:), allocatable :: atnamea, attypea
-!,attypea,atsp
 	integer, dimension(:,:), allocatable :: atnu
 	integer, dimension(:,:), allocatable :: nataa
-!     .  nataa,con
-!	integer, dimension(:), allocatable :: atxres
-!        integer atange(nac,25,2),atangm(nac,25,2),
-!     .  atdihe(nac,100,3),atdihm(nac,100,3)
-!        integer  atimp(nac,25,4)
 	character*4, dimension(:), allocatable ::  aanamea
 	integer, dimension(:), allocatable :: atomsxaa
-!        integer aanum(nac),resnum(nac)
-!        double precision rcorteqm,rcortemm,sfc,rcorteqmmm
 	character*4, dimension(nac), intent(out) ::  attype
-!        character*4 atname(nac),aaname(nac),attype(nac),qmattype(na_u)
-!        character*5 bondtype(nparm)
-!        character*8 angletype(nparm)
-!        character*11 dihetype(nparm),imptype(nparm)
-!        double precision kbond(nparm),bondeq(nparm),kangle(nparm),
-!     .  angleeq(nparm),kdihe(nparm),diheeq(nparm),perdihe(nparm),
-!     .  kimp(nparm),impeq(nparm),perimp(nparm)
-!        integer multidihe(nparm),multiimp(nparm)
-!        double precision radbloqmmm
-!	logical foundamber
-!        character ch1*1,ch4*4
-!ccorrecion del bug de bonds extras, Nick
-!	integer :: ivalue(natot*2), inick,jnick
-!c parche para q no ponga bonds entre extremos terminales
-!        double precision radblommbond, radinnerbloqmmm
-!        integer res_ref
-!	ivalue=0
-
 
 ! Initialice variables
 	rclas = 0.d0
@@ -395,19 +341,11 @@
 	integer, intent(in), dimension(nroaa) ::  atxres
 	integer, intent(in), dimension(nroaa,FF_max_at_by_res) :: atnu
 	character*4, intent(in), dimension(nroaa) :: resname
-
-!c       parametros asoc a la asignacion de angulos y dihedros
-!        integer k,l,m,n,t,t2,
-!c       parametros asoc a la asignacion de impropers
-!     .  atimp(nac,25,4),nataa(nroaa,100), size
 	integer :: imptot !number of impropers in .fdf
 	integer :: nresid !number of improper angles in amber.parm
 	character*4, dimension(:,:,:), allocatable :: impatnamea
 	character*4, dimension(:), allocatable :: presname !Residue name
 	integer, dimension(:), allocatable :: pimpxres !number of impropers for each residue
-!	integer :: max_angle_ex, max_angle_mid
-!	integer :: max_dihe_ex, max_dihe_mid
-!	integer :: max_improp, max_improp_at
 	integer, dimension(:,:), allocatable :: impnum !impnum(i,j) = atom number for j-th atom in i-th improper
 	character*10 :: option
 	logical :: search, assignimp
@@ -463,7 +401,7 @@
 
 	if (verbose_level.gt.7) then !write forcefield for check
 	  call io_assign(uiout)
-	  open(unit=uiout,file="amber.parm.out")
+	  open(unit=uiout, position='append', file="amber.parm.out")
 	  write(uiout,*) 'impropers'
 	  write(uiout,*)  nresid
 	  do i=1,nresid
@@ -802,7 +740,7 @@
 
 	if (verbose_level.gt.7) then !write forcefield for check
 	  call io_assign(uiout)
-	  open(unit=uiout,file="amber.parm.out")
+	  open(unit=uiout, position='append', file="amber.parm.out")
 	  write(uiout,*) 'connectivity'
 	  write(uiout,*)  nresid
 	  do i=1,nresid
@@ -1005,7 +943,7 @@
 
 	if (verbose_level.gt.7) then !write forcefield for check
 	  call io_assign(uiout)
-	  open(unit=uiout,file="amber.parm.out")
+	  open(unit=uiout, position='append', file="amber.parm.out")
 	  write(uiout,*) 'ljs'
 	  write(uiout,*)  nlj
 	  do i=1,nlj
@@ -1232,7 +1170,7 @@
 
 	if (verbose_level.gt.7) then !write forcefield for check
 	  call io_assign(uiout)
-	  open(unit=uiout,file="amber.parm.out")
+	  open(unit=uiout, position='append', file="amber.parm.out")
 	  write(uiout,*) 'residues'
 	  write(uiout,*)  trash
 	  do i=1,FF_residues

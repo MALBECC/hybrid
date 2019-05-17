@@ -29,7 +29,7 @@ OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	inver.o ioxv.o paste.o reclat.o \
 	reinit.o timestamp.o volcel.o cgvc.o iocg.o \
 	centerall.o ran3.o dot.o readall.o subconstr.o \
-	writeall.o qmmm_lst_blk.o solv_assign.o \
+	writeall.o qmmm_lst_blk.o  \
 	ljef.o solv_ene_fce.o linkatom.o recipes.o list_qmmm.o \
 	assignation.o center_rotation.o init_hybrid.o NEB_subs.o\
 	quickmin.o FIRE.o check_convergence.o dynamics.o vmb.o\
@@ -46,7 +46,7 @@ ioxv.o iofa.o : $(FDF)
 cgvc.o iocg.o ioxvconstr.o ofc.o : $(FDF)
 fixed.o reinit.o readall.o writeall.o : $(FDF)
 subconstr.o : $(FDF)
-linkatom.o solv_assign.o : $(FDF)
+linkatom.o MM_atoms_assign.o : $(FDF)
 asign.o : $(FDF)
 
 # Rest of Modules
@@ -65,14 +65,14 @@ COM_OBJS=$(OBJS) $(SYSOBJ)
 ALL_OBJS=$(MOD_OBJS) $(COM_OBJS)
 
 # Routines using modules
-solv_assign.o ioxv.o : precision.o
+MM_atoms_assign.o ioxv.o : precision.o
 qmmm_lst_blk.o readall.o cgvc.o chkdim.o : precision.o
 iofa.o fixed.o ioxvconstr.o assign.o hybrid.o : precision.o
-ionew.o chkdim.o solv_assign.o hybrid.o readall.o qmmm_lst_blk.o fixed.o assign.o : sys.o
+ionew.o chkdim.o MM_atoms_assign.o hybrid.o readall.o qmmm_lst_blk.o fixed.o assign.o : sys.o
 subconstr.o :sys.o
 hybrid.o : fsiesta.o
 hybrid.o : neutralatom.o
-neutralatom.o hybrid.o solv_assign.o :ionew.o
+neutralatom.o hybrid.o MM_atoms_assign.o :ionew.o
 reinit.o readall.o writeall.o : ionew.o
 qmmm_lst_blk.o : ionew.o
 iofa.o iocg.o ioxv.o ioxvconstr.o ofc.o : ionew.o
