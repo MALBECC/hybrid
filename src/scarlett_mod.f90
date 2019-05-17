@@ -230,6 +230,7 @@
 !outputs
 	integer :: writeRF ! force integration
 	integer :: traj_frec ! Frecuency to write trayectory and Energy in .rcg and .rce files
+	integer :: verbose_level
 ! Conversion factors
 	real(dp) :: Ang !r_in_bohr=r_in_ang * Ang
 	real(dp) :: eV !E_in_Hartree=E_in_eV * eV

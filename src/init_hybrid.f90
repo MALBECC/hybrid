@@ -19,7 +19,7 @@
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
-	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa
+	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -118,6 +118,7 @@
 	
 	  writeRF=0
 	  writeRF = fdf_integer('PFIntegrationOutput',0)
+	  verbose_level = fdf_integer('Verbose',2)
 	  frstme=.true.
 	  Ndescend=0
 	  alpha=0.1d0

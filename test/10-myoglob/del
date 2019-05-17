@@ -1,0 +1,18 @@
+rm *ion*
+rm *POT.CONF*
+rm CH*
+rm IN*
+rm WA*
+rm KB*
+rm RED*
+rm ORB*
+rm VNA*
+rm *.alloc
+rm out.fdf
+rm .nfs*
+rm fort.*
+rm *PAO*
+rm *vlocal*
+rm *.siesta.coords
+rm *.siesta.forces
+

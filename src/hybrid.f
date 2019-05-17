@@ -242,6 +242,7 @@
       fdummy = 0.d0
       cfdummy=0.d0
       vat=0.d0
+      aat=0.d0
       Elj=0.d0
       Elink=0.d0
       Etot=0.d0

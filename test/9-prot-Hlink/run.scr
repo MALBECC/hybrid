@@ -1,0 +1,5 @@
+#!/bin/bash
+
+../../bin/hybrid < MTHPe1.fdf >> MTHPe1.out
+
+

@@ -246,10 +246,8 @@
 
 ! Reading MM force Field (bond, angle, dihe e imp)
 	call Force_field_read(nbond, nangle, ndihe, nimp)
-	write(*,*) "FF2"
 ! Reading number of residues and atoms in force field
 	call FF_atoms_by_residue(FF_residues,FF_max_at_by_res)
-	write(*,*) "FF3", FF_residues
 
 	allocate(atnamea(nroaa,FF_max_at_by_res), resname(nroaa), &
 	atxres(nroaa), atnu(nroaa,FF_max_at_by_res), &
@@ -264,7 +262,6 @@
 ! Read charge and atom type, and assign to .fdf. atoms in  attype & pc
 	call FF_atoms_types(FF_residues,FF_max_at_by_res, nroaa, atnamea,&
 	aaname,atxres,resname, nac, atname, atnu, attypea, nataa, attype, pc)
-	write(*,*) "FF4"
 
 ! Read Lenard-Jones parameters and asign to .fdf atoms using attypea
 	allocate(Ema(nroaa,FF_max_at_by_res),Rma(nroaa,FF_max_at_by_res))
@@ -272,8 +269,6 @@
 	Rma=0.d0
 	call FF_lj(nroaa,FF_max_at_by_res,attypea,Ema,Rma,na_u,natot, &
 	Em,Rm,qmattype,atxres)
-
-	write(*,*) "FF5"
 
 	number_conect_ommit=0
 	if ( fdf_block('SolventOmmit',iunit) ) then
@@ -288,13 +283,9 @@
 	 conect_ommit=-2
 	end if
 
-	write(*,*) "FF6"
-
 !Asign conectivity
 	call FF_conectivity(nac,nataa,nroaa,atxres,atnu,resname, ng1, &
 	number_conect_ommit, conect_ommit, atnamea,ncon,con, FF_max_at_by_res)
-
-	write(*,*) "FF7"
 
 ! calculate bonds, angles, dihed & improp
 	call FF_bon_ang_dih_imp(nac,nroaa,FF_max_at_by_res, ng1, &
@@ -392,7 +383,7 @@
 
 	use ionew, only: io_assign, io_close
 	use scarlett, only: atange, atangm, atdihe,atdihm, atimp, max_angle_ex,&
-	max_angle_mid, max_dihe_ex, max_dihe_mid, max_improp, max_improp_at
+	max_angle_mid, max_dihe_ex, max_dihe_mid, max_improp, max_improp_at, verbose_level
 	implicit none
 	integer, intent(in) :: nac
 	integer, intent(in) :: nroaa !number of residues in .fdf
@@ -420,7 +411,7 @@
 	integer, dimension(:,:), allocatable :: impnum !impnum(i,j) = atom number for j-th atom in i-th improper
 	character*10 :: option
 	logical :: search, assignimp
-	integer :: ui
+	integer :: ui, uiout
 	integer :: i,j, k, m, n, t, t2
 ! %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 ! %%%%% improper angles
@@ -469,6 +460,21 @@
 	  endif
 	enddo
 	call io_close(ui)
+
+	if (verbose_level.gt.7) then !write forcefield for check
+	  call io_assign(uiout)
+	  open(unit=uiout,file="amber.parm.out")
+	  write(uiout,*) 'impropers'
+	  write(uiout,*)  nresid
+	  do i=1,nresid
+	    write(uiout,*) presname(i),pimpxres(i)
+	    do j=1,pimpxres(i)
+	      write(uiout,*) impatnamea(i,j,1),impatnamea(i,j,2), &
+	      impatnamea(i,j,3),impatnamea(i,j,4)
+	    enddo
+	  enddo
+	  call io_close(uiout)
+	end if
 
 
 ! asignacion segun el atomo a partir del aa(2)
@@ -718,6 +724,7 @@
 !nac,nataa,nroaa,atxres,atnu,resname,ng1,atnamea,ncon,con)
 	use ionew, only : io_assign, io_close
 	use precision, only:dp
+	use scarlett, only: verbose_level
 	implicit none
 	integer, intent(in) :: nac,nroaa, FF_max_at_by_res
 	integer, intent(in), dimension(nroaa) :: atxres
@@ -744,7 +751,7 @@
 	character*2 :: c2
 	character*4 :: c4*4
 	integer :: i, ii, j, k, l, m, n
-	integer :: ui
+	integer :: ui, uiout
 
 	maxconect=-1
 	call io_assign(ui)
@@ -791,6 +798,22 @@
 	  endif
 	enddo
 	call io_close(ui)
+
+
+	if (verbose_level.gt.7) then !write forcefield for check
+	  call io_assign(uiout)
+	  open(unit=uiout,file="amber.parm.out")
+	  write(uiout,*) 'connectivity'
+	  write(uiout,*)  nresid
+	  do i=1,nresid
+	    write(uiout,*) presname(i),bondxres(i)
+	    do j=1,bondxres(i)
+	      write(uiout,*) png1(i,j,1),png1(i,j,2)
+	    enddo
+	  enddo
+	  call io_close(uiout)
+	end if
+
 
 
 !assign conectivity na los 1eros vecinos de cada atomo      
@@ -938,7 +961,7 @@
 	subroutine FF_lj(nroaa,FF_max_at_by_res,attypea,Ema,Rma,na_u,natot, &
 	Em,Rm,qmattype,atxres)
 	use ionew, only : io_assign, io_close
-	use scarlett, only: Ang, kcal, eV
+	use scarlett, only: Ang, kcal, eV, verbose_level
 	implicit none
 
 	integer, intent(in) :: nroaa, FF_max_at_by_res,na_u,natot
@@ -947,7 +970,7 @@
 	double precision, dimension(natot), intent(out) :: Rm, Em
 	character*4, dimension(na_u), intent(in) :: qmattype(na_u)
 	integer, dimension(nroaa), intent(in) :: atxres
-	integer :: ui
+	integer :: ui, uiout
 	logical :: search
 	character*12 :: option
 	double precision, dimension(:), allocatable :: pRm, pEm
@@ -979,6 +1002,19 @@
 	  endif
 	enddo
 	call io_close(ui)
+
+	if (verbose_level.gt.7) then !write forcefield for check
+	  call io_assign(uiout)
+	  open(unit=uiout,file="amber.parm.out")
+	  write(uiout,*) 'ljs'
+	  write(uiout,*)  nlj
+	  do i=1,nlj
+	    write(uiout,*) ljtype(i),pRm(i),pEm(i)
+	  enddo
+	  call io_close(uiout)
+	end if
+
+
 
 ! transform unit to hybrid 
 	do i=1,nlj
@@ -1121,6 +1157,7 @@
 	subroutine FF_atoms_types(FF_residues,FF_max_at_by_res, nroaa, atnamea,&
 	aaname,atxres,resname, nac, atname, atnu, attypea, nataa, attype, pc)
 	use ionew, only:io_assign, io_close
+	use scarlett, only: verbose_level
 	implicit none
 	integer :: trash
 	integer, intent(in) :: FF_residues,FF_max_at_by_res, nroaa
@@ -1142,7 +1179,7 @@
 	integer, dimension(:), allocatable :: patxres
 	logical :: search
 	character*12 :: option 
-	integer :: ui
+	integer :: ui, uiout
 	integer, dimension(nroaa), intent(out) :: atxres
 	logical, dimension(nroaa, FF_max_at_by_res) :: assigned
 	logical :: kill
@@ -1192,6 +1229,22 @@
 	  endif
 	enddo
 	call io_close(ui)
+
+	if (verbose_level.gt.7) then !write forcefield for check
+	  call io_assign(uiout)
+	  open(unit=uiout,file="amber.parm.out")
+	  write(uiout,*) 'residues'
+	  write(uiout,*)  trash
+	  do i=1,FF_residues
+	    write(uiout,*) paanamea(i), patxres(i)
+	    do j=1,patxres(i)
+	      write(uiout,*) patnamea(i,j),pattype(i,j), &
+	      n1,n2,n3,pnataa(i,j),patmas(i,j),pqaa(i,j)
+	    enddo
+	  enddo
+	  call io_close(uiout)
+	end if
+
 
 
 ! Asign atom number for each residue in .fdf
@@ -1368,10 +1421,10 @@
 	subroutine Force_field_read(nbond, nangle, ndihe, nimp)
 	use scarlett, only: kbond,bondeq,bondtype,angletype,kangle,angleeq, &
 	dihetype,multidihe,kdihe,diheeq,perdihe,imptype,multiimp,kimp,impeq, &
-	perimp
+	perimp, verbose_level
 	use ionew, only : io_assign, io_close
 	implicit none
-	integer :: ui
+	integer :: ui, uiout
 	logical :: search
 	character*12 :: option
 	integer :: i
@@ -1466,6 +1519,37 @@
 	  endif
 	enddo
 	call io_close(ui)
+
+
+	if (verbose_level.gt.7) then !write forcefield for check
+	  call io_assign(uiout)
+	  open(unit=uiout,file="amber.parm.out")
+	  write(uiout,*) 'bonds'
+	  write(uiout,*)  nbond
+	  do i=1,nbond
+	    write(uiout,*) bondtype(i),kbond(i),bondeq(i)
+	  end do
+	  write(uiout,*) 'angles'
+	  write(uiout,*) nangle
+	  do i=1,nangle
+	    write(uiout,*) angletype(i),kangle(i),angleeq(i)
+	  enddo
+	  write(uiout,*) 'dihes'
+	  write(uiout,*) ndihe
+	  do i=1,ndihe
+	    write(uiout,*) dihetype(i),multidihe(i),kdihe(i), &
+	    diheeq(i),perdihe(i)
+	  end do
+	  write(uiout,*) 'imps'
+	  write(uiout,*) nimp
+	  do i=1,nimp
+	    write(uiout,*) imptype(i),multiimp(i),kimp(i), &
+	    impeq(i),perimp(i)
+	  enddo
+	  call io_close(uiout)
+	end if
+
+
 !
  10     format(A5,2x,F5.1,4x,F6.4)
  20     format(A8,3x,F5.1,6x,F6.2)
