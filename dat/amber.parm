@@ -574,21 +574,21 @@ X -CV-NB-X    2    4.80        180.0             2.         JCC,7,(1986),230
 X -CW-NA-X    4    6.00        180.0             2.         JCC,7,(1986),230 
 X -OH-P -X    3    0.75          0.0             3.         JCC,7,(1986),230 
 X -OS-P -X    3    0.75          0.0             3.         JCC,7,(1986),230 
-X -NB-FE-X    1    0.00          0.0             2.  dhe marce1
-X -NO-FE-X    1    0.00        180.0             2.  dhe marce2
-X -NP-FE-X    1    0.00        180.0             2.  dhe marce3
-X -NO-CC-X    4    5.70        180.0             2.  dhe marce4
-X -NP-CC-X    4    5.70        180.0             2.  dhe marce5
-X -CC-CB-X    4    3.15        180.0             2.  dhe marce6
-X -CB-CB-X    4   21.50        180.0             2.  dhe marce7
-X -CD-CC-X    4    7.90        180.0             2.  dhe marce8
-X -CB-CT-X    1    0.00        180.0             2.  dhe marce9
-X -CB-CY-X    4    0.00        180.0             2.  dhe marce10
-X -CY-CX-X    4   30.00        180.0             2.  dhe marce11
-X -FE-LO-X    1    0.0         180.0             2.  dhe marce12 
-X -CT-CF-X    9    1.40          0.0             3.  dhe marce13  
-X -CF-CB-X    2    0.0           0.0             1.  dhe marce13
-X -CF-CC-X    2    0.0           0.0             1.  dhe marce13
+X -NB-FE-X    1    0.00          0.0             2.         dhe marce1
+X -NO-FE-X    1    0.00        180.0             2.         dhe marce2
+X -NP-FE-X    1    0.00        180.0             2.         dhe marce3
+X -NO-CC-X    4    5.70        180.0             2.         dhe marce4
+X -NP-CC-X    4    5.70        180.0             2.         dhe marce5
+X -CC-CB-X    4    3.15        180.0             2.         dhe marce6
+X -CB-CB-X    4   21.50        180.0             2.         dhe marce7
+X -CD-CC-X    4    7.90        180.0             2.         dhe marce8
+X -CB-CT-X    1    0.00        180.0             2.         dhe marce9
+X -CB-CY-X    4    0.00        180.0             2.         dhe marce10
+X -CY-CX-X    4   30.00        180.0             2.         dhe marce11
+X -FE-LO-X    1    0.0         180.0             2.         dhe marce12 
+X -CT-CF-X    9    1.40          0.0             3.         dhe marce13  
+X -CF-CB-X    2    0.0           0.0             1.         dhe marce13
+X -CF-CC-X    2    0.0           0.0             1.         dhe marce13
 N -CT-C -N    1    1.700       180.000          -1. 
 N -CT-C -N    1    2.000       180.000           2. 
 C -N -CT-C    1    0.850       180.000          -2. 

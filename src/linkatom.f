@@ -1,8 +1,8 @@
-c Reads Link Atoms parameters
+! Reads Link Atoms parameters
 	subroutine link1(numlink,linkat,linkqm,linkmm,
      .  linkqmtype,linkmm2,ng1,namber,na,qmtype,r)
-c namber atomos clasicos
-c na atomos cuanticos
+! namber atomos clasicos
+! na atomos cuanticos
 
 	use fdf
 	use sys
@@ -23,20 +23,20 @@ c check number of linkatoms
 !no se por que pusieron este limite, pero hayq  hacerlo mas flexible en el futuro, Nick
 	endif
 
-c assignation of linkatoms
-	do i=1,numlink
-	  linkat(i)=na-numlink+i
+! assignation of linkatoms
+	do i=1,numlink !all link atoms
+	  linkat(i)=na-numlink+i !atom number for i-th link atom
 	enddo
 
-c assignation of CQM and CMM 
-	do i=1,na
-	  rmin(i)=dist(r(1,i),r(2,i),r(3,i),r(1,na+1),r(2,na+1),r(3,na+1))
-	  min(i)=na+1
-	  do j=na+2,na+namber
-	    r1=dist(r(1,i),r(2,i),r(3,i),r(1,j),r(2,j),r(3,j))
-	    if(r1.le.rmin(i)) then
-	      rmin(i)=r1
-	      min(i)=j
+! assignation of CQM and CMM 
+	do i=1,na !QM atoms
+	  rmin(i)=dist(r(1,i),r(2,i),r(3,i),r(1,na+1),r(2,na+1),r(3,na+1)) !distance*2 to 1st MM atom
+	  min(i)=na+1 !MM atom number
+	  do j=na+2,na+namber !all MM atoms
+	    r1=dist(r(1,i),r(2,i),r(3,i),r(1,j),r(2,j),r(3,j)) !distance between i-th QM atom and j-th MM atom
+	    if(r1.le.rmin(i)) then !asing ne atom closer to i-th
+	      rmin(i)=r1 !min distance from any MM atom to i-th QM atom
+	      min(i)=j !MM atom closer to i-th atom
 	    endif
 	  enddo
 	enddo
@@ -44,134 +44,141 @@ c assignation of CQM and CMM
 	do i=1,na
 	  ch4=qmtype(i)
 	  ch1=ch4(1:1)
-	  if(ch1.ne.'C'.and.ch1.ne.'N') rmin(i)=20
-!solo pone link atoms a C y N cuanticos
+	  if(ch1.ne.'C'.and.ch1.ne.'N') rmin(i)=20 !remove atoms that are not C or N increasing distance 
 	enddo
 
 
-	do k=1,numlink
-	  linkqm(k,1)=1
-	  do i=2,na
+	do k=1,numlink !all link atoms
+	  linkqm(k,1)=1 
+	
+	  do i=2,na !all QM atoms
 	    if(rmin(i).le.rmin(linkqm(k,1))) then 
-	      linkqm(k,1)=i
+	      linkqm(k,1)=i !QM atom asigned to k-th link atom
 	    endif
 	  enddo
+	
 	  if(rmin(linkqm(k,1)).gt.4) then
 	    write(6,*) k,linkqm(k,1),rmin(linkqm(k,1))
 	    write(6,*) 'Wrong Link Atom CQM atom....Check geometry'
 	    STOP !el atomo QM esta muy lejos de un atomo MM
 	  endif
-	  rmin(linkqm(k,1))=20
-	  linkmm(k,1)=min(linkqm(k,1))-na
+	
+	  rmin(linkqm(k,1))=20 !remove QM atom previous asignes from list
+	  linkmm(k,1)=min(linkqm(k,1))-na !MM atom asigned to link atom k-th
 	enddo
 
-c assignation of QM 1st neighbors
+! assignation of QM 1st neighbors
 	rmin=0.0
 	min=0
-	do i=1,numlink
-	m=0
+	do i=1,numlink !link atoms
+	  m=0
 c sp2 carbon
-	ch4=qmtype(linkqm(i,1))
-        ch1=ch4(1:1)
-        if(ch1.eq.'C'.or.ch1.eq.'N') m=3
+	  ch4=qmtype(linkqm(i,1))
+	  ch1=ch4(1:1)
+	  if(ch1.eq.'C'.or.ch1.eq.'N') m=3
 c sp3 carbon
-        ch4=qmtype(linkqm(i,1))
-        ch2=ch4(1:2)
-	if(ch2.eq.'CT') m=4
-	if(m.eq.0) then
-	write(6,*) 'Wrong LA QM atom type....Check parameters'
-	STOP
-	endif
+	  ch4=qmtype(linkqm(i,1))
+	  ch2=ch4(1:2)
+	  if(ch2.eq.'CT') m=4
+
+	  if(m.eq.0) then
+	    write(6,*) 'Wrong LA QM atom type....Check parameters'
+	    STOP
+	  endif
+
 c loop over CQM neighbors
 	  do k=2,m
-		rmin(i)=10
-		min(i)=0
-		do j=1,na-numlink
-	if(j.eq.linkqm(i,1).or.j.eq.linkqm(i,2).or.j.eq.linkqm(i,3)) then
-	goto 5
-	endif
-		r1=dist(r(1,linkqm(i,1)),r(2,linkqm(i,1)),r(3,linkqm(i,1)),
+	    rmin(i)=10
+	    min(i)=0
+	    do j=1,na-numlink !QM atoms (no link)
+	      if((j.eq.linkqm(i,1)).or.(j.eq.linkqm(i,2)).or. 
+     .	      (j.eq.linkqm(i,3))) then
+	        goto 5
+	      endif
+	      r1=dist(r(1,linkqm(i,1)),r(2,linkqm(i,1)),r(3,linkqm(i,1)),
      .          r(1,j),r(2,j),r(3,j))      
-		if(r1.le.rmin(i)) then
+
+	      if(r1.le.rmin(i)) then
 		rmin(i)=r1
 		min(i)=j
-		endif
- 5		enddo
+	      endif
+ 5	  enddo
+
 	   if(rmin(i).gt.4) then
-	   write(6,*) 'Wrong LA QM neighbor....Check geometry'
-	   STOP 
+	     write(6,*) 'Wrong LA QM neighbor....Check geometry'
+	     STOP 
 	   endif
-	    linkqm(i,k)=min(i)
+	   linkqm(i,k)=min(i)
 	  enddo
 	enddo
 
 c checking CQM neighbors
-        do i=1,numlink
+	do i=1,numlink
 c sp2 carbon
-        ch4=qmtype(linkqm(i,1))
-        ch1=ch4(1:1)
-        if(ch1.eq.'C') then
-      if(linkqm(i,2).eq.0.and.linkqm(i,3).eq.0.or.linkqm(i,2).eq.0.and.
+	  ch4=qmtype(linkqm(i,1))
+	  ch1=ch4(1:1)
+	  if(ch1.eq.'C') then
+	    if(linkqm(i,2).eq.0.and.linkqm(i,3).eq.0.or. 
+     .linkqm(i,2).eq.0.and.
      .linkqm(i,4).eq.0.or.linkqm(i,3).eq.0.and.linkqm(i,4).eq.0) then
-	write(6,*) 'Wrong QM neighbor number for a sp2 carbon'   
-	STOP
-	endif
-	endif
+	      write(6,*) 'Wrong QM neighbor number for a sp2 carbon'   
+	      STOP
+	    endif
+	  endif
 c sp3 carbon
-        ch4=qmtype(linkqm(i,1))
-        ch2=ch4(1:2)
-        if(ch2.eq.'CT') then
-	if(linkqm(i,2).eq.0.or.linkqm(i,3).eq.0.or.linkqm(i,4).eq.0) then    
-        write(6,*) 'Wrong QM neighbor number for a sp3 carbon' 
-	STOP
-	endif
-	endif
+	  ch4=qmtype(linkqm(i,1))
+	  ch2=ch4(1:2)
+	  if(ch2.eq.'CT') then
+	    if(linkqm(i,2).eq.0.or.linkqm(i,3).eq.0.or.
+     .   linkqm(i,4).eq.0) then
+	      write(6,*) 'Wrong QM neighbor number for a sp3 carbon' 
+	      STOP
+	    endif
+	  endif
 	enddo
 	
 c asignation of QM link atoms types
-        do i=1,numlink
-        do j=1,4
-	if(linkqm(i,j).eq.0) then
-	   linkqmtype(i,j)='XX'
-	else
-	  linkqmtype(i,j)=qmtype(linkqm(i,j))
-	end if
-
-	enddo
+	do i=1,numlink
+	  do j=1,4
+	    if(linkqm(i,j).eq.0) then
+	      linkqmtype(i,j)='XX'
+	    else
+	      linkqmtype(i,j)=qmtype(linkqm(i,j))
+	    endif
+	  enddo
 	enddo
 
 c assignation of MM 1st neighbors
-        do i=1,numlink
-          do k=2,4
-          linkmm(i,k)=ng1(linkmm(i,1),k-1)
-          enddo
-        enddo	
-
-c assignation of MM 2nd neighbors
-        do i=1,numlink
-        do j=2,4
-	if(linkmm(i,j).eq.0) goto 10
-        m=1
-        do k=1,4
-        if(ng1(linkmm(i,j),k).ne.linkmm(i,1)) then
-        linkmm2(i,j,m)=ng1(linkmm(i,j),k)
-        m=m+1
-        endif
-        enddo
- 10     enddo
-        enddo	
-
-c write Link Atoms params in file
-        write(6,'(/,a)') 'hybrid: Link atom parameters:'
 	do i=1,numlink
-        write(6,'(a,2x,1I6)') 'linkatom:',linkat(i)
-        write(6,'(a,2x,4I6)') 'qmatoms: ',(linkqm(i,j),j=1,4)
-C       write(6,'(a,2x,4A4)') 'qmtypes: ',(linkqmtype(i,j),j=1,4)
-        write(6,'(a,2x,4I6)') 'mmatoms: ',(linkmm(i,j),j=1,4)
-C       write(6,'(a,2x,9I6)') 'mmneihg: ',((linkmm2(i,j,k),k=1,3),j=2,4)
+	  do k=2,4
+	    linkmm(i,k)=ng1(linkmm(i,1),k-1)
+	  enddo
 	enddo
 
-	end
+c assignation of MM 2nd neighbors
+	do i=1,numlink
+	  do j=2,4
+	    if(linkmm(i,j).eq.0) goto 10
+	    m=1
+	    do k=1,4
+	      if(ng1(linkmm(i,j),k).ne.linkmm(i,1)) then
+	        linkmm2(i,j,m)=ng1(linkmm(i,j),k)
+	        m=m+1
+	      endif
+	    enddo
+ 10        enddo
+	enddo
+
+c write Link Atoms params in file
+	write(6,'(/,a)') 'hybrid: Link atom parameters:'
+	do i=1,numlink
+	  write(6,'(a,2x,1I6)') 'linkatom:',linkat(i)
+	  write(6,'(a,2x,4I6)') 'qmatoms: ',(linkqm(i,j),j=1,4)
+C       write(6,'(a,2x,4A4)') 'qmtypes: ',(linkqmtype(i,j),j=1,4)
+	  write(6,'(a,2x,4I6)') 'mmatoms: ',(linkmm(i,j),j=1,4)
+C       write(6,'(a,2x,9I6)') 'mmneihg: ',((linkmm2(i,j,k),k=1,3),j=2,4)
+	enddo
+	end subroutine link1
 
 c*************************************************************
 c calculates Energy and Forces of HLink s
@@ -227,64 +234,45 @@ c asignation for E and F
 
  	parametro(1:15,1:22,4)=0
 
-c	bond Cqm -- Cmm parameter 1
-
-	do i=1,numlink
-         do k=1,nbond
-          tybond=bondtype(k)
-          ty1=tybond(1:2)
-          ty2=tybond(4:5)
-          if(linkqmtype(i,1).eq.ty1.and.attype(linkmm(i,1)).eq.ty2) then
-          parametro(i,1,1)=k
-          elseif(linkqmtype(i,1).eq.ty2.and.
-     .  attype(linkmm(i,1)).eq.ty1) then
-          parametro(i,1,1)=k
-         endif
-         enddo
+!	bond Cqm -- Cmm parameter 1
+	do i=1,numlink !link atoms
+	  do k=1,nbond !bonds in force field
+	    tybond=bondtype(k)
+	    ty1=tybond(1:2)
+	    ty2=tybond(4:5)
+	    if(linkqmtype(i,1).eq.ty1.and.attype(linkmm(i,1)).eq.ty2) then
+	      parametro(i,1,1)=k
+	    elseif(linkqmtype(i,1).eq.ty2.and.
+     .      attype(linkmm(i,1)).eq.ty1) then
+	      parametro(i,1,1)=k
+	    endif
+	  enddo
 	enddo
 
-c  H  alyphatihic (1) 340.0 1.090 or aromathic (2) 367.0 1.080
-
-c	do i=1,numlink
-c
-c        if(linkqmtype(i,1).eq.'CT'.or.linkqmtype(i,1).eq.'CF') then
-c	kch(i)=340.0
-c        rch(i)=1.09	
-c	elseif(linkqmtype(i,1).eq.'CA'.or.linkqmtype(i,1).eq.'CB'.
-c     .	or.linkqmtype(i,1).eq.'CC') then
-c	kch(i)=367.0
-c	rch(i)=1.08
-c	else
-c	write(*,*) 'Wrong Hlink type  ',linkqmtype(i,1)
-c	STOP
-c	endif
-c	enddo
-
-c 	angles Cqm -- Cmm -- X parameters 2 to 4
-
-	do i=1,numlink
-	do j=2,4
-	if(linkmm(i,j).eq.0) goto 30
-	do k=1,nangle
-          tyangle=angletype(k)
-          ty1=tyangle(1:2)
-          ty2=tyangle(4:5)
-          ty3=tyangle(7:8)
-          if(linkqmtype(i,1).eq.ty1.and.attype(linkmm(i,1)).eq.ty2.and.
+! 	angles Cqm -- Cmm -- X parameters 2 to 4
+	do i=1,numlink !link atoms
+	  do j=2,4
+	    if(linkmm(i,j).eq.0) goto 30
+	    do k=1,nangle !angles in amber.parm
+	      tyangle=angletype(k)
+	      ty1=tyangle(1:2)
+	      ty2=tyangle(4:5)
+	      ty3=tyangle(7:8)
+	  if(linkqmtype(i,1).eq.ty1.and.attype(linkmm(i,1)).eq.ty2.and.
      .       attype(linkmm(i,j)).eq.ty3) then
           parametro(i,j,1)=k
 	  elseif(linkqmtype(i,1).eq.ty3.and.attype(linkmm(i,1)).eq.ty2.
      .    and.attype(linkmm(i,j)).eq.ty1) then
           parametro(i,j,1)=k	
 	  endif
-	enddo
- 30	enddo
+	    enddo
+ 30	  enddo
 	enddo
 	
 c	dihedral X--Cq -- Cmm--Y parameters 5 to 13
 
 	do i=1,numlink
-        do jq=2,4
+	  do jq=2,4
 c no more neighbours -> out 
 	if(linkqm(i,jq).eq.0) goto 40	
 	
@@ -432,156 +420,146 @@ c end asignation
 
 c	some printting for debugging	
 	if(wriok) then
-
-	write(*,*) 'LINK ATOM VARIABLES'
-
+	  write(*,*) 'LINK ATOM VARIABLES'
 c neigh matrix
-
-	write(*,*)''
-	do i=1,numlink
-	write(*,*) 'Neigh Matrix: ',i
-	write(*,*) 'Cq:',linkqm(i,1),'Vec: ',(linkqm(i,k),k=2,4)
-	write(*,*) 'Cm:	  	    ',linkmm(i,1)
-	write(*,*) 'Neigh CM:   ',(linkmm(i,k),k=2,4)
-	write(*,*) 'Neigh CM 2: ',((linkmm2(i,j,k),k=1,3),j=2,4)	
-	write(*,*)''
-
-	
+	  write(*,*)''
+	  do i=1,numlink
+	    write(*,*) 'Neigh Matrix: ',i
+	    write(*,*) 'Cq:',linkqm(i,1),'Vec: ',(linkqm(i,k),k=2,4)
+	    write(*,*) 'Cm:	  	    ',linkmm(i,1)
+	    write(*,*) 'Neigh CM:   ',(linkmm(i,k),k=2,4)
+	    write(*,*) 'Neigh CM 2: ',((linkmm2(i,j,k),k=1,3),j=2,4)	
+	    write(*,*)''
 c cq-cm
-	
-	write(*,*) 'bond Cq-Cm: ',linkqm(i,1),linkmm(i,1)
-	write(*,*) 'types: ',linkqmtype(i,1),attype(linkmm(i,1))
-	write(*,*) 'Bondtypenumber(k) ',parametro(i,1,1),
+	    write(*,*) 'bond Cq-Cm: ',linkqm(i,1),linkmm(i,1)
+	    write(*,*) 'types: ',linkqmtype(i,1),attype(linkmm(i,1))
+	    write(*,*) 'Bondtypenumber(k) ',parametro(i,1,1),
      .   kbond(parametro(i,1,1))
-	write(*,*)'************************************'
+	    write(*,*)'************************************'
 
 c Cqm -- Cmm -- X parameters 2 to 4
 
-	write(*,*) 'Angle Cq-Cm-x: ',linkqm(i,1),linkmm(i,1)
-	write(*,*)''
-	write(*,*) ' x: ',linkmm(i,2),linkmm(i,3),linkmm(i,4)
-        write(*,*) 'x types: ',attype(linkmm(i,2)),
+	    write(*,*) 'Angle Cq-Cm-x: ',linkqm(i,1),linkmm(i,1)
+	    write(*,*)''
+	    write(*,*) ' x: ',linkmm(i,2),linkmm(i,3),linkmm(i,4)
+            write(*,*) 'x types: ',attype(linkmm(i,2)),
      .   attype(linkmm(i,3)),attype(linkmm(i,4))
-        write(*,'(a12,i4,f9.3,i4,f9.3,i4,f9.3)')
+            write(*,'(a12,i4,f9.3,i4,f9.3,i4,f9.3)')
      .       'Angtype(k): ',
      .	parametro(i,2,1),kangle(parametro(i,2,1)),
      .  parametro(i,3,1),kangle(parametro(i,3,1)),
      .  parametro(i,4,1),kangle(parametro(i,4,1))
-	write(*,*)'***********************************'
+	    write(*,*)'***********************************'
 	
 c X--Cq -- Cmm--Y parameters 5 to 13     
 
-	write(*,*)''
-	write(*,*) 'Dihedrals y-Cq-Cm-x: ',linkqm(i,1),linkmm(i,1)
-	write(*,*)'' 
-        write(*,*) ' x: ',linkqm(i,2),linkqm(i,3),linkqm(i,4)
-	write(*,*) 'x types: ',linkqmtype(i,2),
+	    write(*,*)''
+	    write(*,*) 'Dihedrals y-Cq-Cm-x: ',linkqm(i,1),linkmm(i,1)
+	    write(*,*)'' 
+	    write(*,*) ' x: ',linkqm(i,2),linkqm(i,3),linkqm(i,4)
+	    write(*,*) 'x types: ',linkqmtype(i,2),
      .        linkqmtype(i,3),linkqmtype(i,4)	
-	write(*,*)''
-	write(*,*) ' y: ',linkmm(i,2),linkmm(i,3),linkmm(i,4)
-        write(*,*) 'y types: ',attype(linkmm(i,2)),
+	    write(*,*)''
+	    write(*,*) ' y: ',linkmm(i,2),linkmm(i,3),linkmm(i,4)
+	    write(*,*) 'y types: ',attype(linkmm(i,2)),
      .       attype(linkmm(i,3)),attype(linkmm(i,4))
-	write(*,*)''
+	    write(*,*)''
 c x=1
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=1,y=1: (mult) ',
      .       (parametro(i,5,k),kdihe(parametro(i,5,k)),k=1,4)
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=1,y=2: (mult) ',
      .       (parametro(i,6,k),kdihe(parametro(i,6,k)),k=1,4)
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=1,y=3: (mult) ',
      .       (parametro(i,7,k),kdihe(parametro(i,7,k)),k=1,4)
-	write(*,*)''
+	    write(*,*)''
 c x=2
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=2,y=1: (mult) ',
      .       (parametro(i,8,k),kdihe(parametro(i,8,k)),k=1,4)
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=2,y=2: (mult) ',
      .       (parametro(i,9,k),kdihe(parametro(i,9,k)),k=1,4)
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=2,y=3: (mult) ',
      .       (parametro(i,10,k),kdihe(parametro(i,10,k)),k=1,4)
-	write(*,*)''
+	    write(*,*)''
 c x=3
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=3,y=1: (mult) ',
      .       (parametro(i,11,k),kdihe(parametro(i,11,k)),k=1,4)
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=3,y=2: (mult) ',
      .       (parametro(i,12,k),kdihe(parametro(i,12,k)),k=1,4)
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihe x=3,y=3: (mult) ',
      .       (parametro(i,13,k),kdihe(parametro(i,13,k)),k=1,4)
-	write(*,*)'*********************************************'
+	    write(*,*)'*********************************************'
 
 c Cq--Cmm--Y--Z parameters 14 to 22 
 
-	write(*,*) 'Dihedrals Cq-Cm-y-z: ',linkqm(i,1),linkmm(i,1)
-	write(*,*)''
-        write(*,*) ' y: ',linkmm(i,2),linkmm(i,3),linkmm(i,4)
-        write(*,*) 'y types: ',attype(linkmm(i,2)),
+	    write(*,*) 'Dihedrals Cq-Cm-y-z: ',linkqm(i,1),linkmm(i,1)
+	    write(*,*)''
+	    write(*,*) ' y: ',linkmm(i,2),linkmm(i,3),linkmm(i,4)
+	    write(*,*) 'y types: ',attype(linkmm(i,2)),
      .        attype(linkmm(i,3)),attype(linkmm(i,4))
  
-	write(*,*)''
+	    write(*,*)''
 
-	do k=1,3
-	if(linkmm2(i,2,k).eq.0) then
-	goto 60
-	else
-	l=13+k
-        write(*,*) ' z:(y1) ',linkmm2(i,2,k)
-        write(*,*) 'z(y1) types: ',attype(linkmm2(i,2,k))
-	write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	    do k=1,3
+	      if(linkmm2(i,2,k).eq.0) then
+	        goto 60
+	      else
+	        l=13+k
+	        write(*,*) ' z:(y1) ',linkmm2(i,2,k)
+	        write(*,*) 'z(y1) types: ',attype(linkmm2(i,2,k))
+	        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihedro : (mult)   ',
      .       (parametro(i,l,m),kdihe(parametro(i,l,m)),m=1,4)
-	endif
- 60	enddo
+	     endif
+ 60	   enddo
 
-	do k=1,3
-        if(linkmm2(i,3,k).eq.0) then
-        goto 61
-        else
-        l=16+k
+	   do k=1,3
+	     if(linkmm2(i,3,k).eq.0) then
+	       goto 61
+	     else
+	       l=16+k
 
-	write(*,*) ' z:(y2) ',linkmm2(i,3,k)
-        write(*,*) 'z(y2) types: ',attype(linkmm2(i,3,k))
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	       write(*,*) ' z:(y2) ',linkmm2(i,3,k)
+	       write(*,*) 'z(y2) types: ',attype(linkmm2(i,3,k))
+	       write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihedro : (mult)   ',
      .       (parametro(i,l,m),kdihe(parametro(i,l,m)),m=1,4)
-	endif
- 61	enddo
+	     endif
+ 61	   enddo
 
-	do k=1,3
-        if(linkmm2(i,4,k).eq.0) then
-        goto 62
-        else
-        l=19+k
-
-        write(*,*) ' z:(y3) ',linkmm2(i,4,k)
-        write(*,*) 'z(y3) types: ',attype(linkmm2(i,4,k))
-        write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
+	  do k=1,3
+	    if(linkmm2(i,4,k).eq.0) then
+	      goto 62
+	    else
+	      l=19+k
+	      write(*,*) ' z:(y3) ',linkmm2(i,4,k)
+	      write(*,*) 'z(y3) types: ',attype(linkmm2(i,4,k))
+	      write(*,'(a20,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3,i2,f6.3)')
      .       'dihedro : (mult)   ',
      .       (parametro(i,l,m),kdihe(parametro(i,l,m)),m=1,4)
-
-	endif
- 62	enddo
-	write(*,*) '*********************************************'
-
+	    endif
+ 62	  enddo
+	  write(*,*) '*********************************************'
   	enddo
-c wriok
-	endif 
+	endif !wriok
 
-c istp=1 only
-        endif
+	endif !istp=1 only
+
 
 c reasignation of perdihe2
-        do i=1,ndihe
-        if(perdihe2(i).lt.0) then
-        perdihe2(i)=-1.d0*perdihe2(i)
-        endif
-        enddo
+	do i=1,ndihe
+	  if(perdihe2(i).lt.0) then
+	    perdihe2(i)=-1.d0*perdihe2(i)
+	  endif
+	enddo
 
 	Ener=0.d0
 
@@ -601,22 +579,21 @@ c       bond Cqm -- Cmm parameter 1
 	at2=natot-namber+linkmm(i,1)
 	k=parametro(i,1,1)
 	
-         rij=dist(ramber(1,at1),ramber(2,at1),ramber(3,at1),
+	rij=dist(ramber(1,at1),ramber(2,at1),ramber(3,at1),
      .   ramber(1,at2),ramber(2,at2),ramber(3,at2))
 
-          Elink(i) = Elink(i) + kbond(k)
-     .    *(rij-bondeq(k))**2 
+	Elink(i) = Elink(i) + kbond(k)*(rij-bondeq(k))**2 
  	
-          dx=(1.d0/rij)*(ramber(1,at1)-ramber(1,at2))
-          dx=2.d0*kbond(k)*(rij-bondeq(k))*dx
+	dx=(1.d0/rij)*(ramber(1,at1)-ramber(1,at2))
+	dx=2.d0*kbond(k)*(rij-bondeq(k))*dx
  
-          dy=(1.d0/rij)*(ramber(2,at1)-ramber(2,at2))
-          dy=2.d0*kbond(k)*(rij-bondeq(k))*dy
+	dy=(1.d0/rij)*(ramber(2,at1)-ramber(2,at2))
+	dy=2.d0*kbond(k)*(rij-bondeq(k))*dy
  
-          dz=(1.d0/rij)*(ramber(3,at1)-ramber(3,at2))
-          dz=2.d0*kbond(k)*(rij-bondeq(k))*dz
+	dz=(1.d0/rij)*(ramber(3,at1)-ramber(3,at2))
+	dz=2.d0*kbond(k)*(rij-bondeq(k))*dz
 	 
-c QM atoms are < 0, atom 2 are equal 
+! QM atoms are < 0, atom 2 are equal 
         flink(1,at1)=-dx
         flink(2,at1)=-dy
         flink(3,at1)=-dz
@@ -624,37 +601,28 @@ c QM atoms are < 0, atom 2 are equal
         flink(2,at2)=dy
         flink(3,at2)=dz
 
-c        write(*,*) "Hlink bonds"
-c        write(*,*) i, Elink(i), flink
+! ***********************************************************************
+!       angle  Cqm -- Cmm -- X parameters 2 to 4
 
-
-c	write(*,*) 'contrib cq-cm i E F',i,
-c     .  kbond(k)*(1.0-kbond(k)/kch(i))
-c     .    *(rij-bondeq(k))**2,
-c     .   sqrt(flink(1,at1)**2+flink(2,at1)**2+flink(3,at1)**2)
-
-c ***********************************************************************
-c       angle  Cqm -- Cmm -- X parameters 2 to 4
-
-c	3 angles ( one for each x) j, x index
+!	3 angles ( one for each x) j, x index
 	dx=0.d0
 	dy=0.d0
 	dz=0.d0
 	
 	do j=2,4
-	if(linkmm(i,j).eq.0) goto 55
-	at1=linkqm(i,1)
-	at2=natot-namber+linkmm(i,1)
-	at3=natot-namber+linkmm(i,j)
-	k=parametro(i,j,1)
+	  if(linkmm(i,j).eq.0) goto 55
+	  at1=linkqm(i,1)
+	  at2=natot-namber+linkmm(i,1)
+	  at3=natot-namber+linkmm(i,j)
+	  k=parametro(i,j,1)
 
-	        angulo=angle(ramber(1,at1),ramber(2,at1),ramber(3,at1),
+	  if(k.ne.0) then
+	angulo=angle(ramber(1,at1),ramber(2,at1),ramber(3,at1),
      .          ramber(1,at2),ramber(2,at2),ramber(3,at2),
      .          ramber(1,at3),ramber(2,at3),ramber(3,at3))
  
-         Elink(i) = Elink(i) + kangle(k)*
-     .                ((angulo-angleeq(k))*
-     .                (pi/180d0))**2d0
+	Elink(i) = Elink(i) + 
+     .  kangle(k)*((angulo-angleeq(k))*(pi/180d0))**2d0
  
 c	write(*,*) 'contrib cq-cm-x(j) i,j E ',i,j,kangle(k)*
 c     .                ((angulo-angleeq(k))*
@@ -725,6 +693,7 @@ c sum each x
 	flink(1,at3)=flink(1,at3)-dx
         flink(2,at3)=flink(2,at3)-dy
         flink(3,at3)=flink(3,at3)-dz
+
 c middle atom force (change in derivate) 
 	dx=0.d0
         dy=0.d0
@@ -761,6 +730,7 @@ c central atom force
         flink(1,at2)=flink(1,at2)-dx
         flink(2,at2)=flink(2,at2)-dy
         flink(3,at2)=flink(3,at2)-dz
+	end if
 c enddo for each possible x 
  55	enddo
 
@@ -809,15 +779,9 @@ c who many parameters for dihedrals 5 to 13
 	do m=1,4		
         k=parametro(i,4+3*(jq-2)+jm-1,m)
 	if(k.ne.0) then	
-
-c	write(*,*) "Emod", k, kdihe(k), multidihe(k), perdihe2(k),diheeq(k)
-
-      Elink(i) =Elink(i)+(kdihe(k)/multidihe(k))*
+	  Elink(i) =Elink(i)+(kdihe(k)/multidihe(k))*
      .  (1+dCOS((pi/180d0)*(perdihe2(k)*dihedral-diheeq(k))))
-c	write(*,*) "Elink", i,jq,jm,m,Elink(i)
         
-c	write(*,*) 'contrib x-cq-cm-y ',i,jq,jm,(kdihe(k)/multidihe(k))*
-c     .  (1+dCOS((pi/180)*(perdihe2(k)*dihedral-diheeq(k))))
 	
 c force for each 4 atoms 
 	do j=1,4
@@ -946,16 +910,13 @@ c angle proyection calculation, to proyect forces
      .          dversor(1),dversor(2),dversor(3) )
 
 	angulo=angulo*pi/180.d0
-c        write(*,*) "angulo", angulo
 c  product  modF and dversor
 	 fmod=sqrt(fdummy(1,at3)**2d0+
      .   fdummy(2,at3)**2d0+fdummy(3,at3)**2d0)
 
 	fpar(1:3)=fmod*dversor(1:3)*dCOS(angulo)
 	if (fmod .eq.0.d0) fpar=0.d0
-c	write(*,*) "fpar calc", fmod, dversor(1:3), dCOS(angulo)
 	fpp(1:3)=fdummy(1:3,at3)-fpar(1:3) 
-c	write(*,*) "fpp calc", fdummy(1:3,at3),fpar(1:3)
 c perpendicular fce division and sum to CMM y CQM
 c parallel fce sum over CM and HL fce eq cero
 	fdummy(1:3,at3)=fpar(1:3)*scaling
@@ -990,7 +951,7 @@ c	write(*,*) 'Total LA energy: ',Ener
 c change units 
         ramber(1:3,1:natot)=ramber(1:3,1:natot)/0.529177d0
 
-	end
+	end subroutine link2
 
 c*****************************************************************
 c calculates HL position 
@@ -1074,6 +1035,6 @@ c enndo numlink
 c change units
         ramber(1:3,1:natot)=ramber(1:3,1:natot)/0.529177d0
 
-	end
+	end subroutine link3
 
 c *************************************************************************

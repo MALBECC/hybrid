@@ -1,0 +1,19 @@
+&lio
+nmax=2
+diis=f
+gold=20
+ndiis=30
+open=f
+restart_freq=1
+initial_guess=1
+vcinp=t !lee restart.in
+Dbug=t
+verbose=t
+little_cube_size=3
+max_function_exponent=8
+sphere_radius=0.6
+free_global_memory=0.2
+verbose=3
+&end
+
+

@@ -1,5 +1,8 @@
+c This subroutines are not used anymore, will be removed comming soon
+
 c this subroutine do everything related to reading and parameters
 c assignation of solvent atoms
+
 
       subroutine solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
      .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
@@ -300,7 +303,8 @@ c checking ST and SV parameters
 	do i=1,na_u
 	  if(qmattype(i).ne.'HO'.and.qmattype(i).ne.'HW') then
 	  if(Rm(i).eq.0.or.Em(i).eq.0) then
-	    write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter, atom:', i
+	    write(6,'(a,i6)') 'solvent: Wrong solute LJ parameter,
+     .      atom:', i
 	    STOP
 	  endif
 	  endif
@@ -312,7 +316,8 @@ c checking ST and SV parameters
 	    write(*,*) "Rm(i+na_u)", Rm(i+na_u)
 	    write(*,*) "Em(i+na_u)", Em(i+na_u)
 	    write(*,*) "pc(i)", pc(i)
-	    write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter, atom:', i
+	    write(6,'(a,i6)') 'solvent: Wrong solvent LJ parameter,
+     .      atom:', i
 	    STOP
 	  endif
 	  endif

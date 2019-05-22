@@ -30,10 +30,11 @@
       use fdf
       use ionew, only: io_setup, IOnode    
       use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
-     . natot,na_u,qm, mm, atsym, nparm, 
+     . natot,na_u,nroaa,qm, mm, atsym, nparm, 
      . xa, fa,
      . masst,isa, iza, pc, 
-     . nac, atname, aaname, attype, qmattype, aanum, ng1, bondtype,
+     . nac, atname, aaname, atxres, attype, qmattype, aanum, ng1,
+     . bondtype,
      . kbond,bondeq, bondxat, angletype, kangle,angleeq, angexat,
      . angmxat,dihetype, kdihe,diheeq, perdihe, multidihe, dihexat, 
      . dihmxat, imptype, kimp,impeq,perimp, multiimp, impxat, 
@@ -66,7 +67,10 @@
 !Lio
      . charge, spin,
 !outputs
-     . writeRF, slabel, traj_frec
+     . writeRF, slabel, traj_frec,
+!solo hasta q termine con el forcefield
+     . max_angle_ex, max_angle_mid, max_dihe_ex, max_dihe_mid, 
+     . max_improp, max_improp_at, max_improp_at
 
       implicit none
 ! General Variables
@@ -95,9 +99,9 @@
 !!!!
       integer :: nfree !number of atoms without a contrain of movement
       integer :: mmsteps !number of MM steps for each QM step, not tested
-      integer :: nroaa !number of residues
+!      integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
-      integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
+!      integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
       double precision :: Etot_amber !total MM energy
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
@@ -123,7 +127,7 @@
       double precision :: rcorteqmmm ! distance for QM-MM interaction
       double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
-      double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
+      double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a adblommbond
       double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
       integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA  
       logical ::  recompute_cuts
@@ -192,7 +196,7 @@
 
 !--------------------------------------------------------------------
 !need to move this to an initializacion subroutine
-      allocate(atxres(20000))
+!      allocate(atxres(20000))
       allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
       allocate(atmsconstr(20,20), ndists(20))
 
@@ -209,8 +213,6 @@
       spin=0.d0
       do_SCF=.true.
       do_QM_forces=.true.
-      rcorteqmmm=0.d0
-      radbloqmmm=0.d0
       do_properties=.false.
       Nick_cent=.false.
       foundxv=.false.
@@ -229,7 +231,7 @@
       call init_hybrid('Constants')
 
 ! Initialise read 
-      call reinit(slabel) !, sname)
+      call reinit(slabel) 
 
 ! Read and initialize basics variables 
       call init_hybrid('Jolie')
@@ -240,6 +242,7 @@
       fdummy = 0.d0
       cfdummy=0.d0
       vat=0.d0
+      aat=0.d0
       Elj=0.d0
       Elink=0.d0
       Etot=0.d0
@@ -267,16 +270,11 @@
 
 ! Read and assign Solvent variables 
       if(mm) then
-        call solv_assign(na_u,natot,nac,nroaa,Em,Rm,attype,pc,
-     .  ng1,bondxat,angexat,atange,angmxat,atangm,dihexat,atdihe,
-     .  dihmxat,atdihm,impxat,atimp,
-     .  nbond,kbond,bondeq,bondtype,
-     .  nangle,kangle,angleeq,angletype,
-     .  ndihe,kdihe,diheeq,dihetype,multidihe,perdihe,
-     .  nimp,kimp,impeq,imptype,multiimp,perimp,
-     .  nparm,aaname,atname,aanum,qmattype,rclas,
-     .  rcorteqmmm,rcorteqm,rcortemm,sfc,
-     .  radbloqmmm,atxres,radblommbond,radinnerbloqmmm,res_ref)
+        call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, 
+     . nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
+     . radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
+     . nangle, ndihe, nimp, attype, pc, Rm, Em, ng1, bondxat,angexat,
+     . angmxat, dihexat, dihmxat, impxat)
       endif !mm
 
 ! changing cutoff to atomic units
@@ -504,7 +502,7 @@ C Calculate Rcut & block list QM-MM
             if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
  
             call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm,
-     .      rcorteqmmm,nroaa,atxres)
+     .      rcorteqmmm,nroaa)!,atxres)
 
             allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
      .      F_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
@@ -806,7 +804,7 @@ C Write atomic forces
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
-      if (mn .eq. 0 .and. idyn .eq. 6) then
+      if (mn .eq. 0.d0 .and. idyn .eq. 6) then
         mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
         write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
         write(6,999) "mn =", mn
@@ -847,17 +845,16 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         elseif (idyn .eq. 6) then
           call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
-
 !tauber, tt
 !iunit fijado en 3
-
 	else
 	  STOP "Wrong idyn value"
 	end if
 
-	write(6,999)
-     .  'hybrid: Temperature Antes:', tempion, ' K' 
        if(idyn .gt. 3) then
+	write(6,999)
+     .  'hybrid: Temperature Antes:', tempion, ' K'
+
          call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,
      . nfree,cmcf)
 
@@ -910,7 +907,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         endif !qm & mm
 
 ! Save last atomic positions and velocities
-        call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'',-1)
+	call ioxv( 'write',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1)
 ! write atomic constraints each step
         call wrtcrd(natot,rclas)
 
