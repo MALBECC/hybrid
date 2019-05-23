@@ -13,10 +13,8 @@
 	masst, vat, aat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
 	ng1, blocklist, blockqmmm, listqmmm, fce_amber, ng1type, angetype, & 
 	angmtype, evaldihe, evaldihm, dihety, dihmty, impty, nonbonded, &
-	scale, evaldihelog, evaldihmlog, scalexat, nonbondedxat, kbond,bondeq, &
-	bondtype, kangle,angleeq,angletype, kdihe,diheeq,dihetype, multidihe, &
-	perdihe, kimp,impeq, imptype,multiimp, perimp, atange, atangm, atdihe, &
-	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
+	scale, evaldihelog, evaldihmlog, scalexat, nonbondedxat, &
+	bondxat, angexat, dihexat, dihmxat, angmxat, impxat,  &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
 	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level
@@ -104,13 +102,6 @@
 	  allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
 	  allocate(evaldihmlog(nac,100), scalexat(nac))
 	  allocate(nonbondedxat(nac))
-!	  allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
-!	  allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
-!	  allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm), multidihe(nparm), perdihe(nparm))
-!	  allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm), perimp(nparm))
-!	  allocate(atange(nac,25,2), atangm(nac,25,2),
-!	  allocate(atdihe(nac,100,3))
-!	  allocate(atdihm(nac,100,3),
 	  allocate( bondxat(nac), angexat(nac))
 	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
 	  allocate(impxat(nac))

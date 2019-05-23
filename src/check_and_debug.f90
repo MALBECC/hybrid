@@ -62,22 +62,19 @@
 
 	subroutine solv_ene_fce_in(natot,na_u,nac,ng1,rclas,Em,Rm,pc, &
 	Etot_amber,fcetot_amber,attype, &
-	nbond,nangle,ndihe,nimp,multidihe, multiimp,kbond,bondeq, &
-	kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp, &
-	bondtype,angletype,dihetype,imptype, &
-	bondxat,angexat,angmxat,dihexat,dihmxat,impxat,atange, &
-	atangm,atdihe,atdihm,atimp, &
+	nbond,nangle,ndihe,  &
+	perdihe, &
+	bondtype,angletype,dihetype, &
+	bondxat,angexat,angmxat,dihexat,dihmxat,atange, &
+	atangm,atdihe,atdihm, &
 	ng1type,angetype,angmtype,evaldihe,evaldihm, &
-	dihety,dihmty,impty,nonbonded,scale,nonbondedxat,scalexat, &
-	evaldihelog,evaldihmlog,paso,nparm, &
-	actualiz,listcut, &
-	noat,noaa,sfc,timestep, &
-	water,masst,radblommbond)     
+	dihety,dihmty, &
+	evaldihelog,evaldihmlog,nparm )     
 
       use scarlett, only: eV, Ang, kcal
         implicit none
 
-       integer   i,j,k,l,na_u,natot,nac,ng1(nac,6),paso 
+       integer   i,j,k,na_u,natot,nac,ng1(nac,6)
        double precision  pcA(nac),rclas(3,natot),ramber(3,nac), &
 	EmA(nac),RmA(nac),pc(1:nac),Em(natot),Rm(natot), &
 	Etot_amber,Ebond_amber,Eangle_amber,Edihe_amber,Eimp_amber, &
@@ -86,32 +83,24 @@
 	 fcebond_amber(3,nac),fceangle_amber(3,nac), &
 	 fcedihe_amber(3,nac),fceimp_amber(3,nac), &
 	 fcelj_amber(3,nac),fceelec_amber(3,nac), &
-	 fcelj_amber14(3,nac),fceelec_amber14(3,nac), &
 	 fcetotaxes_amber(3)
-       character  attype(nac)*4,noat(nac)*4,noaa(nac)*4
-       double precision listcut,sfc,timestep,masst(natot),ewat,fwat(3,nac)
-       logical water
+       character  attype(nac)*4
+       double precision ewat,fwat(3,nac)
 !c      vbles de los params de union
-       integer   nbond,nangle,ndihe,nimp,nparm,multidihe(nparm), multiimp(nparm)
-       double precision   kbond(nparm),bondeq(nparm),kangle(nparm), &
-	 angleeq(nparm),kdihe(nparm),diheeq(nparm),kimp(nparm), &
-	 impeq(nparm),perdihe(nparm),perdihe2(nparm),perimp(nparm)
+       integer   nbond,nangle,ndihe,nparm
+       double precision   perdihe(nparm),perdihe2(nparm)
 	character   bondtype(nparm)*5,angletype(nparm)*8, &
-	 dihetype(nparm)*11,imptype(nparm)*11
+	 dihetype(nparm)*11
 !c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac),angexat(nac),angmxat(nac), &
-	dihexat(nac),dihmxat(nac),impxat(nac)
+	dihexat(nac),dihmxat(nac)
        integer   atange(nac,25,2),atangm(nac,25,2), &
-	 atdihe(nac,100,3),atdihm(nac,100,3),atimp(nac,25,4)
+	 atdihe(nac,100,3),atdihm(nac,100,3)
 !c	vbles q faltaban
        integer  ng1type(nac,6),angetype(nac,25),angmtype(nac,25), &
 	        evaldihe(nac,100,5),evaldihm(nac,100,5), &
-	        dihety(nac,100),dihmty(nac,100),impty(nac,25), &
-	        nonbonded(nac,100),scale(nac,100), &
-	        nonbondedxat(nac),scalexat(nac) 
-	logical  evaldihelog(nac,100),evaldihmlog(nac,100),actualiz
-!c parche para omitir interaccion entre extremos terminales
-	double precision, intent(in) :: radblommbond
+	        dihety(nac,100),dihmty(nac,100)
+	logical  evaldihelog(nac,100),evaldihmlog(nac,100)
 
 !c inicializa las energias y fuerzas
       Etot_amber=0.d0
@@ -161,23 +150,24 @@
 
 !c  llama a subrutina q calcula la energia y fuerzas de bonds
 
-        call amber_bonds_in(nac,ng1,ramber,Ebond_amber,attype, &
-	     nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber, &
-	     ng1type,paso,nparm,radblommbond)
+        call amber_bonds_in(nac,ng1,attype, &
+	     nbond,bondtype,bondxat,&
+	     ng1type,nparm)
 
 !c  llama a subrutina q calcula la energia y fuerzas de angles
 
-        call amber_angles_in(nac,ng1,ramber,Eangle_amber,attype, &
-	     nangle,kangle,angleeq,angletype,angexat,angmxat,atange, &
-	     atangm,fceangle_amber,angetype,angmtype,paso,nparm)
+        call amber_angles_in(nac,attype, &
+	     nangle,angletype,angexat,angmxat,atange, &
+	     atangm,angetype,angmtype,nparm)
 
 !c  llama a subrutina q calcula la energia y fuerzas de dihedros     
         perdihe2=perdihe  
-        call amber_dihes_in(nac,ng1,ramber,Edihe_amber, &
-	     attype,ndihe,kdihe,diheeq,perdihe2,multidihe, &
+        call amber_dihes_in(nac, &
+	     attype,ndihe,perdihe2, &
 	     dihetype,dihexat,dihmxat,atdihe,atdihm, &
-	     fcedihe_amber,evaldihelog,evaldihe,dihety, &
-	     evaldihmlog,evaldihm,dihmty,paso,nparm) 
+	     evaldihelog,evaldihe,dihety, &
+	     evaldihmlog,evaldihm,dihmty,nparm) 
+
 
 !c  llama a subrutina q calcula la energia y fuerzas de impropers
 
@@ -190,18 +180,16 @@
 !c****************************************************************
 !c subrutina q calcula la energia y fuerzas de bonds
 
-        subroutine amber_bonds_in(nac,ng1,ramber,Ebond_amber, &
-	           attype,nbond,kbond,bondeq,bondtype,bondxat, &
-	           fcebond_amber,ng1type,paso,nparm,radblommbond)
+        subroutine amber_bonds_in(nac,ng1,&
+	           attype,nbond,bondtype,bondxat, &
+	           ng1type,nparm)
 
        implicit none      
 !c      vbles grales 
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
-       double precision   ramber(3,nac),Ebond_amber, fcebond_amber(3,nac)
+       integer   nac,ng1(nac,6),i,j,k
        character   attype(nac)*4
 !c      vbles de los params de union
        integer   nbond,nparm
-       double precision   kbond(nparm),bondeq(nparm)
        character   bondtype(nparm)*5
 !c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac)
@@ -209,12 +197,10 @@
        character*4 ty1,ty2
        character*5 tybond
        integer ng1type(nac,6)
-       double precision   rij,dist,dx1,dx2,dy1,dy2,dz1,dz2, ftotbond(3)
       logical           first                                                                  
       save              first                                                                  
       data              first /.true./    
       logical           ST
-       double precision :: radblommbond
 
 	ST=.false.
 
@@ -245,19 +231,17 @@
 !c******************************************************
 !c  subrutina q calcula la energia y fuerzas de angles
  
-        subroutine  amber_angles_in(nac,ng1,ramber, &
-	 Eangle_amber,attype,nangle,kangle,angleeq,angletype, &
-	 angexat,angmxat,atange,atangm,fceangle_amber, &
-	 angetype,angmtype,paso,nparm)
+        subroutine  amber_angles_in(nac, &
+	 attype,nangle,angletype, &
+	 angexat,angmxat,atange,atangm, &
+	 angetype,angmtype,nparm)
 
         implicit none
 !c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
-       double precision   ramber(3,nac),Eangle_amber, fceangle_amber(3,nac)
+       integer   nac,i,j,k
        character   attype(nac)*4
 !c      vbles de los params de union
        integer   nangle,nparm
-       double precision kangle(nparm),angleeq(nparm)
        character angletype(nparm)*8
 !c      vbles de bond, angle, dihe e imp
        integer   angexat(nac),angmxat(nac)
@@ -266,8 +250,8 @@
        character*4 ty1,ty2,ty3
        character*8 tyangle
        integer angetype(nac,25),angmtype(nac,25)
-       double precision  angulo,angle,pi,dx,dy,dz,scal,r12,r32, &
-	                 scalar,ftotangle(3),dr12r32,dscalar,dist, &
+       double precision  pi, &
+	                 ftotangle(3), &
 	                 fesq(3,nac),fmedio(3,nac)
       logical           first                                                                  
       save              first                                                                  
@@ -323,21 +307,20 @@
 !c****************************************************************
 !c  subrutina q calcula la energia y fuerzas de dihedros
  
-      subroutine  amber_dihes_in(nac,ng1,ramber,Edihe_amber, &
-	          attype,ndihe,kdihe,diheeq,perdihe,multidihe, &
+      subroutine  amber_dihes_in(nac, &
+	          attype,ndihe,perdihe, &
 	          dihetype,dihexat,dihmxat,atdihe,atdihm, &
-	          fcedihe_amber,evaldihelog,evaldihe,dihety, &
-	          evaldihmlog,evaldihm,dihmty,paso,nparm)
+	          evaldihelog,evaldihe,dihety, &
+	          evaldihmlog,evaldihm,dihmty,nparm)
 	
         implicit none
  
 !c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
-       double precision   ramber(3,nac),Edihe_amber, fcedihe_amber(3,nac)
+       integer   nac,i,j,k,m
        character   attype(nac)*4
 !c      vbles de los params de union
-       integer   ndihe,nparm,multidihe(nparm)
-       double precision kdihe(nparm),diheeq(nparm),perdihe(nparm)
+       integer   ndihe,nparm
+       double precision perdihe(nparm)
        character dihetype(nparm)*11
 !c      vbles de bond, angle, dihe e imp
        integer   dihexat(nac),dihmxat(nac)
@@ -346,8 +329,8 @@
        character*4 ty1,ty2,ty3,ty4
        character*11 tydihe
        integer dihety(nac,100),dihmty(nac,100),evaldihe(nac,100,5), evaldihm(nac,100,5)
-       double precision  pi,dihedro,dihedral,E1,dist,dx,dy,dz,ftotdihe(3), &
-	                 fesq(3,nac),fmedio(3,nac), fce(12)
+       double precision  pi,ftotdihe(3), &
+	                 fesq(3,nac),fmedio(3,nac)
        logical evaldihelog(nac,100),evaldihmlog(nac,100)
        logical           first                                                                  
        save              first                                                                  

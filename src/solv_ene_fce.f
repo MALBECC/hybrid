@@ -111,13 +111,13 @@ c  pasa a las unidades de Amber
 c  llama a subrutina q calcula la energia y fuerzas de bonds
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
-     .       ng1type,paso,nparm,radblommbond)
+     .       ng1type,nparm,radblommbond)
 
 c  llama a subrutina q calcula la energia y fuerzas de angles
 
         call amber_angles(nac,ng1,ramber,Eangle_amber,attype,
      .       nangle,kangle,angleeq,angletype,angexat,angmxat,atange,
-     .       atangm,fceangle_amber,angetype,angmtype,paso,nparm)
+     .       atangm,fceangle_amber,angetype,angmtype,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de dihedros     
         
@@ -126,13 +126,13 @@ c  llama a subrutina q calcula la energia y fuerzas de dihedros
      .            attype,ndihe,kdihe,diheeq,perdihe2,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
-     .            evaldihmlog,evaldihm,dihmty,paso,nparm) 
+     .            evaldihmlog,evaldihm,dihmty,nparm) 
 
 c  llama a subrutina q calcula la energia y fuerzas de impropers
 
         call amber_improper(nac,ng1,ramber,Eimp_amber,attype,
      .       nimp,kimp,impeq,perimp,multiimp,imptype,impxat,atimp,
-     .       fceimp_amber,impty,paso,nparm)
+     .       fceimp_amber,impty,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de terminos non-bonded
 
@@ -168,11 +168,11 @@ c subrutina q calcula la energia y fuerzas de bonds
 
         subroutine amber_bonds(nac,ng1,ramber,Ebond_amber,
      .             attype,nbond,kbond,bondeq,bondtype,bondxat,
-     .             fcebond_amber,ng1type,paso,nparm,radblommbond)
+     .             fcebond_amber,ng1type,nparm,radblommbond)
 
        implicit none      
 c      vbles grales 
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+       integer   nac,ng1(nac,6),i,j,k,l,m,n!,paso
        double precision   ramber(3,nac),Ebond_amber,
      .                    fcebond_amber(3,nac)
        character   attype(nac)*4
@@ -272,13 +272,13 @@ c  subrutina q calcula la energia y fuerzas de angles
         subroutine  amber_angles(nac,ng1,ramber,
      .   Eangle_amber,attype,nangle,kangle,angleeq,angletype,
      .   angexat,angmxat,atange,atangm,fceangle_amber,
-     .   angetype,angmtype,paso,nparm)
+     .   angetype,angmtype,nparm)
 
 	use scarlett, only: max_angle_ex, max_angle_mid
 
         implicit none
 c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+       integer   nac,ng1(nac,6),i,j,k,l,m,n!,paso
        double precision   ramber(3,nac),Eangle_amber,
      .                    fceangle_amber(3,nac)
        character   attype(nac)*4
@@ -457,7 +457,7 @@ c  subrutina q calcula la energia y fuerzas de dihedros
      .            attype,ndihe,kdihe,diheeq,perdihe,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
-     .            evaldihmlog,evaldihm,dihmty,paso,nparm)
+     .            evaldihmlog,evaldihm,dihmty,nparm)
 
 	use scarlett, only: max_dihe_ex, max_dihe_mid
         implicit none
@@ -465,7 +465,7 @@ c  subrutina q calcula la energia y fuerzas de dihedros
 c      vbles grales
 	integer :: nac
 	integer :: ng1(nac,6)
-       integer i,j,k,l,m,n,paso
+       integer i,j,k,l,m,n!,paso
        double precision   ramber(3,nac),Edihe_amber,
      .                    fcedihe_amber(3,nac)
        character*4, dimension(nac) ::  attype 
@@ -744,12 +744,12 @@ c  subrutina q calcula la energia y fuerzas de impropers
 
        subroutine amber_improper(nac,ng1,ramber,Eimp_amber,attype,
      .            nimp,kimp,impeq,perimp,multiimp,imptype,impxat,
-     .            atimp,fimp,impty,paso,nparm)
+     .            atimp,fimp,impty,nparm)
 
 	use scarlett, only: max_improp_at
         implicit none
 c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+       integer   nac,ng1(nac,6),i,j,k,l,m,n!,paso
        double precision   ramber(3,nac),Eimp_amber
        character   attype(nac)*4
 c      vbles de los params de union

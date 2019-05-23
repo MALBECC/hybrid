@@ -28,7 +28,7 @@
       use precision, only: dp
       use sys, only: die
       use fdf
-      use ionew, only: io_setup, IOnode    
+      use ionew, only: io_setup!, IOnode    
       use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
      . natot,na_u,nroaa,qm, mm, atsym, nparm, 
      . xa, fa,
@@ -45,15 +45,15 @@
      . atdihe,atdihm,atimp,
      . rclas, vat, aat, izs, evaldihe,evaldihm, 
      . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, parametro,
-     . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, pi,
+     . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, !pi,
 !cutoff
      . r_cut_list_QMMM,blocklist,blockqmmm, blockall,
-     . listqmmm,MM_freeze_list, natoms_partial_freeze, 
-     . natoms_partial_freeze, coord_freeze, 
+     . listqmmm,!MM_freeze_list, !natoms_partial_freeze, 
+!     . coord_freeze, 
 !NEB
      . NEB_Nimages, 
      . NEB_firstimage, NEB_lastimage,  
-     . aclas_BAND_old,
+!     . aclas_BAND_old,
      . rclas_BAND,
      . vclas_BAND, fclas_BAND, Energy_band,
      . NEB_distl,
@@ -62,15 +62,16 @@
      . Ang, eV, kcal, 
 !Dynamics
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
-!FIRE
+!!FIRE
      . time_steep, Ndescend, time_steep_max, alpha,
-!Lio
+!!Lio
      . charge, spin,
-!outputs
-     . writeRF, slabel, traj_frec,
-!solo hasta q termine con el forcefield
-     . max_angle_ex, max_angle_mid, max_dihe_ex, max_dihe_mid, 
-     . max_improp, max_improp_at, max_improp_at
+!!outputs
+     . writeRF, slabel, traj_frec
+!!,
+!!solo hasta q termine con el forcefield
+!     !. max_angle_ex, max_angle_mid!, max_dihe_ex, max_dihe_mid!, 
+!     !. max_improp!, max_improp_at, max_improp_at
 
       implicit none
 ! General Variables
@@ -152,10 +153,10 @@
       double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
      .  F_cut_QMMM
       double precision, allocatable, dimension(:) :: Iz_cut_QMMM
-      integer :: at_MM_cut_QMMM, r_cut_pos
-      double precision :: r12 !auxiliar
-      integer :: i_qm, i_mm ! auxiliars
-      logical :: done, done_freeze, done_QMMM !control variables
+      integer :: at_MM_cut_QMMM!, r_cut_pos
+!      double precision :: r12 !auxiliar
+!      integer :: i_qm, i_mm ! auxiliars
+!      logical :: done, done_freeze!, done_QMMM !control variables
 
 ! restarts
       logical :: foundcrd
@@ -169,7 +170,7 @@
 
 
 ! Auxiliars
-      integer :: i, ia, imm, iunit, ix, j, k, inick, jnick, itest
+      integer :: i, ia, imm, iunit, ix, itest!, k, j, jnick, inick
 
 ! Others that need check
 !!!! General Variables
@@ -433,7 +434,7 @@ C Calculate Rcut & block list QM-MM
 ! Build initial velocities according to Maxwell-Bolzmann distribution
 
         if ((idyn .gt. 3) .and. (.not. foundvat))
-     .  call vmb(natot,tempinit,masst,rclas,0,vat,cmcf,blockall,ntcon)
+     .  call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 !tempinit
 
 
@@ -1051,11 +1052,11 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 ! Print final date and time
       call timestamp('End of run')
 
- 345  format(2x, I2,    2x, 3(f10.6,2x))
- 346  format(2x, f10.6, 2x, 3(f10.6,2x))
+! 345  format(2x, I2,    2x, 3(f10.6,2x))
+! 346  format(2x, f10.6, 2x, 3(f10.6,2x))
  956  format(2x, "Econtribution", 7(f18.6,2x))
  423  format(2x, I6,2x, 6(f20.10,2x))
- 444  format(2x, I6,2x, 3(f20.10,2x))
+! 444  format(2x, I6,2x, 3(f20.10,2x))
  999  format(a,2x,F30.18)
       end program HYBRID
 

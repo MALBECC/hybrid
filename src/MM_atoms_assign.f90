@@ -49,8 +49,8 @@
 	character*4, dimension(:,:), allocatable :: atnamea, attypea
 	integer, dimension(:,:), allocatable :: atnu
 	integer, dimension(:,:), allocatable :: nataa
-	character*4, dimension(:), allocatable ::  aanamea
-	integer, dimension(:), allocatable :: atomsxaa
+!	character*4, dimension(:), allocatable ::  aanamea
+!	integer, dimension(:), allocatable :: atomsxaa
 	character*4, dimension(nac), intent(out) ::  attype
 
 !auxiliars

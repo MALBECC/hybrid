@@ -49,5 +49,4 @@
 	pos=pos+vel*time_steep+0.5d0*acel*time_steep**2
 	acel=acel_new
 	return
- 556 format(2x,A10, 2x, i3, 13(2x,f20.8))
 	end subroutine quick_min

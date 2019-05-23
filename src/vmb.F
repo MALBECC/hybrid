@@ -1,4 +1,4 @@
-      subroutine vmb(nat,ttemp,mass,xa,isa,va,cmcf,blockall,ntcon)
+      subroutine vmb(nat,ttemp,mass,va,cmcf,blockall,ntcon)
 C *************************************************************************
 C This routine creates a velocity distribution according to the
 C Maxwell-Boltzman distribution with a given temperature.
@@ -24,23 +24,23 @@ C
 C  Modules
 C
       use precision
-      use scarlett, only: Ang, eV, coord_freeze, natoms_partial_freeze
+      use scarlett, only:  coord_freeze, natoms_partial_freeze
 
       implicit none
 
       integer 
-     .  nat, isa(nat), cmcf, blockall(nat), ntcon
+     .  nat, cmcf, blockall(nat), ntcon
 
       double precision
-     .  mass(nat), ttemp, va(3,nat), xa(3,nat)
+     .  mass(nat), ttemp, va(3,nat)!, xa(3,nat)
 
 C Internal variables ..................
 
       integer 
-     .  iseed, i, ix, iy, Node
+     .  iseed, i, ix, Node!, iy
 
       double precision
-     .  cell(3,3), stress(3,3), fa(3,nat), 
+!     .  stress(3,3), 
      .  massi, tempe, velo, vtot(3)
 
       external velo

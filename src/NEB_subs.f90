@@ -2,23 +2,23 @@
 !Nudged elastic band method
 !movement methods avalables are: Steepest descend and quick-min and FIRE using velocity verlet 
 !N. Foglia 03/2018
-	use scarlett, only: natot, NEB_Nimages, masst, NEB_firstimage, NEB_lastimage, rclas_BAND, &
-        vclas_BAND, fclas_BAND, aclas_BAND_old, Energy_band,NEB_move_method, NEB_spring_constant, &
-        ftol, NEB_steep_size, NEB_MAXFmod, fclas_BAND_fresh
+	use scarlett, only: natot, masst, NEB_firstimage, NEB_lastimage,  &
+        fclas_BAND, NEB_move_method, NEB_spring_constant, &
+        ftol, NEB_steep_size, NEB_MAXFmod, fclas_BAND_fresh, NEB_Nimages!, vclas_BAND, rclas_BAND,Energy_band,aclas_BAND_old, NEB_Nimages
 	implicit none
 	integer, intent(in) :: istep
 	double precision, dimension(3,natot) :: F_spring
 	double precision, dimension(3,natot) :: tang_vec
-	double precision, dimension(NEB_Nimages) :: Energy_band_old
-	double precision :: NORMVEC, proyForce, MAXFmod, MAXFmod_temp
+!	double precision, dimension(NEB_Nimages) :: Energy_band_old
+!	double precision :: MAXFmod!, MAXFmod_temp!, proyForce, NORMVEC,
 !	double precision :: SZstep
-	double precision :: Fmod2
+!	double precision :: Fmod2
 	logical, intent(inout) :: relaxd
 	integer :: replica_number
 	integer :: MAX_FORCE_REPLICA, MAX_FORCE_ATOM
 	double precision ::  MAXFmod_total, NEB_Ekin
 !	double precision, save :: MAXFmod_total_old
-	logical :: NEB_freeze
+!	logical :: NEB_freeze
 	logical, dimension(NEB_Nimages) :: NEB_converged_image
 	integer :: i 
 	
@@ -79,7 +79,7 @@
 
 
 	if (.not. relaxd) then
-	  call NEB_movement_algorithm(NEB_move_method,istep, MAXFmod_total, NEB_firstimage, NEB_lastimage) !move systems
+	  call NEB_movement_algorithm(NEB_move_method, MAXFmod_total, NEB_firstimage, NEB_lastimage) !move systems
 	  write(*,*) "system NOT converged"
 	else
 	  write(*,*) "system converged"
@@ -113,7 +113,7 @@
 
 
 	SUBROUTINE NEB_calculate_tg(method,replica_number,tang_vec)
-	use scarlett, only: NEB_Nimages, natot, rclas_BAND, Energy_band, PNEB, PNEB_ini_atom, PNEB_last_atom
+	use scarlett, only: natot, rclas_BAND, Energy_band, PNEB, PNEB_ini_atom, PNEB_last_atom!, NEB_Nimages,
 	implicit none
 	integer, intent(in) :: method, replica_number
 	double precision, dimension(3,natot), intent(inout) :: tang_vec
@@ -212,7 +212,7 @@
 	END SUBROUTINE NEB_calculate_tg
 
 	SUBROUTINE NEB_remove_parallel(replica_number,tang_vec) 
-	use scarlett, only: NEB_Nimages, natot, fclas_BAND
+	use scarlett, only: natot, fclas_BAND!, NEB_Nimages
 	implicit none
 	double precision, dimension(3,natot), intent(in) :: tang_vec
 	double precision ::  proyForce 
@@ -230,7 +230,7 @@
 
 
 	SUBROUTINE NEB_calculate_spring_force(methodSF, replica_number, tang_vec, F_spring)
-	use scarlett, only: NEB_Nimages, NEB_Nimages, natot, rclas_BAND
+	use scarlett, only: natot, rclas_BAND!, NEB_Nimages,
 	implicit none
 	double precision, dimension(3,natot), intent(inout) :: F_spring
 	double precision, dimension(3,natot), intent(in)  :: tang_vec
@@ -262,19 +262,19 @@
 	END SUBROUTINE NEB_calculate_spring_force
 
 
-	SUBROUTINE NEB_movement_algorithm(method,istep,MAXFmod_total,NEB_firstimage,NEB_lastimage)
+	SUBROUTINE NEB_movement_algorithm(method,MAXFmod_total,NEB_firstimage,NEB_lastimage)
 	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst,  &
-	time_steep, time_steep_max, NEB_steep_size, NEB_time_steep, NEB_Ndescend, NEB_alpha
+	time_steep_max, NEB_steep_size, NEB_time_steep, NEB_Ndescend, NEB_alpha!, time_steep,
 	implicit none
 	integer :: method
-	double precision, dimension(3,natot,NEB_Nimages) :: v12clas_BAND
-	double precision, dimension(3,natot,NEB_Nimages) :: aclas_BAND
+!	double precision, dimension(3,natot,NEB_Nimages) :: v12clas_BAND
+!	double precision, dimension(3,natot,NEB_Nimages) :: aclas_BAND
 	double precision, intent(in) :: MAXFmod_total
 	double precision :: MAXFmod
 	double precision :: SZstep
-	integer, intent(in) :: istep, NEB_firstimage, NEB_lastimage
-	integer :: i, j, replica_number
-	double precision :: Fmod, velocity_proyected, velocity_mod
+	integer, intent(in) :: NEB_firstimage, NEB_lastimage
+	integer :: replica_number
+	double precision :: Fmod!, velocity_mod!, velocity_proyected,
 	
 	Fmod=0.d0
 	if (method.eq.1) then !steepest descend
