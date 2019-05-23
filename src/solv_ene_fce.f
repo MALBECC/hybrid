@@ -15,7 +15,8 @@ c this subroutine calculates the solvent energy
      .    water,masst,radblommbond)     
 
 c     use precision, only: dp
-      use scarlett, only: eV, Ang, kcal
+	use scarlett, only: eV, Ang, kcal, max_angle_ex, max_angle_mid, 
+     . max_dihe_ex, max_dihe_mid, max_improp_at
         implicit none
 
 c      vbles grales
@@ -46,8 +47,10 @@ c      vbles de los params de union
 c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac),angexat(nac),angmxat(nac),
      .   dihexat(nac),dihmxat(nac),impxat(nac)
-       integer   atange(nac,25,2),atangm(nac,25,2),
-     .   atdihe(nac,100,3),atdihm(nac,100,3),atimp(nac,25,4)
+	integer :: atange(nac,max_angle_ex,2), 
+     .  atangm(nac,max_angle_mid,2),
+     .  atdihe(nac,max_dihe_ex,3), atdihm(nac,max_dihe_mid,3)
+	integer :: atimp(nac,max_improp_at,4)
 c	vbles q faltaban
        integer  ng1type(nac,6),angetype(nac,25),angmtype(nac,25),
      .          evaldihe(nac,100,5),evaldihm(nac,100,5),
@@ -79,6 +82,7 @@ c inicializa las energias y fuerzas
       ewat=0.d0
       fwat=0.d0
 
+      sfc=2.d0
 c cambia variables
       k=1
       do j=1,nac
@@ -105,7 +109,6 @@ c  pasa a las unidades de Amber
       enddo
 
 c  llama a subrutina q calcula la energia y fuerzas de bonds
-
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
      .       ng1type,paso,nparm,radblommbond)
@@ -271,6 +274,8 @@ c  subrutina q calcula la energia y fuerzas de angles
      .   angexat,angmxat,atange,atangm,fceangle_amber,
      .   angetype,angmtype,paso,nparm)
 
+	use scarlett, only: max_angle_ex, max_angle_mid
+
         implicit none
 c      vbles grales
        integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
@@ -283,7 +288,7 @@ c      vbles de los params de union
        character angletype(nparm)*8
 c      vbles de bond, angle, dihe e imp
        integer   angexat(nac),angmxat(nac)
-       integer   atange(nac,25,2),atangm(nac,25,2)
+	integer :: atange(nac,max_angle_ex,2),atangm(nac,max_angle_mid,2)
 c      vbles de asignacion
        character*4 ty1,ty2,ty3
        character*8 tyangle
@@ -453,21 +458,24 @@ c  subrutina q calcula la energia y fuerzas de dihedros
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
      .            evaldihmlog,evaldihm,dihmty,paso,nparm)
-	
+
+	use scarlett, only: max_dihe_ex, max_dihe_mid
         implicit none
  
 c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+	integer :: nac
+	integer :: ng1(nac,6)
+       integer i,j,k,l,m,n,paso
        double precision   ramber(3,nac),Edihe_amber,
      .                    fcedihe_amber(3,nac)
-       character   attype(nac)*4
+       character*4, dimension(nac) ::  attype 
 c      vbles de los params de union
-       integer   ndihe,nparm,multidihe(nparm)
-       double precision kdihe(nparm),diheeq(nparm),perdihe(nparm)
-       character dihetype(nparm)*11
+       integer   ndihe,nparm,multidihe(ndihe)
+       double precision kdihe(ndihe),diheeq(ndihe),perdihe(ndihe)
+       character*11, dimension(ndihe) :: dihetype
 c      vbles de bond, angle, dihe e imp
        integer   dihexat(nac),dihmxat(nac)
-       integer   atdihe(nac,100,3),atdihm(nac,100,3)
+	integer :: atdihe(nac,max_dihe_ex,3), atdihm(nac,max_dihe_mid,3)
 c      vbles de asignacion
        character*4 ty1,ty2,ty3,ty4
        character*11 tydihe
@@ -486,7 +494,6 @@ c      vbles de asignacion
        ftotdihe=0.d0
        fesq=0.d0
        fmedio=0.d0
-
 c asignacion de los tipos de dihedros
 	if(first) then
 	  evaldihelog=.false.
@@ -739,6 +746,7 @@ c  subrutina q calcula la energia y fuerzas de impropers
      .            nimp,kimp,impeq,perimp,multiimp,imptype,impxat,
      .            atimp,fimp,impty,paso,nparm)
 
+	use scarlett, only: max_improp_at
         implicit none
 c      vbles grales
        integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
@@ -750,7 +758,7 @@ c      vbles de los params de union
        character imptype(nparm)*11 
 c      vbles de bond, angle, dihe e imp
        integer   impxat(nac)
-       integer   atimp(nac,25,4)
+	integer :: atimp(nac,max_improp_at,4)
 c      vbles de asignacion
        character*4 ty1,ty2,ty3,ty4
        character*11 tyimp
@@ -883,6 +891,9 @@ c subrutina que calcula la energia y fuerzas de terminos non-bonded
      .       sfc,timestep,
      .       na_u,natot,rclas,water,masst,ewat,fwat)       
 
+	use scarlett, only: max_angle_ex, max_angle_mid, max_dihe_ex, 
+     . max_dihe_mid
+
         implicit none
 c      vbles grales
        integer   nac,ng1(nac,6),i,j,k,l,m,n,paso,dimvec,
@@ -895,8 +906,8 @@ c      vbles grales
 c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac),angexat(nac),angmxat(nac),
      .   dihexat(nac),dihmxat(nac)
-       integer   atange(nac,25,2),atangm(nac,25,2),
-     .   atdihe(nac,100,3),atdihm(nac,100,3)
+	integer :: atange(nac,max_angle_ex,2), atangm(nac,max_angle_mid,2)
+	integer :: atdihe(nac,max_dihe_ex,3), atdihm(nac,max_dihe_mid,3)
 c      vbles de asignacion      
        integer nonbonded(nac,100),scale(nac,100),scalexat(nac),
      . nonbondedxat(nac),acs
@@ -1096,7 +1107,6 @@ c test Nick
                 flj(1,j)=flj(1,j)+dx2*fel
                 flj(2,j)=flj(2,j)+dy2*fel
                 flj(3,j)=flj(3,j)+dz2*fel
-c		write(*,*) "E2 callc", i,j,pc(i),pc(j)
                 E2=((pc(i)*pc(j))/distancia)*unidades/epsilon !Coulomb, cargas en e
               	E2=E2/factorelec     !No sé qué es factorelec
 		Eelec_amber14=Eelec_amber14+E2

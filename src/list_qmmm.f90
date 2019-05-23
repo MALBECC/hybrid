@@ -1,8 +1,8 @@
       subroutine compute_cutsqmmm(at_MM_cut_QMMM, &
-      istepconstr,radbloqmmm,rcorteqmmm,nroaa,atxres)
+      istepconstr,radbloqmmm,rcorteqmmm,nroaa)
       
       use scarlett, only: r_cut_list_QMMM,MM_freeze_list,na_u, &
-      MM_freeze_list,rclas,nac,listqmmm
+      MM_freeze_list,rclas,nac,listqmmm,atxres
 
       implicit none
       double precision, intent(in) :: rcorteqmmm, radbloqmmm
@@ -10,7 +10,7 @@
 !      r_cut_QMMM, F_cut_QMMM
 !      double precision, allocatable, dimension(:), intent(out) :: &
 !      Iz_cut_QMMM
-      integer, intent(in) :: nroaa, atxres(20000)
+      integer, intent(in) :: nroaa!, atxres(nroaa)
       integer, intent(inout) :: at_MM_cut_QMMM
 
 ! internal variables
@@ -79,15 +79,15 @@
 !Recalcula list_qmmm
 
 !Calcula centro de masa de todos los residuos        
-        cm=0.d0
-        k=na_u+1
-        do i=1,nroaa
-         do j=1,atxres(i)
-        cm(1:3,i)=cm(1:3,i)+rclas(1:3,k)
-        k=k+1
-         enddo
-        cm(1:3,i)=cm(1:3,i)/atxres(i)
-        enddo
+	cm=0.d0
+	k=na_u+1
+	do i=1,nroaa
+	  do j=1,atxres(i)
+	    cm(1:3,i)=cm(1:3,i)+rclas(1:3,k)
+	    k=k+1
+	  enddo
+	  cm(1:3,i)=cm(1:3,i)/atxres(i)
+	enddo
 
 !Se fija si tiene que hacer lj o no
 

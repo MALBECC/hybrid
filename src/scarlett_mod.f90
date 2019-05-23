@@ -52,6 +52,9 @@
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms
 	integer :: natot !total number of atoms
+	integer :: nroaa !number of residues
+	integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
+
 	double precision, dimension(:), allocatable :: masst !atomic mass
 
 
@@ -101,6 +104,7 @@
 
 !!!! angle parameters
 	character*8, dimension(:), allocatable :: angletype !angle type name
+	integer :: max_angle_ex, max_angle_mid !numer of max angles for an atom in extreme(e) and middle(m)
 	real(dp), dimension(:), allocatable ::  kangle,angleeq ! force constant and equil angle
 	integer, dimension(:), allocatable :: angexat !angexat(i) number of angles of atom i with i in an extreme
 	integer, dimension(:), allocatable :: angmxat !angmxat(i) number of angles of atom i with i in middle
@@ -116,6 +120,7 @@
 
 !!!! dihedral parameters
 	character*11, dimension(:), allocatable :: dihetype !diedral type
+	integer :: max_dihe_ex, max_dihe_mid !numer of max dihe angles for an atom in extreme(e) and middle(m)
 	real(dp), dimension(:), allocatable :: kdihe,diheeq, perdihe !
 	integer, dimension(:), allocatable :: multidihe
 	integer, dimension(:), allocatable :: dihexat !dihexat(i) number of dihedral of atom i with i in extreme
@@ -134,6 +139,7 @@
 
 !!!! impropers 
 	character*11, dimension(:), allocatable :: imptype
+	integer :: max_improp, max_improp_at !max number of impropers and max number of impropers by atom
 	real(dp), dimension(:), allocatable ::  kimp,impeq,perimp
 	integer, dimension(:), allocatable :: multiimp
 	integer, dimension(:), allocatable :: impxat !impxat(i) number of impropers of atom i
@@ -224,6 +230,7 @@
 !outputs
 	integer :: writeRF ! force integration
 	integer :: traj_frec ! Frecuency to write trayectory and Energy in .rcg and .rce files
+	integer :: verbose_level
 ! Conversion factors
 	real(dp) :: Ang !r_in_bohr=r_in_ang * Ang
 	real(dp) :: eV !E_in_Hartree=E_in_eV * eV

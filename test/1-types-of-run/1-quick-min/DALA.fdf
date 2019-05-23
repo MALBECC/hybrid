@@ -10,17 +10,9 @@ MD.MaxForceTol    0.004 eV/Ang
 NumberOfSolventAtoms   22
 MD.UseSaveXV F
 MD.UseSaveCG  F
-MD.TypeOfRun CG
+MD.TypeOfRun QM
 MD.NumCGsteps  500
 
-%block ConstrainedOpt
-nconstr 1
-steps 99
-type 1
-kte 200
-inicoord -3.0 fincoord 3.0
-atoms 6 16 8 16
-%endblock ConstrainedOpt
 
 %block SolventInput
 ATOM      1  HH31ACE H   1       2.000   1.000   0.000

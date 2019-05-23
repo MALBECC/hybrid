@@ -3071,7 +3071,7 @@ BH4 32
    "HZ32" "HC" 0 1 131072 31 1     0.0661
    "HZ33" "HC" 0 1 131072 32 1    0.0661
 ljs  
-54       
+55       
   H           0.6000  0.0157            !Ferguson base pair geom.            
   HO          0.0000  0.0000             OPLS Jorgensen, JACS,110,(1988),1657
   HS          0.6000  0.0157             W. Cornell CH3SH --> CH3OH FEP      
@@ -5475,7 +5475,7 @@ HAR 27
  22 24
  24 25
 impropers 
-81
+82
 NARG 5 
  CA   +M   C    O
  NE   NH1  CZ   NH2

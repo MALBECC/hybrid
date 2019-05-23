@@ -99,8 +99,8 @@ ifeq ($(intel),0)
   LFLAGS += -L/usr/lib
   LIBS   += -lblas -llapack
 
-  DEBUG01 = -g -Wtabs -fcheck=all
-  DEBUG02 = -g -Wall -Wextra -fcheck=all -fbacktrace -pedantic
+  DEBUG01 = -g -Wno-tabs -fcheck=all
+  DEBUG02 = -g -Wall -Wextra -fcheck=all -fbacktrace -Wtabs
   OPTIM0P = #TODO: no flags for parallelization using gfortran?
   OPTIM0I = #TODO: no flags for precision and inlining using gfortran?
 

@@ -19,7 +19,7 @@
 	atdihm, bondxat, angexat, dihexat, dihmxat, angmxat, impxat, atimp, &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
-	NEB_move_method, Ndamped, tempion, Nav, pi, blockall
+	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -42,7 +42,7 @@
 	    write(6,'(/a)') 'hybrid: Running with no MM atoms'
 	    mm=.false.
 	  endif
-	
+	  
 	  if (nac.eq.0 .and. na_u.eq.0) then
 	    call die("no atoms in system")
 	  end if
@@ -104,22 +104,27 @@
 	  allocate(nonbonded(nac,100), scale(nac,100), evaldihelog(nac,100))
 	  allocate(evaldihmlog(nac,100), scalexat(nac))
 	  allocate(nonbondedxat(nac))
-	  allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
-	  allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
-	  allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm), multidihe(nparm), perdihe(nparm))
-	  allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm), perimp(nparm))
-	  allocate(atange(nac,25,2), atangm(nac,25,2), atdihe(nac,100,3))
-	  allocate(atdihm(nac,100,3), bondxat(nac), angexat(nac))
+!	  allocate(kbond(nparm),bondeq(nparm),bondtype(nparm))
+!	  allocate(kangle(nparm),angleeq(nparm),angletype(nparm))
+!	  allocate(kdihe(nparm),diheeq(nparm),dihetype(nparm), multidihe(nparm), perdihe(nparm))
+!	  allocate(kimp(nparm),impeq(nparm), imptype(nparm),multiimp(nparm), perimp(nparm))
+!	  allocate(atange(nac,25,2), atangm(nac,25,2),
+!	  allocate(atdihe(nac,100,3))
+!	  allocate(atdihm(nac,100,3),
+	  allocate( bondxat(nac), angexat(nac))
 	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
-	  allocate(impxat(nac), atimp(nac,25,4))
+	  allocate(impxat(nac))
+!, atimp(nac,25,4))
 	
 	  writeRF=0
 	  writeRF = fdf_integer('PFIntegrationOutput',0)
+	  verbose_level = fdf_integer('Verbose',2)
 	  frstme=.true.
 	  Ndescend=0
 	  alpha=0.1d0
 	  Ndamped=0
 	  tempion=0.d0
+	  nroaa=0
 	elseif ( init_type == 'Constants') then !define constants and convertion factors
 	  Ang    = 1._dp / 0.529177_dp
 	  eV     = 1._dp / 27.211396132_dp

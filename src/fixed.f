@@ -6,7 +6,7 @@ c subroutine that fill the blockall matrix in only MM calculations
 
         use scarlett, only: Ang
         implicit none
-        integer i,j,k,kk,l,natot,nroaa,atxres(20000),blockall(natot)
+        integer i,j,k,kk,l,natot,nroaa,atxres(nroaa),blockall(natot)
         integer res_ref,ijota
         double precision cm(3,20000),dist,dist2,radiobloqmmm,
      .  radinnerbloqmmm,rclas(3,natot),
@@ -115,7 +115,7 @@ c reads 'PositionConstraints' block
      .          natot')
 	      endif
 	      read(iunit,'(A)',advance='no',err=100,end=100) exp
-	      if(exp.eq.'f'.or.exp.eq.'F'.or.exp.eq.'p'.or.exp.eq.'P') then
+	     if(exp.eq.'f'.or.exp.eq.'F'.or.exp.eq.'p'.or.exp.eq.'P') then
 	        read(iunit,*,err=100,end=100) exp,con1(i,k),exp,con2(i,k)
 	        k=k+1
 	        goto 10 
@@ -149,7 +149,8 @@ c blocklist assignation
 	  if(type(i).eq.1) then
 	    do k=1,ncon(i)
 	      if(con2(i,k).gt.natot) then
-	        call die('fixed: atoms in constraint must not exeed natot')
+	        call die('fixed: atoms in constraint must not exeed 
+     .          natot')
 	      endif
 	      do j=con1(i,k),con2(i,k)
 	        blocklist(j)=1
@@ -159,7 +160,8 @@ c blocklist assignation
 	    blocklist=1
 	    do k=1,ncon(i)
 	      if(con2(i,k).gt.natot) then
-	        call die('fixed: atoms in constraint must not exeed natot')
+	        call die('fixed: atoms in constraint must not exeed
+     .          natot')
 	      endif
 	      do j=con1(i,k),con2(i,k)
 	        blocklist(j)=0
@@ -168,7 +170,8 @@ c blocklist assignation
 	  elseif(type(i).eq.2) then
 	    do k=1,ncon(i)
 	      if(con2(i,k).gt.nroaa) then
-	        call die('fixed: residues in constraint must not exeed nroaa')
+	        call die('fixed: residues in constraint must not exeed
+     .           nroaa')
 	      endif
 	      do j=con1(i,k),con2(i,k)
 	        do l=1,nac
