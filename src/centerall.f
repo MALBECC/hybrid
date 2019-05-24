@@ -8,7 +8,7 @@ c
 
       integer i,j,na_u,natot
       double precision rclas(3,natot), xa(3,na_u), ucell(3,3),
-     . x(3), d0(3), min(3), max(3), delta(3)
+     . d0(3), min(3), max(3), delta(3)
 
       d0=0.0D0
  
@@ -55,7 +55,7 @@ c
 
       integer i,j,na_u,natot
       double precision rclas(3,natot), ucell(3,3),
-     . x(3), d0(3), min(3), max(3), delta(3), lbord, dbord(3)
+     . d0(3), min(3), max(3), delta(3), lbord, dbord(3)
 
       logical ctr
       lbord = 2.0

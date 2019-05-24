@@ -23,8 +23,8 @@ C                            INFO <> 0 is returned
 C                            Is successfull, INFO = 0 returned
 C ****************
 
-      DOUBLE PRECISION WORK(N),C,ERROR,DELTA,TOL
-      INTEGER IPIV(N)
+      DOUBLE PRECISION C,ERROR,DELTA,TOL!,WORK(N)
+!      INTEGER IPIV(N)
       INTEGER I,J,K
 
       TOL=1.0D-4

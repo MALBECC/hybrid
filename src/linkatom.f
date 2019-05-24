@@ -5,11 +5,11 @@
 ! na atomos cuanticos
 
 	use fdf
-	use sys
+	use sys, only : die
 	implicit none
-	integer na,namber,i,j,k,m,iunit,numlink,linkqm(15,4),linkmm(15,4),
+	integer na,namber,i,j,k,m,numlink,linkqm(15,4),linkmm(15,4),
      .  linkat(15),ng1(namber,6),linkmm2(15,4,3),min(na)
-	character exp,linkqmtype(15,4)*4,qmtype(na)*4,ch4*4,ch1*1,ch2*2
+	character linkqmtype(15,4)*4,qmtype(na)*4,ch4*4,ch1*1,ch2*2
 	double precision r(3,na+namber),rmin(na),r1,dist
 
 
@@ -184,37 +184,32 @@ c*************************************************************
 c calculates Energy and Forces of HLink s
 c ramber=rclas
 	subroutine link2(numlink,linkat,linkqm,linkmm,linkmm2,
-     .    ramber,natot,na_u,namber,fdummy,ng1,attype,nparm,
-     .    nbond,nangle,ndihe,nimp,multidihe,multiimp,kbond,bondeq,
-     .    kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
-     .    bondtype,angletype,dihetype,imptype,linkqmtype,
-     .    bondxat,Ener,parametro,istp)
+     .    ramber,natot,namber,fdummy,attype,nparm,
+     .    nbond,nangle,ndihe,multidihe,kbond,bondeq,
+     .    kangle,angleeq,kdihe,diheeq,perdihe,
+     .    bondtype,angletype,dihetype,linkqmtype,
+     .    Ener,parametro,istp)
 	
 	implicit none
 	integer numlink,linkat(15),linkqm(15,4),linkmm(15,4),
-     .  na_u,natot,namber,linkmm2(15,4,3),
-     .  ng1(namber,6),bondxat(namber)
-	integer i,j,j2,k,l,m,jm,jq,at1,at2,at3,at4,istp,p
+     .  natot,namber,linkmm2(15,4,3)
+	integer i,j,k,l,m,jm,jq,at1,at2,at3,at4,istp
 	double precision ramber(3,natot),flink(3,natot),
      .  fdummy(3,natot),fce(12),Elink(15),scaling
-       integer   nbond,nangle,ndihe,nimp,nparm,multidihe(nparm),
-     .    multiimp(nparm)
+       integer   nbond,nangle,ndihe,nparm,multidihe(nparm)
        double precision   kbond(nparm),bondeq(nparm),kangle(nparm),
-     .   angleeq(nparm),kdihe(nparm),diheeq(nparm),kimp(nparm),
-     .   impeq(nparm),perdihe(nparm),perdihe2(nparm),perimp(nparm)
+     .   angleeq(nparm),kdihe(nparm),diheeq(nparm),
+     .   perdihe(nparm),perdihe2(nparm)
        character   bondtype(nparm)*5,angletype(nparm)*8,
-     .   dihetype(nparm)*11,imptype(nparm)*11,
+     .   dihetype(nparm)*11,
      .   attype(namber)*4,linkqmtype(15,4)*4
        character ty1*4,ty2*4,ty3*4,ty4*4,tybond*5,
      . tyangle*8,tydihe*11 
        double precision  rij,dist,dx,dy,dz,pi,angle,
      . scal,scalar,dscalar,r12,r32,dr12r32,angulo,
      . dihedro,dihedral,fpar(3),fpp(3),fmod,
-     . dversor(3),rhq,rqm,Ener,distl(15)
+     . dversor(3),rhq,rqm,Ener
 	logical wriok
-
-
-	integer ii, ji
 
 
 c numerical variables to indicate the parameters
@@ -734,9 +729,6 @@ c central atom force
 c enddo for each possible x 
  55	enddo
 
-c        write(*,*) "Hlink angulos"
-c        write(*,*) i, Elink(i), flink
-
 
 
 c********************************************************
@@ -957,13 +949,13 @@ c*****************************************************************
 c calculates HL position 
 	
 	subroutine link3(numlink,linkat,linkqm,linkmm,ramber,
-     .    natot,na_u,namber,distl)
+     .    natot,namber,distl)
 	use scarlett, only: frstme
         implicit none
         integer numlink,linkat(15),linkqm(15,4),linkmm(15,4),
-     .  na_u,natot,namber,linkmm2(15,4,3)
+     .  natot,namber
      
-        integer i,j,j2,k,l,m,jm,jq,at1,at2,at3,at4
+        integer i,at1,at2,at3,at4
         double precision ramber(3,natot),
      .	x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4,
      .  r4,a4,d4,angle,dihedro2,distl(15)

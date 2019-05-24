@@ -61,7 +61,7 @@ C
 C Internal variables ..........................................................
  
       integer
-     .  ct,i,ia,Node
+     .  ct,i,ia!,Node
 
       double precision
      .  dot,dt2,dtby2,fovermp,temp
@@ -245,10 +245,10 @@ c     .  memory
 C Internal variables ..........................................................
 
       integer
-     .  ct,i,ia,Node,regstep
+     .  ct,i,ia,regstep!,Node
 
       double precision
-     .  dot,dt2,dtby2,fovermp,temp,ctemp,tau,chi
+     .  dt2,dtby2,fovermp,temp,ctemp,tau,chi
 
       double precision, dimension(:,:), allocatable, save ::
      .  accold, vold
@@ -416,7 +416,7 @@ C iunit = 3
      . nfree,cmcf)
 
       use precision
-      use scarlett, only: Ang,eV,na_u,natot,nac,masst,qm,mm
+      use scarlett, only: Ang,eV,na_u,natot,masst
       implicit none
 
       double precision, intent(inout) :: kin
@@ -514,7 +514,7 @@ c     .  memory
 C Internal variables .........................................................
 
       integer
-     .  ct,i,ia,Node
+     .  ct,i,ia!,Node
 
       save x,xold
 

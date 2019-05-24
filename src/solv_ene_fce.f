@@ -20,7 +20,7 @@ c     use precision, only: dp
         implicit none
 
 c      vbles grales
-       integer   i,j,k,l,na_u,natot,nac,ng1(nac,6),paso 
+       integer   i,j,k,na_u,natot,nac,ng1(nac,6),paso 
        double precision  pcA(nac),rclas(3,natot),ramber(3,nac),
      .    EmA(nac),RmA(nac),pc(1:nac),Em(natot),Rm(natot),
 c agregue 0 a pc, Nick
@@ -30,7 +30,6 @@ c agregue 0 a pc, Nick
      .   fcebond_amber(3,nac),fceangle_amber(3,nac),
      .   fcedihe_amber(3,nac),fceimp_amber(3,nac),
      .   fcelj_amber(3,nac),fceelec_amber(3,nac),
-     .   fcelj_amber14(3,nac),fceelec_amber14(3,nac),
      .   fcetotaxes_amber(3)
        character  attype(nac)*4,noat(nac)*4,noaa(nac)*4
        double precision listcut,sfc,timestep,masst(natot),
@@ -111,36 +110,36 @@ c  pasa a las unidades de Amber
 c  llama a subrutina q calcula la energia y fuerzas de bonds
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
-     .       ng1type,paso,nparm,radblommbond)
+     .       ng1type,nparm,radblommbond)
 
 c  llama a subrutina q calcula la energia y fuerzas de angles
 
-        call amber_angles(nac,ng1,ramber,Eangle_amber,attype,
+        call amber_angles(nac,ramber,Eangle_amber,attype,
      .       nangle,kangle,angleeq,angletype,angexat,angmxat,atange,
-     .       atangm,fceangle_amber,angetype,angmtype,paso,nparm)
+     .       atangm,fceangle_amber,angetype,angmtype,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de dihedros     
         
         perdihe2=perdihe  
-        call amber_dihes(nac,ng1,ramber,Edihe_amber,
+        call amber_dihes(nac,ramber,Edihe_amber,
      .            attype,ndihe,kdihe,diheeq,perdihe2,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
-     .            evaldihmlog,evaldihm,dihmty,paso,nparm) 
+     .            evaldihmlog,evaldihm,dihmty) 
 
 c  llama a subrutina q calcula la energia y fuerzas de impropers
 
-        call amber_improper(nac,ng1,ramber,Eimp_amber,attype,
+        call amber_improper(nac,ramber,Eimp_amber,attype,
      .       nimp,kimp,impeq,perimp,multiimp,imptype,impxat,atimp,
-     .       fceimp_amber,impty,paso,nparm)
+     .       fceimp_amber,impty,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de terminos non-bonded
 
         call amber_nonbonded(nac,ng1,ramber,Elj_amber,
-     .       Eelec_amber,Elj_amber14,Eelec_amber14,attype,
+     .       Eelec_amber,Elj_amber14,Eelec_amber14,
      .       EmA,RmA,pcA,bondxat,
-     .       angexat,angmxat,atange,atangm,
-     .       dihexat,dihmxat,atdihe,atdihm,
+     .       angexat,atange,
+     .       dihexat,atdihe,
      .       fceelec_amber,fcelj_amber,nonbonded,scale,
      .       nonbondedxat,scalexat,paso,actualiz,
      .       listcut,
@@ -168,11 +167,11 @@ c subrutina q calcula la energia y fuerzas de bonds
 
         subroutine amber_bonds(nac,ng1,ramber,Ebond_amber,
      .             attype,nbond,kbond,bondeq,bondtype,bondxat,
-     .             fcebond_amber,ng1type,paso,nparm,radblommbond)
+     .             fcebond_amber,ng1type,nparm,radblommbond)
 
        implicit none      
 c      vbles grales 
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+       integer   nac,ng1(nac,6),i,j,k!,l,m!,paso
        double precision   ramber(3,nac),Ebond_amber,
      .                    fcebond_amber(3,nac)
        character   attype(nac)*4
@@ -186,8 +185,8 @@ c      vbles de asignacion
        character*4 ty1,ty2
        character*5 tybond
        integer ng1type(nac,6)
-       double precision   rij,dist,dx1,dx2,dy1,dy2,dz1,dz2,
-     .                    ftotbond(3)
+       double precision   rij,dist,dx1,dy1,dz1,
+     .                    ftotbond(3)!, dx2,dy2,dz2
       logical           first                                                                  
       save              first                                                                  
       data              first /.true./    
@@ -269,16 +268,16 @@ c parche para omitir bonds entre extremos terminales
 c******************************************************
 c  subrutina q calcula la energia y fuerzas de angles
  
-        subroutine  amber_angles(nac,ng1,ramber,
+        subroutine  amber_angles(nac,ramber,
      .   Eangle_amber,attype,nangle,kangle,angleeq,angletype,
      .   angexat,angmxat,atange,atangm,fceangle_amber,
-     .   angetype,angmtype,paso,nparm)
+     .   angetype,angmtype,nparm)
 
 	use scarlett, only: max_angle_ex, max_angle_mid
 
         implicit none
 c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+       integer   nac,i,j,k!,paso
        double precision   ramber(3,nac),Eangle_amber,
      .                    fceangle_amber(3,nac)
        character   attype(nac)*4
@@ -453,24 +452,23 @@ c para el angulo en el medio
 c****************************************************************
 c  subrutina q calcula la energia y fuerzas de dihedros
  
-      subroutine  amber_dihes(nac,ng1,ramber,Edihe_amber,
+      subroutine  amber_dihes(nac,ramber,Edihe_amber,
      .            attype,ndihe,kdihe,diheeq,perdihe,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
-     .            evaldihmlog,evaldihm,dihmty,paso,nparm)
+     .            evaldihmlog,evaldihm,dihmty)
 
 	use scarlett, only: max_dihe_ex, max_dihe_mid
         implicit none
  
 c      vbles grales
 	integer :: nac
-	integer :: ng1(nac,6)
-       integer i,j,k,l,m,n,paso
+       integer i,j,k,m!,l,n!,paso
        double precision   ramber(3,nac),Edihe_amber,
      .                    fcedihe_amber(3,nac)
        character*4, dimension(nac) ::  attype 
 c      vbles de los params de union
-       integer   ndihe,nparm,multidihe(ndihe)
+       integer   ndihe,multidihe(ndihe)
        double precision kdihe(ndihe),diheeq(ndihe),perdihe(ndihe)
        character*11, dimension(ndihe) :: dihetype
 c      vbles de bond, angle, dihe e imp
@@ -481,7 +479,7 @@ c      vbles de asignacion
        character*11 tydihe
        integer dihety(nac,100),dihmty(nac,100),evaldihe(nac,100,5),
      .         evaldihm(nac,100,5)
-       double precision  pi,dihedro,dihedral,E1,dist,
+       double precision  pi,dihedro,dihedral,E1,
      .                   dx,dy,dz,ftotdihe(3),
      .                   fesq(3,nac),fmedio(3,nac),
      .			 fce(12)
@@ -742,14 +740,14 @@ c       k=evaldihm(i,j,m)
 c******************************************************************
 c  subrutina q calcula la energia y fuerzas de impropers 
 
-       subroutine amber_improper(nac,ng1,ramber,Eimp_amber,attype,
+       subroutine amber_improper(nac,ramber,Eimp_amber,attype,
      .            nimp,kimp,impeq,perimp,multiimp,imptype,impxat,
-     .            atimp,fimp,impty,paso,nparm)
+     .            atimp,fimp,impty,nparm)
 
 	use scarlett, only: max_improp_at
         implicit none
 c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso
+       integer   nac,i,j,k!,l,m,n!,paso
        double precision   ramber(3,nac),Eimp_amber
        character   attype(nac)*4
 c      vbles de los params de union
@@ -881,42 +879,40 @@ c *******************************************************
 c subrutina que calcula la energia y fuerzas de terminos non-bonded
 
        subroutine amber_nonbonded(nac,ng1,ramber,Elj_amber,
-     .       Eelec_amber,Elj_amber14,Eelec_amber14,attype,
+     .       Eelec_amber,Elj_amber14,Eelec_amber14,
      .       Em,Rm,pc,bondxat,
-     .       angexat,angmxat,atange,atangm,
-     .       dihexat,dihmxat,atdihe,atdihm,
+     .       angexat,atange,
+     .       dihexat,atdihe,
      .       felec,flj,
      .       nonbonded,scale,nonbondedxat,scalexat,paso,
      .       actualiz,listcut,noat,noaa,
      .       sfc,timestep,
      .       na_u,natot,rclas,water,masst,ewat,fwat)       
 
-	use scarlett, only: max_angle_ex, max_angle_mid, max_dihe_ex, 
-     . max_dihe_mid
+	use scarlett, only: max_angle_ex, max_dihe_ex!, max_angle_mid,max_dihe_mid
 
         implicit none
 c      vbles grales
-       integer   nac,ng1(nac,6),i,j,k,l,m,n,paso,dimvec,
+       integer   nac,ng1(nac,6),i,j,k,m,n,paso,dimvec,
      . n_pointer,na_u,natot
        double precision   ramber(3,nac),Em(nac),Rm(nac),pc(1:nac),
      .    Elj_amber,Eelec_amber,Elj_amber14,Eelec_amber14
-       character*4 attype(nac),noat(nac),noaa(nac)
+       character*4 noat(nac),noaa(nac)
        double precision ewat,fwat(3,nac),masst(natot),rclas(3,natot)
        logical water
 c      vbles de bond, angle, dihe e imp
-       integer   bondxat(nac),angexat(nac),angmxat(nac),
-     .   dihexat(nac),dihmxat(nac)
-	integer :: atange(nac,max_angle_ex,2), atangm(nac,max_angle_mid,2)
-	integer :: atdihe(nac,max_dihe_ex,3), atdihm(nac,max_dihe_mid,3)
+       integer   bondxat(nac),angexat(nac),dihexat(nac)!, angmxat(nac)
+	integer :: atange(nac,max_angle_ex,2)!, atangm(nac,max_angle_mid,2)
+	integer :: atdihe(nac,max_dihe_ex,3)!, atdihm(nac,max_dihe_mid,3)
 c      vbles de asignacion      
        integer nonbonded(nac,100),scale(nac,100),scalexat(nac),
      . nonbondedxat(nac),acs
-       double precision A,B,Rij,Eij,dist,distancia,unidades,
+       double precision Rij,Eij,distancia,unidades,
      .                  factorlj,factorelec,E1,E2,pi,epsilon,
      .                  dist2,distancia2,rcut,Rij6,distancia2_3,
-     .                  fac,dfac,ca,cb,cc,cd,sfc,timestep,e1f,e2f,
+     .                  fac,ca,cb,cc,cd,sfc,timestep,e2f,
      .                  x0,x1,rinn,rout
-       logical scale14,nonbond,actualiz 
+       logical actualiz 
 c variables asoc a las fzas
        double precision dx1,dy1,dz1,dx2,dy2,dz2,felec(3,nac),
      .  felectot(3),fel,flj(3,nac),fljtot(3),listcut
@@ -1225,16 +1221,16 @@ c subrutina q calcula el water restarin potential
 
 	subroutine waters(na_u,nac,natot,rclas,masst,noaa,noat,ewat,fwat)
 	
-	use scarlett, only: eV, Ang, kcal
+	use scarlett, only: Ang!, eV, kcal
 	implicit none
 	integer, intent(in) :: na_u,nac,natot
 
         integer watlist(2000),watlistnum
         double precision rclas(3,natot),ewat,rwat,masscenter(3),
-     .  rt(3),rij,E,fwat(3,nac),dx,dy,dz,masst(natot),
+     .  rij,E,fwat(3,nac),dx,dy,dz,masst(natot),
      .  kte,ramber(3,natot),dist,dist2,mdist
         character noat(nac)*4,noaa(nac)*4
-        integer i,j,k,l,m,n
+        integer i,j,k!,l,m,n
         double precision pi
 
         pi=DACOS(-1.d0)

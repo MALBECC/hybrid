@@ -28,7 +28,7 @@
       use precision, only: dp
       use sys, only: die
       use fdf
-      use ionew, only: io_setup, IOnode    
+      use ionew, only: io_setup!, IOnode    
       use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
      . natot,na_u,nroaa,qm, mm, atsym, nparm, 
      . xa, fa,
@@ -45,15 +45,15 @@
      . atdihe,atdihm,atimp,
      . rclas, vat, aat, izs, evaldihe,evaldihm, 
      . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, parametro,
-     . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, pi,
+     . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, !pi,
 !cutoff
      . r_cut_list_QMMM,blocklist,blockqmmm, blockall,
-     . listqmmm,MM_freeze_list, natoms_partial_freeze, 
-     . natoms_partial_freeze, coord_freeze, 
+     . listqmmm,!MM_freeze_list, !natoms_partial_freeze, 
+!     . coord_freeze, 
 !NEB
      . NEB_Nimages, 
      . NEB_firstimage, NEB_lastimage,  
-     . aclas_BAND_old,
+!     . aclas_BAND_old,
      . rclas_BAND,
      . vclas_BAND, fclas_BAND, Energy_band,
      . NEB_distl,
@@ -62,15 +62,16 @@
      . Ang, eV, kcal, 
 !Dynamics
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
-!FIRE
+!!FIRE
      . time_steep, Ndescend, time_steep_max, alpha,
-!Lio
+!!Lio
      . charge, spin,
-!outputs
-     . writeRF, slabel, traj_frec,
-!solo hasta q termine con el forcefield
-     . max_angle_ex, max_angle_mid, max_dihe_ex, max_dihe_mid, 
-     . max_improp, max_improp_at, max_improp_at
+!!outputs
+     . writeRF, slabel, traj_frec
+!!,
+!!solo hasta q termine con el forcefield
+!     !. max_angle_ex, max_angle_mid!, max_dihe_ex, max_dihe_mid!, 
+!     !. max_improp!, max_improp_at, max_improp_at
 
       implicit none
 ! General Variables
@@ -152,10 +153,10 @@
       double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
      .  F_cut_QMMM
       double precision, allocatable, dimension(:) :: Iz_cut_QMMM
-      integer :: at_MM_cut_QMMM, r_cut_pos
-      double precision :: r12 !auxiliar
-      integer :: i_qm, i_mm ! auxiliars
-      logical :: done, done_freeze, done_QMMM !control variables
+      integer :: at_MM_cut_QMMM!, r_cut_pos
+!      double precision :: r12 !auxiliar
+!      integer :: i_qm, i_mm ! auxiliars
+!      logical :: done, done_freeze!, done_QMMM !control variables
 
 ! restarts
       logical :: foundcrd
@@ -169,7 +170,7 @@
 
 
 ! Auxiliars
-      integer :: i, ia, imm, iunit, ix, j, k, inick, jnick, itest
+      integer :: i, ia, imm, iunit, ix, itest!, k, j, jnick, inick
 
 ! Others that need check
 !!!! General Variables
@@ -327,7 +328,7 @@
         if (linkatom) then
 	  if (idyn .ne. 1) then
             call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .               natot,na_u,nac,distl)
+     .               natot,nac,distl)
             xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 	  else !NEB case
 	    NEB_distl=1.09
@@ -336,7 +337,7 @@
 	      distl(1:15)=NEB_distl(1:15,replica_number)
 	      frstme=.true.
 	      call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .               natot,na_u,nac,distl)
+     .               natot,nac,distl)
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
 	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do
@@ -433,7 +434,7 @@ C Calculate Rcut & block list QM-MM
 ! Build initial velocities according to Maxwell-Bolzmann distribution
 
         if ((idyn .gt. 3) .and. (.not. foundvat))
-     .  call vmb(natot,tempinit,masst,rclas,0,vat,cmcf,blockall,ntcon)
+     .  call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 !tempinit
 
 
@@ -665,11 +666,11 @@ c return forces to fullatom arrays
             if(qm.and.mm ) then
               if(linkatom) then
         call link2(numlink,linkat,linkqm,linkmm,linkmm2,rclas,
-     .  natot,na_u,nac,fdummy,ng1,attype,nparm,
-     .  nbond,nangle,ndihe,nimp,multidihe,multiimp,kbond,bondeq,
-     .  kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
-     .  bondtype,angletype,dihetype,imptype,linkqmtype,
-     .  bondxat,Elink,parametro,step)
+     .  natot,nac,fdummy,attype,nparm,
+     .  nbond,nangle,ndihe,multidihe,kbond,bondeq,
+     .  kangle,angleeq,kdihe,diheeq,perdihe,
+     .  bondtype,angletype,dihetype,linkqmtype,
+     .  Elink,parametro,step)
 ! Set again link atmos parameters to zero for next step  
                 do i=1,numlink
         pclinkmm(i,1:4)=pc(linkmm(i,1:4))
@@ -730,14 +731,14 @@ c return forces to fullatom arrays
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
 ! Impose constraints to atomic movements by changing forces
-       call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
+       call fixed2(na_u,nac,natot,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat,optimization_lvl,blockall)
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
 
 ! Accumulate coordinates in PDB/CRD file for animation
-      call wripdb(na_u,slabel,rclas,natot,step,wricoord,nac,atname,
+      call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
 
 ! freeze QM atom   Jota, meter todo esto en fixed 2
@@ -901,7 +902,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         if(qm.and.mm) then
           if(linkatom) then
             call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .      natot,na_u,nac,distl)
+     .      natot,nac,distl)
             xa(1:3,1:na_u)=rclas(1:3,1:na_u)
           endif !LA
         endif !qm & mm
@@ -954,7 +955,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
               rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
 	      distl(1:15)=NEB_distl(1:15,replica_number)
 	      call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .               natot,na_u,nac,distl)
+     .               natot,nac,distl)
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
 	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do
@@ -1051,11 +1052,11 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 ! Print final date and time
       call timestamp('End of run')
 
- 345  format(2x, I2,    2x, 3(f10.6,2x))
- 346  format(2x, f10.6, 2x, 3(f10.6,2x))
+! 345  format(2x, I2,    2x, 3(f10.6,2x))
+! 346  format(2x, f10.6, 2x, 3(f10.6,2x))
  956  format(2x, "Econtribution", 7(f18.6,2x))
  423  format(2x, I6,2x, 6(f20.10,2x))
- 444  format(2x, I6,2x, 3(f20.10,2x))
+! 444  format(2x, I6,2x, 3(f20.10,2x))
  999  format(a,2x,F30.18)
       end program HYBRID
 

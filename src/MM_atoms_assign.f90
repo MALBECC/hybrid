@@ -11,7 +11,7 @@
 	attype, pc, Rm, Em, ng1, bondxat,angexat, angmxat, dihexat, dihmxat,&
 	impxat)
 
-	use precision, only : dp
+!	use precision, only : dp
 	use sys,only : die
 	use fdf,only : fdf_block
 	use scarlett, only: Ang, atxres
@@ -49,8 +49,8 @@
 	character*4, dimension(:,:), allocatable :: atnamea, attypea
 	integer, dimension(:,:), allocatable :: atnu
 	integer, dimension(:,:), allocatable :: nataa
-	character*4, dimension(:), allocatable ::  aanamea
-	integer, dimension(:), allocatable :: atomsxaa
+!	character*4, dimension(:), allocatable ::  aanamea
+!	integer, dimension(:), allocatable :: atomsxaa
 	character*4, dimension(nac), intent(out) ::  attype
 
 !auxiliars
@@ -655,7 +655,7 @@
 	number_conect_ommit, conect_ommit, atnamea,ncon,con, FF_max_at_by_res)
 !nac,nataa,nroaa,atxres,atnu,resname,ng1,atnamea,ncon,con)
 	use ionew, only : io_assign, io_close
-	use precision, only:dp
+!	use precision, only:dp
 	use scarlett, only: verbose_level
 	implicit none
 	integer, intent(in) :: nac,nroaa, FF_max_at_by_res

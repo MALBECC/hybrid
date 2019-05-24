@@ -40,26 +40,26 @@ c cambiado para E de lio
 c*************************************************************************
 c subroutine that writes the coordinates in PDB/CRD format
 
-      subroutine wripdb(na,slabel,rclas,natot,istp,wricoord,nac,atname,
+      subroutine wripdb(na,slabel,rclas,natot,istp,nac,atname,
      .                  aaname,aanum,nesp,atsym,isa,list,block)
 
       use ionew
-      use scarlett, only: Ang,eV
+      use scarlett, only: Ang!,eV
 
       implicit          none
       character         slabel*20, paste*24
-      integer           na,nac,natot,istp,wricoord
+      integer           na,nac,natot,istp!,wricoord
       integer           nesp, isa(na)
       integer           list(nac),block(nac)
       character*2       atsym(nesp)       
       double precision  rclas(3,natot)
       external          paste
 
-      character         fnamep*24,fnamec*24,fnamel*24,title*30,ch*4
+      character         fnamep*24,fnamel*24!,ch*4!, title*30, fnamec*24
       character*1       chain(natot)
-      logical           frstme,foundc
-      integer           unitp,unitc,unitl
-      save              frstme,unitc,fnamec,unitl,fnamel
+      logical           frstme!,foundc
+      integer           unitp,unitl!, unitc,
+      save              frstme,unitl,fnamel!,unitc, fnamec
       data              frstme /.true./
 
 c Varibles added to write a pdb file
@@ -137,8 +137,8 @@ c writes actual coords in PDB format in .last.pdb file
        call io_close(unitl)
 
 	return
- 1      stop 'write: problem reading from CRD file'
-	end
+! 1      stop 'write: problem reading from CRD file'
+	end subroutine wripdb
 
 c******************************************************************************
 c subrutine that writes the reaction coordinate and its PDB
@@ -150,7 +150,7 @@ c subrutine that writes the reaction coordinate and its PDB
       use scarlett, only: kcal, Ang, eV
       implicit          none
       character         slabel*20, paste*24
-      integer           na,nac,natot,istp,wricoord
+      integer           na,nac,natot!,istp!,wricoord
       integer           nesp,isa(na)
       double precision  rclas(3,natot)
       character*2       atsym(nesp)
@@ -159,7 +159,7 @@ c subrutine that writes the reaction coordinate and its PDB
  
       character         fnamee*24,fnamec*24 
       logical           frstme
-      integer           i,j,ia,unite,unitc
+      integer           i,ia,unite,unitc!, j
       save              frstme,unite,fnamee,unitc,fnamec
       data              frstme /.true./
       integer           aanum(nac),constrpaso
@@ -205,7 +205,7 @@ c*******************************************************************************
 	subroutine wrtcrd(natot,rclas)
 
 	use ionew
-	use scarlett, only: Ang,eV  !agregado JOTA
+	use scarlett, only: Ang!,eV  !agregado JOTA
 	use fdf    
 	use sys
 	implicit none
@@ -236,63 +236,67 @@ c 8 = c1*r1 + c2*r2 + c3*r3 + ....
 
 	if(frstme) then
 c read variables
-	if ( fdf_block('WrtCrd',iunit) ) then
-	read(iunit,'(A)',advance='no',err=100,end=100) exp
-	if(exp.eq.'%') then 
-	constrlog=.false.
-	goto 10
-	endif
-	read(iunit,*,err=100,end=100) exp,nconstr
-	if(nconstr.gt.20) then
-	call die('wrtcrd: nconstr must be lower than 20')
-	endif
-	do iconstr=1,nconstr
-	read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
-
-         if     (typeconstr(iconstr).eq.1) then          
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
-         elseif (typeconstr(iconstr).eq.2) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,2)
-         elseif (typeconstr(iconstr).eq.3) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,3)
-         elseif (typeconstr(iconstr).eq.4) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
-         elseif (typeconstr(iconstr).eq.5) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
-         elseif (typeconstr(iconstr).eq.6) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,8) 
-         elseif (typeconstr(iconstr).eq.7) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
-         elseif (typeconstr(iconstr).eq.8) then
-         read(iunit,*,err=100,end=100) exp,ndists(iconstr)
-
-       if(ndists(iconstr).gt.10) then
-       call die('wrtcrd: ndists in typeconstr 8 must not exceed 10')
-       endif
-       read(iunit,*,err=100,end=100) 
+	  if ( fdf_block('WrtCrd',iunit) ) then
+	    read(iunit,'(A)',advance='no',err=100,end=100) exp
+	
+	    if(exp.eq.'%') then 
+	      constrlog=.false.
+	      goto 10
+	    endif
+	
+	    read(iunit,*,err=100,end=100) exp,nconstr
+	    if(nconstr.gt.20) then
+	      call die('wrtcrd: nconstr must be lower than 20')
+	    endif
+	
+	    do iconstr=1,nconstr
+	      read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
+		if     (typeconstr(iconstr).eq.1) then          
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
+		elseif (typeconstr(iconstr).eq.2) then
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,2)
+		elseif (typeconstr(iconstr).eq.3) then
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,3)
+		elseif (typeconstr(iconstr).eq.4) then
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
+		elseif (typeconstr(iconstr).eq.5) then
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
+		elseif (typeconstr(iconstr).eq.6) then
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,8) 
+		elseif (typeconstr(iconstr).eq.7) then
+		  read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
+		elseif (typeconstr(iconstr).eq.8) then
+		  read(iunit,*,err=100,end=100) exp,ndists(iconstr)
+		
+		  if(ndists(iconstr).gt.10) then
+		    call die('wrtcrd: ndists in typeconstr 8 must not exceed 10')
+		  endif
+		
+		  read(iunit,*,err=100,end=100) 
      . exp,(coef(iconstr,i),i=1,ndists(iconstr))
-       read(iunit,*,err=100,end=100) 
+		  read(iunit,*,err=100,end=100) 
      . exp,(atmsconstr(iconstr,i),i=1,ndists(iconstr)*2)
-         else
-         call die('wrtcrd: typeconstr must be 1-8')
-         endif
 
-	if(i.gt.20) then
-	call die('wrtcrd: atoms with constrain must be lower than 20')
-	endif
+		  if(i.gt.20) then
+		  call die('wrtcrd: atoms with constrain must be lower than 20')
+		  endif
 
-	enddo !nconstr
-	else
-	constrlog=.false.
-	goto 10
-	endif !fdf
+		else
+		  call die('wrtcrd: typeconstr must be 1-8')
+		endif
+
+	    enddo !nconstr
+	  else
+	    constrlog=.false.
+	    goto 10
+	  endif !fdf
 
 c name file
-        slabel = fdf_string( 'SystemLabel', 'siesta' )
-        fname = paste(slabel,'.wrt')
+	  slabel = fdf_string( 'SystemLabel', 'siesta' )
+	  fname = paste(slabel,'.wrt')
 
-10	continue
-	frstme=.false.
+10	  continue
+	  frstme=.false.
 	endif !frstme
 
 c write only if constrlog is true
@@ -427,7 +431,7 @@ c*******************************************************************************
 
 
         subroutine write_xyz(natot, na_u, iza, pc, rclas)
-        use precision, only: dp
+!        use precision, only: dp
         use scarlett, only: Ang
         implicit none
         integer, intent(in) :: natot, na_u
