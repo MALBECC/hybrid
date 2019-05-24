@@ -20,6 +20,7 @@ C Format of atomic coordinates
       acf_default = 'Ang'
       acf = fdf_string('AtomicCoordinatesFormat',acf_default)
 
+      iscale=-1
       if (leqi(acf,'NotScaledCartesianBohr') .or.
      .    leqi(acf,'Bohr') ) then
         iscale = 0
@@ -150,14 +151,14 @@ C  Internal variables .................................................
 
       integer 
      .  nmove_default,
-     .  iunit, wrifces,
+     .  wrifces,
      .  NEB_Nimages_default,
      .  NEB_move_method_default
 
       double precision
      .  dt_default, dxmax_default,
      .  ftol_default,  
-     .  dx_default,
+!     .  dx_default,
      .  NEB_spring_constant_default,
      .  time_steep_default
       logical
@@ -356,7 +357,7 @@ C Sets the atoms for whom the forces will be writen
 100   format(/,'read: ',71(1h*))
 101   format('read:                  INPUT ERROR')
 102   format('read: ',71(1h*))
-103   format('read: ',i4,2x,3f10.5,i3) 
+!103   format('read: ',i4,2x,3f10.5,i3) 
 
       return
       end
@@ -370,7 +371,7 @@ C Subroutine to read a crd file from an Amber run
         use ionew
         use sys
         use fdf
-	use scarlett, only: Ang,eV
+	use scarlett, only: Ang!,eV
 
 	implicit none
 	integer i,j,na_u,nac,nat,numlink,linkat(numlink),

@@ -186,7 +186,7 @@ c initialize and read cgaux and cgcntr if present and wanted ---------------
             call iocg( 'read', ndeg*2, cgaux, cgcntr, relaxd, found )
           endif
           if ( found ) then
-            linmin = cgcntr(1)
+            linmin = int(cgcntr(1)) !modified by Nick
           else
             if (Node.eq.0) then
               write(6,'(/,a)') 'cgvc: WARNING: CG file not found'

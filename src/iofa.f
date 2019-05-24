@@ -21,7 +21,7 @@ c *******************************************************************
 
 c Internal 
       character         sname*30, fname*33
-      integer           ia, iu, ix
+      integer           ia, ix!, iu
       logical           frstme
 c     double precision  Ang
 c saque eV jota

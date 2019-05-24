@@ -69,11 +69,10 @@ c Find name of file
             fname = paste( fname, numb )
 	  end if
 	end if
-	  write(*,*) "reading: ", fname
 
 c Choose between read or write
         if (task.eq.'read' .or. task.eq.'READ') then
-
+	  write(*,*) "reading: ", fname
 c       Check if input file exists
         fxv = .false.
 
@@ -153,7 +152,7 @@ C
       implicit          none
 
       character         paste*33
-      logical           f
+!      logical           f
       integer           n,s
       double precision  r(3,n), v(3,n), u(3,3) 
       external          paste  

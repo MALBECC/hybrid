@@ -328,7 +328,7 @@
         if (linkatom) then
 	  if (idyn .ne. 1) then
             call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .               natot,na_u,nac,distl)
+     .               natot,nac,distl)
             xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 	  else !NEB case
 	    NEB_distl=1.09
@@ -337,7 +337,7 @@
 	      distl(1:15)=NEB_distl(1:15,replica_number)
 	      frstme=.true.
 	      call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .               natot,na_u,nac,distl)
+     .               natot,nac,distl)
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
 	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do
@@ -666,11 +666,11 @@ c return forces to fullatom arrays
             if(qm.and.mm ) then
               if(linkatom) then
         call link2(numlink,linkat,linkqm,linkmm,linkmm2,rclas,
-     .  natot,na_u,nac,fdummy,ng1,attype,nparm,
-     .  nbond,nangle,ndihe,nimp,multidihe,multiimp,kbond,bondeq,
-     .  kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
-     .  bondtype,angletype,dihetype,imptype,linkqmtype,
-     .  bondxat,Elink,parametro,step)
+     .  natot,nac,fdummy,attype,nparm,
+     .  nbond,nangle,ndihe,multidihe,kbond,bondeq,
+     .  kangle,angleeq,kdihe,diheeq,perdihe,
+     .  bondtype,angletype,dihetype,linkqmtype,
+     .  Elink,parametro,step)
 ! Set again link atmos parameters to zero for next step  
                 do i=1,numlink
         pclinkmm(i,1:4)=pc(linkmm(i,1:4))
@@ -731,14 +731,14 @@ c return forces to fullatom arrays
 ! here Etot in Hartree, fdummy in Hartree/bohr
 
 ! Impose constraints to atomic movements by changing forces
-       call fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
+       call fixed2(na_u,nac,natot,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat,optimization_lvl,blockall)
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
 
 ! Accumulate coordinates in PDB/CRD file for animation
-      call wripdb(na_u,slabel,rclas,natot,step,wricoord,nac,atname,
+      call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
 
 ! freeze QM atom   Jota, meter todo esto en fixed 2
@@ -902,7 +902,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
         if(qm.and.mm) then
           if(linkatom) then
             call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .      natot,na_u,nac,distl)
+     .      natot,nac,distl)
             xa(1:3,1:na_u)=rclas(1:3,1:na_u)
           endif !LA
         endif !qm & mm
@@ -955,7 +955,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
               rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
 	      distl(1:15)=NEB_distl(1:15,replica_number)
 	      call link3(numlink,linkat,linkqm,linkmm,rclas,
-     .               natot,na_u,nac,distl)
+     .               natot,nac,distl)
 	      rclas_BAND(1:3,1:na_u,replica_number)=rclas(1:3,1:na_u)
 	      NEB_distl(1:15,replica_number)=distl(1:15)
 	    end do

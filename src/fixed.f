@@ -319,12 +319,12 @@ c blocklist assignation
 c*************************************************************
 c subroutine that imposes fce and vel constraints 
 
-       subroutine  fixed2(na_u,nac,natot,nfree,blocklist,blockqmmm,
+       subroutine  fixed2(na_u,nac,natot,blocklist,blockqmmm,
      .             fdummy,cfdummy,vat,optimization_lvl,blockall)
 
 	use scarlett, only: coord_freeze, natoms_partial_freeze
 	implicit none
-	integer i,k,na_u,nac,natot,nfree,blockqmmm(nac),blocklist(natot)
+	integer i,na_u,nac,natot,blockqmmm(nac),blocklist(natot)!, nfree
 	integer blockall(natot)
 	integer optimization_lvl
 	integer inick, jnick
@@ -358,7 +358,6 @@ c Agrego para que congele según blockall... Queda redundante si es QMMM
            if (blocklist(i).eq.1) then
            cfdummy(1:3,i)=0.d0
            vat(1:3,i)=0.d0
-c	   write(18200,*) "Congelé átomo QM", i ! Jota para test que congela aun si no hay parte QM
            endif
         enddo
 
@@ -376,7 +375,6 @@ c	   write(18200,*) "Congelé átomo QM", i ! Jota para test que congela aun si 
            if (blockqmmm(i).eq.1.or.blocklist(i+na_u).eq.1) then
            cfdummy(1:3,i+na_u)=0.d0
            vat(1:3,i+na_u)=0.d0
-c           write(182,*) "Congelé átomo MM", i
            endif
         enddo
 

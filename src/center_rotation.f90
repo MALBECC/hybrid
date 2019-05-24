@@ -121,7 +121,7 @@
           write(966,*) "1 ", r(1:3,i)
         end do
 
-  345  format(2x, I2,    2x, 3(f10.6,2x))
+!  345  format(2x, I2,    2x, 3(f10.6,2x))
 
 	contains
 

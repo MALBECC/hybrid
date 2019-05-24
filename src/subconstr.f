@@ -26,61 +26,68 @@ c 8 = c1*r1 + c2*r2 + c3*r3 + ....
 
 c read variables
 	if ( fdf_block('ConstrainedOpt',iunit) ) then
-	read(iunit,'(A)',advance='no',err=100,end=100) exp
-	if(exp.eq.'%') then
-	constrlog=.false.
-	nstepconstr=0
-	return
-	endif
-	read(iunit,*,err=100,end=100) exp,nconstr
-	if(nconstr.gt.20) then
-	call die('constr opt: nconstr must be lower than 20')
-	endif
-	read(iunit,*,err=100,end=100) exp,nstepconstr
-	if(nstepconstr.eq.0) then
-	call die('constr opt: nstepconstr must be larger than 0')
-	elseif(nstepconstr.gt.100) then
-	call die('constr opt: nstepconstr must be lower than 100')
-	endif
-	do iconstr=1,nconstr
-	read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
-	read(iunit,*,err=100,end=100) exp,kforce(iconstr)
-	if(iconstr.eq.1) then
-	read(iunit,*,err=100,end=100) exp,rini,exp,rfin
-	else
-	read(iunit,*,err=100,end=100) exp,ro(iconstr)
-	endif
+	  read(iunit,'(A)',advance='no',err=100,end=100) exp
+	  if(exp.eq.'%') then
+	    constrlog=.false.
+	    nstepconstr=0
+	    return
+	  endif
+	  read(iunit,*,err=100,end=100) exp,nconstr
+	
+	  if(nconstr.gt.20) then
+	    call die('constr opt: nconstr must be lower than 20')
+	  endif
+	
+	  read(iunit,*,err=100,end=100) exp,nstepconstr
+	
+	  if(nstepconstr.eq.0) then
+	    call die('constr opt: nstepconstr must be larger than 0')
+	  elseif(nstepconstr.gt.100) then
+	    call die('constr opt: nstepconstr must be lower than 100')
+	  endif
+	
+	  do iconstr=1,nconstr
+	    read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
+	    read(iunit,*,err=100,end=100) exp,kforce(iconstr)
+	    if(iconstr.eq.1) then
+	      read(iunit,*,err=100,end=100) exp,rini,exp,rfin
+	    else
+	      read(iunit,*,err=100,end=100) exp,ro(iconstr)
+	    endif
 
-         if     (typeconstr(iconstr).eq.1) then          
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
-         elseif (typeconstr(iconstr).eq.2) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,2)
-         elseif (typeconstr(iconstr).eq.3) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,3)
-         elseif (typeconstr(iconstr).eq.4) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
-         elseif (typeconstr(iconstr).eq.5) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
-         elseif (typeconstr(iconstr).eq.6) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,8) 
-         elseif (typeconstr(iconstr).eq.7) then
-         read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
-         elseif (typeconstr(iconstr).eq.8) then
-         read(iunit,*,err=100,end=100) exp,ndists(iconstr)
-       if(ndists(iconstr).gt.10) then
-       call die('constr opt: ndists in typeconstr 8 must not exceed 10')
-       endif
-       read(iunit,*,err=100,end=100) 
+	   if (typeconstr(iconstr).eq.1) then          
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
+	   elseif (typeconstr(iconstr).eq.2) then
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,2)
+	   elseif (typeconstr(iconstr).eq.3) then
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,3)
+	   elseif (typeconstr(iconstr).eq.4) then
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
+	   elseif (typeconstr(iconstr).eq.5) then
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
+	   elseif (typeconstr(iconstr).eq.6) then
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,8) 
+	   elseif (typeconstr(iconstr).eq.7) then
+	read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
+	   elseif (typeconstr(iconstr).eq.8) then
+	     read(iunit,*,err=100,end=100) exp,ndists(iconstr)
+
+	     if(ndists(iconstr).gt.10) then
+		call die('constr opt: ndists in typeconstr 8 must not exceed 10')
+	     endif
+	     read(iunit,*,err=100,end=100) 
      . exp,(coef(iconstr,i),i=1,ndists(iconstr))
-       read(iunit,*,err=100,end=100) 
+	     read(iunit,*,err=100,end=100) 
      . exp,(atmsconstr(iconstr,i),i=1,ndists(iconstr)*2)
-         else
-         call die('constr opt: typeconstr must be 1-8')
-         endif
 
-	if(i.gt.20) then
+	    if(i.gt.20) then
 	call die('constr opt: atoms with constrain must be lower than 20')
-	endif
+	    endif
+
+
+	   else
+	     call die('constr opt: typeconstr must be 1-8')
+	   endif
 
 	enddo
 	else
@@ -740,7 +747,7 @@ c change units
 
 c**************************************************************
       subroutine subconstr3(ro,rt,dr,E)
-      use scarlett, only: Ang,eV
+      use scarlett, only: eV
         implicit none
         double precision ro,rt,dr,E
 	ro=ro+dr
@@ -752,7 +759,7 @@ c**************************************************************
 c**************************************************************
       subroutine subconstr4(istep,rt,slabel)
       use ionew
-      use scarlett, only: Ang,eV
+!      use scarlett, only: Ang,eV
         implicit none
         double precision :: rt
 	integer :: istep

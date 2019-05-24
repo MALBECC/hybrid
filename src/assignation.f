@@ -2,10 +2,10 @@ c subroutine that asignates masses and specie
       subroutine assign(na_u,nac,atname,iza,izs,masst)
 
       use precision, only : dp
-      use fdf
-      use sys
+      use fdf, only : fdf_block
+      use sys, only : die
       implicit          none
-      integer           i,j,k, na_u, nac, iu
+      integer           i,k, na_u, nac, iu
       integer           iza(na_u), izs(na_u+nac)
       real(dp)          masst(na_u+nac), ATMASS, mass
       character         atname(nac)*4,atn4*4,atn1*1,atn2*2
@@ -77,7 +77,6 @@ c assignates new masses
         enddo
 
        goto 5
- 6     continue
       endif
 
       return
@@ -146,6 +145,7 @@ C Written by J.M.Soler. April'97.
      .   204.38,207.2 ,208.98,208.98,209.99,222.02,223.02,226.03,
      .   227.03,232.04,231.04,238.03,237.05,244.06/
 
+      ATMASS=0.d0
       IF (Z.LT.0 .OR. Z.GT.NZ) THEN
          write(message,'(a,i4)') 'ATMASS: ERROR: No data for Z =',Z
          call die(message)

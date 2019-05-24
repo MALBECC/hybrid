@@ -44,9 +44,9 @@ c       calculo del producto escalar
 
         function dihedro(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4)
         implicit none
-        double precision dihedro,dist,angle,l1,l2,pi,arg
+        double precision dihedro,pi,arg
         double precision x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4
-        double precision l,A,B,C,D,m,n,nx,ny,nz,mx,my,mz,scalar
+        double precision m,n,nx,ny,nz,mx,my,mz,scalar
         pi=DACOS(-1.d0)
 	mx = (y1-y2)*(z3-z2) - (z1-z2)*(y3-y2)
         my = -((x1-x2)*(z3-z2) -(z1-z2)*(x3-x2))
@@ -80,7 +80,7 @@ c si el argumento da mal (m*n)=0.0 avisa y sale el dihe vale 500.0
 
         function dihedro2(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4)
         implicit none
-        double precision dihedro2,dist,angle,l1,l2,pi
+        double precision dihedro2,l1,l2,pi
         double precision x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4
         double precision l,A,B,C,D,m,n,nx,ny,nz,mx,my,mz,scalar
  
@@ -141,12 +141,12 @@ c fce(12) es la fuerza (derivada) para at1x,at1y,at1z,at2x....at4z
         integer  mult
         double precision  kd,eq,per
 c variables asoc al calculo de la derivada
-        double precision dih,dihedro,dist,rm,rn,mx,my,mz,nx,ny,nz,scal
+        double precision dih,rm,rn,mx,my,mz,nx,ny,nz,scal
         double precision dscalar,dm,dn,dmx,dmy,dmz,dnx,dny,dnz,dmn,
-     .                  fx,fy,fz,E(3),fpx,fpxmasd,fpxmenosd,fr,step,prue
+     .                  prue
 c variables generales
-        integer i,j,k,l,m,n,nac,vez,coord,atom
-        character exp
+        integer i,j,nac,atom
+!        character exp
         double precision pi
 	pi=DACOS(-1.d0)
 
@@ -240,15 +240,15 @@ c variables asoc a funcion como subrutina
 c i1-i4 numero de atomos 1 a 4  atom es que derivada tiene que calcular
 c atom=1 indica el primer atomo del dihe atomo=2 el segundo etc...
 c fce(12) es la fuerza (derivada) para at1x,at1y,at1z,at2x....at4z
-        integer  mult
-        double precision  kd,eq,per
+!        integer  mult
+        double precision  kd!,eq!,per
 c variables asoc al calculo de la derivada
-        double precision dih,dihedro,dist,rm,rn,mx,my,mz,nx,ny,nz,scal
+        double precision dih,rm,rn,mx,my,mz,nx,ny,nz,scal
         double precision dscalar,dm,dn,dmx,dmy,dmz,dnx,dny,dnz,dmn,
-     .                  fx,fy,fz,E(3),fpx,fpxmasd,fpxmenosd,fr,step,prue
+     .                  prue
 c variables generales
-        integer i,j,k,l,m,n,nac,vez,coord,atom
-        character exp
+        integer i,j,nac,atom!,n, m, l, k
+!        character exp
         double precision pi
         pi=DACOS(-1.d0)
        call dihevars(   ramber(1,i1),ramber(2,i1),ramber(3,i1),
@@ -334,9 +334,9 @@ c subroutine that calculates the variables of a dihedral angle
         subroutine dihevars(x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4,
      .                      mx,my,mz,m,nx,ny,nz,n,dihedro)
         implicit none
-        double precision dihedro,dist,angle,l1,l2,pi,arg
+        double precision dihedro,pi,arg
         double precision x1,y1,z1,x2,y2,z2,x3,y3,z3,x4,y4,z4
-        double precision l,A,B,C,D,m,n,nx,ny,nz,mx,my,mz,scalar
+        double precision m,n,nx,ny,nz,mx,my,mz,scalar
  	pi=DACOS(-1.d0)
         mx = (y1-y2)*(z3-z2) - (z1-z2)*(y3-y2)
         my = -((x1-x2)*(z3-z2) -(z1-z2)*(x3-x2))
@@ -352,15 +352,15 @@ c       calculo del prod scalar n*m
         n = n**(0.5d0)
         arg=scalar/(m*n)
         if(arg.ge.1.d0) then 
-	dihedro=0.d0 
+	  dihedro=0.d0 
 	elseif(arg.le.-1.d0) then
- 	dihedro=pi
+ 	  dihedro=pi
 	else
-        dihedro = dACOS(arg)
+	  dihedro = dACOS(arg)
 	endif
-        dihedro = dihedro*180d0/pi 
- 10	continue 
-        end
+	  dihedro = dihedro*180d0/pi 
+! 10	continue 
+        end subroutine dihevars
 
 c *************************************************************************
 c subroutine that calculates position of 4 from 1-3 
