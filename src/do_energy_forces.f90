@@ -1,7 +1,10 @@
 !****************************************************************************
 ! Subroutine do_energy_forces 
 !
-! Calculates energy and forces for QM & MM subsistems
+! Calculates energy and forces for QM & MM subsystems
+! Position of all atoms in rclas in Bohrs
+! Final forces will be in cfdummy in Hartree/Bohr
+! Final energy will be in Etots in Hartree
 ! Extracted from original version on hybrid.f
 ! J. Semelak & N. Foglia 2019
 !*****************************************************************************
@@ -83,15 +86,14 @@
 	integer, intent(in) :: istepconstr !step of restraint 
 
 ! Others that need check
-!!!! Solvent General variables
+! Solvent General variables
 	double precision, intent(in) :: sfc
 	logical, intent(in) :: water
-!auxiliars
+! Auxiliars
 	integer :: i
 
 ! ---------------------------------------------------------------------------------------
 	at_MM_cut_QMMM = nac
-
 ! Calculate Energy and Forces using Lio as Subroutine
 	if(qm .and. (imm.eq.1)) then
 	  if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
@@ -126,8 +128,7 @@
 	    if (i.le.na_u) then !QM atoms
 	      fdummy(1:3,i)=F_cut_QMMM(1:3,i)
 	    else if (r_cut_list_QMMM(i-na_u).ne.0) then !MM atoms in cut-off
-	      fdummy(1:3,i)= &
-	      F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
+	      fdummy(1:3,i)= F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
 	    end if
 	  end do
 	endif !qm
