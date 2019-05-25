@@ -1,4 +1,12 @@
-	subroutine do_forces_forhyb(rcorteqmmm, radbloqmmm, Etot, &
+!****************************************************************************
+! Subroutine do_energy_forces 
+!
+! Calculates energy and forces for QM & MM subsistems
+! Extracted from original version on hybrid.f
+! J. Semelak & N. Foglia 2019
+!*****************************************************************************
+
+	subroutine do_energy_forces(rcorteqmmm, radbloqmmm, Etot, &
 	do_SCF, do_QM_forces, do_properties, istp, step, &
 	nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
 	Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
@@ -9,7 +17,7 @@
 	use precision, only: dp
 	use sys, only: die
 	use ionew, only: io_setup
-	use scarlett, only: qm, mm, na_u, natot, masst, pc, &
+	use scarlett, only: qm, mm, na_u, natot, nroaa, masst, pc, &
 	fdummy, cfdummy, nac, rclas, Em, Rm, linkatom, numlink, pclinkmm, & 
 	Emlink, istep, idyn, nparm, atname, aaname, attype, ng1, &
 	bondtype, kbond, bondeq, bondxat, angletype, kangle,angleeq, &
@@ -27,34 +35,38 @@
 	slabel
 
 	implicit none
-!variables para cuts
-	double precision, dimension(:,:), allocatable :: r_cut_QMMM 
-	double precision, dimension(:,:), allocatable :: F_cut_QMMM
-	double precision, dimension(:), allocatable :: Iz_cut_QMMM
-	integer :: at_MM_cut_QMMM
-! Cut Off QM-MM variables
-	double precision :: rcorteqmmm ! distance for QM-MM interaction
-	double precision, intent(in) :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
-! Amber
-	integer :: nroaa !number of residues
+
 ! General Variables
+	integer, intent(inout) :: step !total number of steps in a MMxQM movement (not tested in this version)
+	integer, intent(in) :: istp !number of move step for each restrain starting on 1
+	integer, intent(in) :: imm !MM step by QM each step
+	integer, intent(in) :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
 	real(dp), intent(inout) :: Etot ! QM + QM-MM interaction energy
+	double precision, intent(out) :: Etot_amber !total MM energy
+	double precision, intent(out) :: Elj !LJ interaction (only QMMM)
+	double precision, intent(out) :: Etots !QM+QMMM+MM energy
+	real(dp), intent(in) :: dt !time step
+
+! Cut Off QM-MM variables
+	double precision, intent(in) :: rcortemm ! distance for LJ & Coulomb MM interaction
+	double precision, intent(in) :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
+	double precision :: rcorteqmmm !Distance for QM-MM interaction
+	double precision, intent(in) :: radbloqmmm !Distance that allow to move MM atoms from QM sub-system
+	logical :: actualiz!MM interaction list control
+	integer :: at_MM_cut_QMMM !MM atoms inside QM-MM cutoff
+	double precision, dimension(:,:), allocatable :: r_cut_QMMM !Positions of QM & MM atoms inside QM-MM cutoff
+	double precision, dimension(:,:), allocatable :: F_cut_QMMM !Forces of QM & MM atoms inside QM-MM cutoff
+	double precision, dimension(:), allocatable :: Iz_cut_QMMM !Charge of MM atoms inside QM-MM cutoff
+
 ! Lio
 	logical, intent(in) :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
 	logical, intent(in) :: do_properties !control for lio properties calculation
 
-! Auxiliars
-	integer, intent(in) :: imm !MM step by QM step
-	integer :: i
-
-! General Variables
-	integer, intent(in) :: istp !number of move step for each restrain starting on 1
-	integer, intent(inout) :: step !total number of steps in a MMxQM movement (not tested in this version)
-	logical :: actualiz!MM interaction list control
-	integer, intent(in) :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
-	double precision, intent(out) :: Etot_amber !total MM energy
-	double precision, intent(out) :: Elj !LJ interaction (only QMMM)
-	double precision, intent(out) :: Etots !QM+QMMM+MM energy
+! Optimization scheme
+	integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme:
+! 1- only QM atoms with restrain
+! 2- only MM atoms
+! 3- all
 
 ! ConstrOpt variables
 	logical, intent(in) :: constropt !activate restrain optimizaion
@@ -70,30 +82,12 @@
 	integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
 	integer, intent(in) :: istepconstr !step of restraint 
 
-! Cut Off QM-MM variables
-	double precision, intent(in) :: rcortemm ! distance for LJ & Coulomb MM interaction
-	double precision, intent(in) :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a radblommbond
-
-! Optimization scheme
-	integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme:
-! 1- only QM atoms with restrain
-! 2- only MM atoms
-! 3- all
-
-! Auxiliars
-
 ! Others that need check
-!!!! General Variables
-	real(dp), intent(in) :: dt !time step
-	external :: fixed2
-
 !!!! Solvent General variables
 	double precision, intent(in) :: sfc
 	logical, intent(in) :: water
-
-! Solvent external variables
-!	external solv_ene_fce, link2, ljef!, subconstr2
-
+!auxiliars
+	integer :: i
 
 ! ---------------------------------------------------------------------------------------
 	at_MM_cut_QMMM = nac
@@ -148,9 +142,7 @@
 	endif
 	
 ! Calculation of last QM-MM interaction: LJ Energy and Forces only 
-	if((qm.and.mm)) then
-	  call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
-	endif !qm & mm
+	if((qm.and.mm)) call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
 
 ! LinkAtom: set again linkmm atoms parameters
 	if(qm.and.mm) then
@@ -187,9 +179,7 @@
 
 ! here Etot in Hartree, fdummy in kcal/mol Ang
 ! add famber to fdummy  
-	if(mm) then
-	  fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot) +fce_amber(1:3,1:nac)
-	endif !mm
+	if(mm) fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot) +fce_amber(1:3,1:nac)
 
 ! here fdummy in kcal/mol/Ang
 
@@ -203,7 +193,7 @@
 	    bondtype,angletype,dihetype,linkqmtype, &
 	    Elink,parametro,step)
 
-! Set again link atmos parameters to zero for next step  
+! Set again link atoms parameters to zero for next step  
 	    do i=1,numlink
 	      pclinkmm(i,1:4)=pc(linkmm(i,1:4))
 	      pc(linkmm(i,1:1))=0.d0
@@ -232,7 +222,7 @@
        
 ! here Etot in Hartree
 	write(6,*)
-	write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
+	write(6,'(/,a)') 'hybrid: Potential Energy Decomposition (eV):'
 	if(qm) write(6,999)           'Elio :',Etot/eV      
 	if(qm.and.mm) write(6,999)    'Elj:    ',Elj/eV       
 	if(mm) write(6,999)      'Esolv:  ',Etot_amber/kcal   
@@ -262,5 +252,5 @@
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
  999  format(a,2x,F30.18)
-	end subroutine do_forces_forhyb
+	end subroutine do_energy_forces
 

@@ -399,10 +399,8 @@ C Calculate Rcut & block list QM-MM
 
 ! Calculate blockall for full-MM simulation JOTA
       if(mm.and. .not. qm) then
-
         call fixed0(res_ref,natot,nroaa,atxres,rclas,blockall,
      .              radbloqmmm,radinnerbloqmmm)
-
       endif
 ! nrjota hardcodeado = 1
 
@@ -479,7 +477,7 @@ C Calculate Rcut & block list QM-MM
 
 
 	  do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
-       call do_forces_forhyb(rcorteqmmm, radbloqmmm, Etot,
+       call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
      . do_SCF, do_QM_forces, do_properties, istp, step,
      . nbond, nangle, ndihe, nimp, Etot_amber, Elj,
      . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
