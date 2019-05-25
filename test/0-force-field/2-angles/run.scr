@@ -3,8 +3,8 @@ rm Energy.dat Forces.dat Test.out traj.pdb
 
 
 for i in {-179..179}; do
-x=$(python -c "import math; print('%+4.3f' %math.cos($i*math.pi/180.0))")
-y=$(python -c "import math; print('%+4.3f' %math.sin($i*math.pi/180.0))")
+x=$(python -c "import math; print('%+4.3f' %- math.cos($i*math.pi/180.0))")
+y=$(python -c "import math; print('%+4.3f' %- math.sin($i*math.pi/180.0))")
 cp base.fdf Test.fdf
 sed -i -e s/XXXXXX/$x/g Test.fdf
 sed -i -e s/YYYYYY/$y/g Test.fdf
@@ -19,9 +19,5 @@ tail Test-Bonds.init.pdb >> traj.pdb
 
 done
 rm INPUT_TMP.*
-
-
-
-
 
 
