@@ -551,8 +551,10 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
      .    vat, masst)
 	elseif (idyn .eq. 3) then !FIRE
 	  call check_convergence(relaxd, cfdummy)
-	  if (.not. relaxd) call FIRE(natot, rclas,cfdummy, aat, vat, 
-     .    masst, time_steep,Ndescend, time_steep_max, alpha)
+	  if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat,
+     .    time_steep, Ndescend, time_steep_max, alpha)
+!call FIRE(natot, rclas,cfdummy, aat, vat, 
+!     .    masst, time_steep,Ndescend, time_steep_max, alpha)
 	elseif (idyn .eq. 4) then
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
      .        masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
