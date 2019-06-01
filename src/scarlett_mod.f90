@@ -1,7 +1,7 @@
 	module scarlett
 !general module for hybrid
 !In future i will move most variables to this module 03/2018
-	use precision, only: dp
+	use precision, only: dp, qp
 	implicit none
 
 ! General Variables
@@ -216,6 +216,10 @@
 	double precision :: NEB_spring_constant !cosntant for space images
 	double precision, allocatable, dimension(:,:,:) :: aclas_BAND_old !aceleration of previus step
 	double precision, dimension(:,:,:), allocatable :: rclas_BAND!Position of all atoms in BAND method
+
+!        real(qp), dimension(:,:,:), allocatable :: rclas_BAND
+
+
 	double precision, dimension(:,:,:), allocatable :: vclas_BAND!velocities of all atoms in BAND method
 	double precision, dimension(:,:,:), allocatable :: fclas_BAND!Force all atoms in BAND method
 	double precision, dimension(:,:,:), allocatable :: fclas_BAND_fresh !Force all atoms in BAND method just for energy gradient
@@ -227,6 +231,10 @@
 	double precision, dimension(:,:), allocatable :: NEB_distl !distancia del link atom i al atomo QM mas cercano
 	double precision, dimension(:), allocatable :: NEB_time_steep, NEB_alpha ! time steep and alpha value for image i in FIRE NEB
 	integer, dimension(:), allocatable :: NEB_Ndescend !number of consecutive steps in which F·v >= 0 for image i in FIRE NEB
+	integer :: NEB_CI !turn on NEB climb image
+!external potential
+	integer :: external_potential
+
 !outputs
 	integer :: writeRF ! force integration
 	integer :: traj_frec ! Frecuency to write trayectory and Energy in .rcg and .rce files

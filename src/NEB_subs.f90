@@ -1,42 +1,31 @@
 	SUBROUTINE NEB_steep(istep, relaxd)
 !Nudged elastic band method
-!movement methods avalables are: Steepest descend and quick-min and FIRE using velocity verlet 
+!movement methods avalables are: Steepest descend, quick-min and FIRE using velocity verlet 
 !N. Foglia 03/2018
-	use scarlett, only: natot, masst, NEB_firstimage, NEB_lastimage,  &
-        fclas_BAND, NEB_move_method, NEB_spring_constant, &
-        ftol, NEB_steep_size, NEB_MAXFmod, fclas_BAND_fresh, NEB_Nimages!, vclas_BAND, rclas_BAND,Energy_band,aclas_BAND_old, NEB_Nimages
+	use scarlett, only: NEB_firstimage, NEB_lastimage,  &
+        NEB_move_method, NEB_spring_constant, &
+        ftol, NEB_steep_size, NEB_MAXFmod, NEB_Nimages, &
+	verbose_level
 	implicit none
 	integer, intent(in) :: istep
-	double precision, dimension(3,natot) :: F_spring
-	double precision, dimension(3,natot) :: tang_vec
-!	double precision, dimension(NEB_Nimages) :: Energy_band_old
-!	double precision :: MAXFmod!, MAXFmod_temp!, proyForce, NORMVEC,
-!	double precision :: SZstep
-!	double precision :: Fmod2
 	logical, intent(inout) :: relaxd
 	integer :: replica_number
 	integer :: MAX_FORCE_REPLICA, MAX_FORCE_ATOM
 	double precision ::  MAXFmod_total, NEB_Ekin
-!	double precision, save :: MAXFmod_total_old
-!	logical :: NEB_freeze
 	logical, dimension(NEB_Nimages) :: NEB_converged_image
-	integer :: i 
 	
 	if (istep.eq.0) then!initial max steep size
 	  NEB_steep_size=0.1d0
-	  do i=1, natot
-	     if (masst(i) .lt. 1.5d0) masst(i)=masst(i)*12.d0 !mass scaling on H atoms to increase time step
-	  end do
-          fclas_BAND_fresh=fclas_BAND
+!          fclas_BAND_fresh=fclas_BAND
         else
 	  MAX_FORCE_REPLICA=NEB_firstimage
 	  if ( (MAX_FORCE_REPLICA .ne. 1) .and. (MAX_FORCE_REPLICA.ne. NEB_lastimage)) then
-	    fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA)=fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA)
-	    fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA-1)=fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA-1)
-	    fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA+1)=fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA+1)
+!	    fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA)=fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA)
+!	    fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA-1)=fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA-1)
+!	    fclas_BAND(1:3, 1:natot,MAX_FORCE_REPLICA+1)=fclas_BAND_fresh(1:3, 1:natot,MAX_FORCE_REPLICA+1)
 	  end if
-	  NEB_firstimage=MAX_FORCE_REPLICA-1
-	  NEB_lastimage=MAX_FORCE_REPLICA+1
+!	  NEB_firstimage=MAX_FORCE_REPLICA-1
+!	  NEB_lastimage=MAX_FORCE_REPLICA+1
 	end if
 
 	NEB_converged_image=.true.
@@ -46,36 +35,31 @@
 	MAX_FORCE_REPLICA=-1
 	MAX_FORCE_ATOM=-1
 	
-	NEB_firstimage=2
-	NEB_lastimage=NEB_Nimages-1
+!	NEB_firstimage=2
+!	NEB_lastimage=NEB_Nimages-1
 
 	do replica_number=NEB_firstimage, NEB_lastimage
 	  if ( replica_number .gt. 1 .and. replica_number .lt. NEB_Nimages) then
-!	  write(222,*) "cambio con sprimg en: ", replica_number
-	  call NEB_calculate_tg(2,replica_number,tang_vec) !calculate tangent direccion 
-	  call NEB_remove_parallel(replica_number,tang_vec) !remove force in tangent direction
-	  call NEB_calculate_spring_force(2, replica_number, tang_vec, F_spring) !Spring force
-	  fclas_BAND(1:3, 1:natot,replica_number)=fclas_BAND(1:3, 1:natot,replica_number)  &
-	  + NEB_spring_constant*F_spring(1:3,1:natot) !New force
-!F_sring in units: Bohr
-!fclas_band in H/bohr
+	  call NEB_Force(replica_number,NEB_spring_constant) !Force in H/bohr
 	  end if
 	end do
 	
 	do replica_number=2, NEB_Nimages-1
 	  call NEB_check_convergence(relaxd, replica_number, MAXFmod_total, MAX_FORCE_REPLICA, MAX_FORCE_ATOM, NEB_converged_image)
 	end do
+	if (verbose_level.gt.5) call NEB_status()
+
         
 ! select image to move in this step
-	NEB_firstimage=MAX_FORCE_REPLICA-1
-	NEB_lastimage=MAX_FORCE_REPLICA+1
+!	NEB_firstimage=MAX_FORCE_REPLICA-1
+!	NEB_lastimage=MAX_FORCE_REPLICA+1
 
 	if (NEB_firstimage .lt. 1) NEB_firstimage=1
 	if (NEB_lastimage .gt. NEB_Nimages) NEB_lastimage=NEB_Nimages
 
 ! full band move until more test
-	NEB_firstimage=2
-	NEB_lastimage=NEB_Nimages-1
+!	NEB_firstimage=1
+!	NEB_lastimage=NEB_Nimages
 
 
 	if (.not. relaxd) then
@@ -86,12 +70,12 @@
 	end if
 
 ! recompute SCF only in image that was move	
-	NEB_firstimage=MAX_FORCE_REPLICA
-	NEB_lastimage=MAX_FORCE_REPLICA
+!	NEB_firstimage=MAX_FORCE_REPLICA
+!	NEB_lastimage=MAX_FORCE_REPLICA
 
 ! full band move until more test
-	NEB_firstimage=2
-	NEB_lastimage=NEB_Nimages-1
+!	NEB_firstimage=2
+!	NEB_lastimage=NEB_Nimages-1
 
 	if (NEB_move_method .eq. 1) THEN
 	  if (istep.eq.0) NEB_MAXFmod=MAXFmod_total
@@ -111,8 +95,96 @@
         "in replica ", MAX_FORCE_REPLICA, "conv criteria", ftol
 	END SUBROUTINE NEB_steep
 
+	SUBROUTINE NEB_Force(replica_number,NEB_spring_constant)
+!this subroutine obtains nundged elastic band force for each atom in replica_number
+	use scarlett, only: natot, rclas_BAND, Energy_band, fclas_BAND, NEB_firstimage, NEB_lastimage, NEB_CI
+	implicit none
+	integer, intent(in) :: replica_number
+	double precision, intent(in) :: NEB_spring_constant
+	double precision, dimension(3,natot) :: tang_vec, Fspring
+	double precision :: dist01, dist12, Forceproj
+	double precision :: Emax
+	integer :: Imax
+	integer :: i, j
+
+	if (replica_number.eq.NEB_firstimage .or. replica_number.eq. NEB_lastimage) return
+
+	if (NEB_CI.eq.1) then !find image with max energy
+	  Emax=-9.d99
+	  Imax=1
+	  do i=1, NEB_lastimage
+	    if (Energy_band(i).gt.Emax) then
+	      Imax=i
+	      Emax=Energy_band(i)
+	    end if
+	  end do
+	end if
+
+	call NEB_calculate_tg(0,replica_number,tang_vec)
+
+!Spring Force
+	Fspring=0.d0
+	do i=1, natot
+	  dist01=0.d0
+	  dist12=0.d0
+	  do j=1,3
+	    dist01=dist01+(rclas_BAND(j,i, replica_number+1)-rclas_BAND(j,i, replica_number))**2
+	    dist12=dist12+(rclas_BAND(j,i, replica_number)-rclas_BAND(j,i, replica_number-1))**2
+	  end do
+	  dist01=sqrt(dist01)
+	  dist12=sqrt(dist12)
+	  Fspring(1:3,i)=NEB_spring_constant*(dist01-dist12)*tang_vec(1:3,i) !here distXX in Bohr, force in Hartree/bohr
+	end do
+
+!NEB Force
+	do i=1, natot
+	  Forceproj=0.d0
+	  do j=1,3   
+	    Forceproj=Forceproj+fclas_BAND(j,i,replica_number)*tang_vec(j,i)
+	  end do
+	  if ((NEB_CI.eq.1) .and. (replica_number.eq.Imax)) then !Climb image case
+	    write(*,*) "inv gradient in image:", Imax
+	    fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)-2*Forceproj*tang_vec(1:3,i)
+	  else !Normal NEB case
+	    fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)-Forceproj*tang_vec(1:3,i)
+	    fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)+Fspring(1:3,i) 
+	  end if
+	end do
+	END SUBROUTINE NEB_Force
+
+	SUBROUTINE NEB_status()
+	use scarlett, only: natot, rclas_BAND, NEB_lastimage
+	implicit none
+	double precision :: cosphi, mod_prev, mod_next
+	integer :: i,j,replica_number
+
+	do replica_number=2,NEB_lastimage-1
+	  cosphi=0.d0
+	  mod_prev=0.d0
+	  mod_next=0.d0
+	  do i=1,natot
+	    do j=1,3
+	      cosphi=cosphi+(rclas_BAND(j,i, replica_number+1)-rclas_BAND(j,i, replica_number))* &
+	           (rclas_BAND(j,i, replica_number)-rclas_BAND(j,i, replica_number-1))  
+	      mod_next=mod_next+(rclas_BAND(j,i, replica_number+1)-rclas_BAND(j,i, replica_number))* &
+	          (rclas_BAND(j,i, replica_number+1)-rclas_BAND(j,i, replica_number))
+	      mod_prev=mod_prev+(rclas_BAND(j,i, replica_number)-rclas_BAND(j,i, replica_number-1))*&
+	          (rclas_BAND(j,i, replica_number)-rclas_BAND(j,i, replica_number-1))
+	    end do
+	  end do
+	  mod_prev=sqrt(mod_prev)
+	  mod_next=sqrt(mod_next)
+	  cosphi=cosphi/(mod_prev*mod_next)
+	  if (cosphi .gt. 1.d0) cosphi=1.d0
+	  write(*,*) "NEB status, image: ", replica_number, &
+	  "dist prev, distnext, cos(angle)", mod_prev,mod_next,cosphi
+	end do
+	end SUBROUTINE NEB_status
+
+
 
 	SUBROUTINE NEB_calculate_tg(method,replica_number,tang_vec)
+!this subroutine need checks in method=1 and method=2
 	use scarlett, only: natot, rclas_BAND, Energy_band, PNEB, PNEB_ini_atom, PNEB_last_atom!, NEB_Nimages,
 	implicit none
 	integer, intent(in) :: method, replica_number
@@ -126,6 +198,8 @@
 	initial_atom=1
 	last_atom=natot
 	
+	tang_vec=0.d0
+	
 	if ( PNEB .eq.1 ) then
 	  initial_atom=PNEB_ini_atom
 	  last_atom=PNEB_last_atom
@@ -135,7 +209,7 @@
 
 	IF (method.eq.0) then
 	  tang_vec(1:3,initial_atom:last_atom) =  &
-	  rclas_BAND(1:3,initial_atom:last_atom,replica_number) &
+	  rclas_BAND(1:3,initial_atom:last_atom,replica_number+1) &
 	  - rclas_BAND(1:3,initial_atom:last_atom,replica_number-1)
 	ELSEIF (method.eq.1 .or. method.eq.2) then !The Journal of Chemical Physics 113, 9978 (2000); https://doi.org/10.1063/1.1323224
 	  tang_vecA(1:3,initial_atom:last_atom) = &
@@ -156,8 +230,8 @@
 	    else if (NORMVECA .ne. NORMVECA) then
 	      stop "NAN in tangent vector A"
 	    else
-	      NORMVECA=sqrt(NORMVECA)
-	      tang_vecA(1:3,i)=tang_vecA(1:3,i)/NORMVECA
+!	      NORMVECA=sqrt(NORMVECA)
+!	      tang_vecA(1:3,i)=tang_vecA(1:3,i)/NORMVECA
 	    end if
 	    if (NORMVECB .lt. 1d-300) then
 	      write(*,*) "WARNING : tangB = 0 in ", replica_number,i
@@ -165,8 +239,8 @@
 	    else if (NORMVECB .ne. NORMVECB) then
 	      stop "NAN in tangent vector A"
 	    else
-	      NORMVECB=sqrt(NORMVECB)
-	      tang_vecB(1:3,i)=tang_vecB(1:3,i)/NORMVECB
+!	      NORMVECB=sqrt(NORMVECB)
+!	      tang_vecB(1:3,i)=tang_vecB(1:3,i)/NORMVECB
 	    end if
 	  end do
 
@@ -195,13 +269,10 @@
 	END IF
 	
 	do i=initial_atom,last_atom
-!	  if (i.lt. 9) write(556,*) "tangente", i, tang_vec(1:3,i)
 	  NORMVEC= tang_vec(1,i)**2 + tang_vec(2,i)**2 + tang_vec(3,i)**2
 	  NORMVEC=sqrt(NORMVEC)
 	  if (NORMVEC .lt. 1d-300) then
-!	    write(*,*) "tangent vector null, replica: ",replica_number, "atom ", i
 	     tang_vec(1:3,i)=0.d0
-!	    stop
 	  else if (NORMVEC .ne. NORMVEC) then
 	    stop "NAN in tangent vector"
 	  else
@@ -211,70 +282,18 @@
 	RETURN
 	END SUBROUTINE NEB_calculate_tg
 
-	SUBROUTINE NEB_remove_parallel(replica_number,tang_vec) 
-	use scarlett, only: natot, fclas_BAND!, NEB_Nimages
-	implicit none
-	double precision, dimension(3,natot), intent(in) :: tang_vec
-	double precision ::  proyForce 
-	integer, intent(in) :: replica_number
-	integer :: i
-	proyForce=0.d0
-	do i=1, natot
-	  proyForce=fclas_BAND(1,i,replica_number)*tang_vec(1,i)
-	  proyForce=proyForce+fclas_BAND(2,i,replica_number)*tang_vec(2,i)
-	  proyForce=proyForce+fclas_BAND(3,i,replica_number)*tang_vec(3,i)
-	  fclas_BAND(1:3,i,replica_number)=fclas_BAND(1:3,i,replica_number)-proyForce*tang_vec(1:3,i) 
-	end do
-	return
-	END SUBROUTINE NEB_remove_parallel
-
-
-	SUBROUTINE NEB_calculate_spring_force(methodSF, replica_number, tang_vec, F_spring)
-	use scarlett, only: natot, rclas_BAND!, NEB_Nimages,
-	implicit none
-	double precision, dimension(3,natot), intent(inout) :: F_spring
-	double precision, dimension(3,natot), intent(in)  :: tang_vec
-	double precision, dimension(3) :: auxvector
-	double precision :: auxescalar, auxescalarA, auxescalarB
-	integer :: replica_number
-	integer, intent(in) :: methodSF
-	integer :: i
-	auxescalar=0.d0
-	auxescalarA=0.d0
-	auxescalarB=0.d0
-	F_spring=0.d0
-	do i=1, natot
-	  if (methodSF.eq.1) then
-	    auxvector(1:3)=rclas_BAND(1:3, i, replica_number+1)+rclas_BAND(1:3, i, replica_number-1) - 2*rclas_BAND(1:3, i, replica_number) 
-	    auxescalar=auxvector(1)*tang_vec(1,i)+auxvector(2)*tang_vec(2,i)+auxvector(3)*tang_vec(3,i)
-	  elseif (methodSF.eq.2) then
-	    auxvector(1:3)=rclas_BAND(1:3, i, replica_number+1)-rclas_BAND(1:3, i, replica_number)
-	    auxescalarA=auxvector(1)**2+auxvector(2)**2+auxvector(3)**2
-	    auxvector(1:3)=rclas_BAND(1:3, i, replica_number)-rclas_BAND(1:3, i, replica_number-1)
-	    auxescalarB=auxvector(1)**2+auxvector(2)**2+auxvector(3)**2
-	    auxescalar=sqrt(auxescalarA)-sqrt(auxescalarB)
-	  else
-	    stop "wrong methodSF"
-	  endif
-	    F_spring(1:3,i)=auxescalar*tang_vec(1:3,i)
-	end do
-	return
-	END SUBROUTINE NEB_calculate_spring_force
-
 
 	SUBROUTINE NEB_movement_algorithm(method,MAXFmod_total,NEB_firstimage,NEB_lastimage)
 	use scarlett, only: aclas_BAND_old, NEB_Nimages, natot,rclas_BAND,vclas_BAND,fclas_BAND, masst,  &
-	time_steep_max, NEB_steep_size, NEB_time_steep, NEB_Ndescend, NEB_alpha!, time_steep,
+	time_steep_max, NEB_steep_size, NEB_time_steep, NEB_Ndescend, NEB_alpha
 	implicit none
 	integer :: method
-!	double precision, dimension(3,natot,NEB_Nimages) :: v12clas_BAND
-!	double precision, dimension(3,natot,NEB_Nimages) :: aclas_BAND
 	double precision, intent(in) :: MAXFmod_total
 	double precision :: MAXFmod
 	double precision :: SZstep
 	integer, intent(in) :: NEB_firstimage, NEB_lastimage
 	integer :: replica_number
-	double precision :: Fmod!, velocity_mod!, velocity_proyected,
+	double precision :: Fmod
 	
 	Fmod=0.d0
 	if (method.eq.1) then !steepest descend
@@ -298,9 +317,8 @@
 	  do replica_number=NEB_firstimage+1, NEB_lastimage-1
 	    write(*,*) "moving image ", replica_number
 	    call FIRE(natot, rclas_BAND(:,:,replica_number), fclas_BAND(:,:,replica_number), &
-	    aclas_BAND_old(:,:,replica_number), vclas_BAND(:,:,replica_number), masst, &
-	    NEB_time_steep(replica_number), NEB_Ndescend(replica_number), time_steep_max, &
-	    NEB_alpha(replica_number))
+	    vclas_BAND(:,:,replica_number), NEB_time_steep(replica_number), &
+	    NEB_Ndescend(replica_number), time_steep_max, NEB_alpha(replica_number))
 	    write(*,*) "timesteep", NEB_time_steep(replica_number)
 	    if (NEB_time_steep(replica_number) .lt. 1D-10) NEB_time_steep(replica_number)=1D-2
 	  end do
@@ -454,12 +472,16 @@
 
 
 	subroutine NEB_save_traj_energy()
-	use scarlett, only: natot, na_u, iza, pc, NEB_Nimages, rclas_BAND, Energy_band, Ang
+	use scarlett, only: natot, na_u, iza, pc, NEB_Nimages, rclas_BAND, Energy_band, Ang, fclas_BAND, eV
 	implicit none
 	integer :: replica_number, i
 	integer :: unitnumber
 	character*13 :: fname
+	double precision :: Emax, Fmax
 	
+	Emax=maxval(dabs(Energy_band))
+	Fmax=maxval(dabs(fclas_BAND))
+
 	!save energy
 	  write(*,*)"Energy-band in eV"
 	do replica_number = 1, NEB_Nimages
@@ -467,6 +489,7 @@
 	end do
 	  write(*,*)"Energy-band"
 	
+	  write(*,*)"conv status", Emax/eV, Fmax*Ang/eV
 	if (.false.) then !needs to include a high level of verbose here
 	!open files
 	  do replica_number = 1, NEB_Nimages

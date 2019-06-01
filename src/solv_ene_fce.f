@@ -623,45 +623,48 @@ c si el dihedro es 500 es error y sale
 	  endif
 	  if(evaldihelog(i,j)) then
 	    do m=1,5
-	      k=evaldihe(i,j,m)
-	 if(k.ne.0) then
-           if(multidihe(k).ne.0) then
+	    k=evaldihe(i,j,m)
+	
+	    if(k.ne.0) then
+	      if(multidihe(k).ne.0) then
 c      k=evaldihe(i,j,m)
-       E1=(kdihe(k)/dble(multidihe(k)))*
+		E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))    !multidihe explota (0)
 
-	Edihe_amber=Edihe_amber+E1
+		Edihe_amber=Edihe_amber+E1
 
-	call diheforce(nac,ramber,
+		call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
      .		       kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)    
-      dx=fce(1)
-      dy=fce(2)
-      dz=fce(3)
-      fesq(1,i)=fesq(1,i)+dx
-      fesq(2,i)=fesq(2,i)+dy
-      fesq(3,i)=fesq(3,i)+dz
-	   endif
-        endif
-	enddo
-	else
-       k=dihety(i,j)
-       E1=(kdihe(k)/dble(multidihe(k)))*
+		dx=fce(1)
+		dy=fce(2)
+		dz=fce(3)
+		fesq(1,i)=fesq(1,i)+dx
+		fesq(2,i)=fesq(2,i)+dy
+		fesq(3,i)=fesq(3,i)+dz
+	      endif
+	    endif
+	    enddo
+	  else
+	    k=dihety(i,j)
+	    if (k.ne.0) then
+	      E1=(kdihe(k)/dble(multidihe(k)))*
      .  (1.d0+dCOS((pi/180d0)*(perdihe(k)*dihedral-diheeq(k))))
 	Edihe_amber=Edihe_amber+E1
 
-        call diheforce(nac,ramber,
+	      call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
      .                 kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)
-	dx=fce(1)
-        dy=fce(2)
-        dz=fce(3)
-      fesq(1,i)=fesq(1,i)+dx
-      fesq(2,i)=fesq(2,i)+dy
-      fesq(3,i)=fesq(3,i)+dz
-        endif
-        enddo
-       enddo       
+	      dx=fce(1)
+	      dy=fce(2)
+	      dz=fce(3)
+	      fesq(1,i)=fesq(1,i)+dx
+	      fesq(2,i)=fesq(2,i)+dy
+	      fesq(3,i)=fesq(3,i)+dz
+	    endif
+	  endif
+	  enddo
+	enddo       
 
 c para los dihes en el medio
        do i=1,nac

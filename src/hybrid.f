@@ -542,6 +542,8 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 
 	Ekinion=0.d0
  
+
+!Move system
 	if (idyn .eq. 0) then !Conjugated Gradient
 	  call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
@@ -570,6 +572,8 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 	else
 	  STOP "Wrong idyn value"
 	end if
+
+
 
        if(idyn .gt. 3) then
 	write(6,999)

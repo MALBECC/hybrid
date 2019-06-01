@@ -34,7 +34,7 @@ OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	assignation.o center_rotation.o init_hybrid.o NEB_subs.o\
 	quickmin.o FIRE.o check_convergence.o dynamics.o vmb.o\
         check_and_debug.o MM_atoms_assign.o do_energy_forces.o\
-        hybrid.o \
+        external_bias.o hybrid.o \
 
 # FDF Module
 FDF=libfdf.a
