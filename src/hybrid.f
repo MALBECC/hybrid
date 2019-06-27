@@ -30,30 +30,24 @@
       use fdf
       use ionew, only: io_setup!, IOnode    
       use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
-     . natot,na_u,nroaa,qm, mm, atsym, nparm, 
+     . natot,na_u,nroaa,qm, mm, atsym,  
      . xa, fa,
      . masst,isa, iza, pc, 
      . nac, atname, aaname, atxres, attype, qmattype, aanum, ng1,
-     . bondtype,
-     . kbond,bondeq, bondxat, angletype, kangle,angleeq, angexat,
-     . angmxat,dihetype, kdihe,diheeq, perdihe, multidihe, dihexat, 
-     . dihmxat, imptype, kimp,impeq,perimp, multiimp, impxat, 
-     . scalexat, scale, nonbondedxat, nonbonded, Em, Rm,
-     . fce_amber, fdummy, cfdummy, ng1type, angetype, angmtype,
-     . dihety,dihmty,impty, evaldihelog, evaldihmlog,
-     . atange, atangm,
-     . atdihe,atdihm,atimp,
-     . rclas, vat, aat, izs, evaldihe,evaldihm, 
-     . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, parametro,
+     . bondxat, angexat,
+     . angmxat, dihexat, 
+     . dihmxat, impxat, 
+     . Em, Rm,
+     . fdummy, cfdummy,  
+     . rclas, vat, aat, izs,  
+     . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, 
      . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, !pi,
 !cutoff
-     . r_cut_list_QMMM,blocklist,blockqmmm, blockall,
-     . listqmmm,!MM_freeze_list, !natoms_partial_freeze, 
-!     . coord_freeze, 
+     . blocklist,blockqmmm, blockall,
+     . listqmmm,
 !NEB
      . NEB_Nimages, 
      . NEB_firstimage, NEB_lastimage,  
-!     . aclas_BAND_old,
      . rclas_BAND,
      . vclas_BAND, fclas_BAND, Energy_band,
      . NEB_distl,
@@ -68,10 +62,6 @@
      . charge, spin,
 !!outputs
      . writeRF, slabel, traj_frec
-!!,
-!!solo hasta q termine con el forcefield
-!     !. max_angle_ex, max_angle_mid!, max_dihe_ex, max_dihe_mid!, 
-!     !. max_improp!, max_improp_at, max_improp_at
 
       implicit none
 ! General Variables
@@ -96,13 +86,11 @@
       logical :: relaxd ! True when CG converged
       character :: paste*25
       external :: paste
-      logical :: actualiz!MM interaction list control
+!      logical :: actualiz!MM interaction list control
 !!!!
       integer :: nfree !number of atoms without a contrain of movement
       integer :: mmsteps !number of MM steps for each QM step, not tested
-!      integer :: nroaa !number of residues
       integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
-!      integer, dimension(:), allocatable :: atxres !number ot atoms in residue i, no deberia estar fija la dimension
       double precision :: Etot_amber !total MM energy
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
@@ -150,13 +138,7 @@
 
 
 !variables para cuts
-      double precision, allocatable, dimension(:,:) :: r_cut_QMMM,
-     .  F_cut_QMMM
-      double precision, allocatable, dimension(:) :: Iz_cut_QMMM
       integer :: at_MM_cut_QMMM!, r_cut_pos
-!      double precision :: r12 !auxiliar
-!      integer :: i_qm, i_mm ! auxiliars
-!      logical :: done, done_freeze!, done_QMMM !control variables
 
 ! restarts
       logical :: foundcrd
@@ -174,7 +156,7 @@
 
 ! Others that need check
 !!!! General Variables
-      real(dp) :: dt
+      real(dp) :: dt !time step
       real(dp) :: volcel
       external :: volcel
 
@@ -197,7 +179,6 @@
 
 !--------------------------------------------------------------------
 !need to move this to an initializacion subroutine
-!      allocate(atxres(20000))
       allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
       allocate(atmsconstr(20,20), ndists(20))
 
@@ -219,6 +200,7 @@
       foundxv=.false.
       recompute_cuts=.true.
       cmcf = 0
+      imm=1
 ! Initialize IOnode
       call io_setup   
 
@@ -417,10 +399,8 @@ C Calculate Rcut & block list QM-MM
 
 ! Calculate blockall for full-MM simulation JOTA
       if(mm.and. .not. qm) then
-
         call fixed0(res_ref,natot,nroaa,atxres,rclas,blockall,
      .              radbloqmmm,radinnerbloqmmm)
-
       endif
 ! nrjota hardcodeado = 1
 
@@ -496,280 +476,17 @@ C Calculate Rcut & block list QM-MM
 	  end if
 
 
-! Calculate Energy and Forces using Lio as Subroutine
-          if(qm) then
-            if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
-            if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
-            if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
- 
-            call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm,
-     .      rcorteqmmm,nroaa)!,atxres)
+	  do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
+       call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
+     . do_SCF, do_QM_forces, do_properties, istp, step,
+     . nbond, nangle, ndihe, nimp, Etot_amber, Elj,
+     . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
+     . rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
+     . radblommbond, optimization_lvl, dt, sfc, water,
+     . imm)
 
-            allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
-     .      F_cut_QMMM(3,at_MM_cut_QMMM+na_u), 
-     .      Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
-            r_cut_QMMM=0.d0
-            F_cut_QMMM=0.d0
-            Iz_cut_QMMM=0
-
-
-c	  recompute_cuts=.true.
-c	  if (istep.eq.inicoor) recompute_cuts=.true.
-c	  if (replica_number.gt.1) recompute_cuts=.false.
-
-c	  if (recompute_cuts) then ! define lista de interacciones en el primer paso de cada valor del restrain
-c	    if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
-c	    if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
-c	    if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
-c	    r_cut_list_QMMM=0
-c	    r_cut_pos=0
-c	    at_MM_cut_QMMM=0
-
-c	    if (istepconstr.eq.1) then
-c		MM_freeze_list=.true.
-c		do i_qm=1,na_u
-c		  MM_freeze_list(i_qm)=.false.
-c		end do
-c	    end if
-
-c	    do i_mm=1, nac !MM atoms
-c	      i_qm=0
-c	      done=.false.
-c              done_freeze=.false.
-c              done_QMMM=.false.
-c	      do while (i_qm .lt. na_u .and. .not. done) !QM atoms
-c	        i_qm=i_qm+1
-c                r12=(rclas(1,i_qm)-rclas(1,i_mm+na_u))**2.d0 +
-c     .              (rclas(2,i_qm)-rclas(2,i_mm+na_u))**2.d0 +
-c     .              (rclas(3,i_qm)-rclas(3,i_mm+na_u))**2.d0
-c
-c	        if(r12 .lt. rcorteqmmm .and. .not. done_QMMM) then
-c	          done_QMMM=.true.
-c	          at_MM_cut_QMMM=at_MM_cut_QMMM+1
-c	          r_cut_pos=r_cut_pos+1
-c	          r_cut_list_QMMM(i_mm)=r_cut_pos
-c	        end if
-
-
-
-c		if (istepconstr.eq.1) then !define lista de movimiento para la 1er foto
-c	          if(r12 .lt. radbloqmmm .and. .not. done_freeze) then
-c	             MM_freeze_list(i_mm+na_u)=.false.
-c	             done_freeze=.true.
-c	          end if
-c		end if
-c
-
-
-c		done=done_QMMM .and. done_freeze
-c	      end do
-c	    end do
-
-
-c	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u),
-c     .    F_cut_QMMM(3,at_MM_cut_QMMM+na_u),
-c     .    Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
-
-c	  r_cut_QMMM=0.d0
-c	  F_cut_QMMM=0.d0
-c	  Iz_cut_QMMM=0
-c	  end if
-
-
-!copy position and nuclear charges to cut-off arrays
-          do i=1,natot !barre todos los atomos
-            if (i.le.na_u) then !QM atoms
-              r_cut_QMMM(1:3,i)= rclas(1:3,i)
-            else if (r_cut_list_QMMM(i-na_u) .ne. 0) then !MM atoms inside cutoff
-	      r_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u) = rclas(1:3,i)
-              Iz_cut_QMMM(r_cut_list_QMMM(i-na_u))= pc(i-na_u)
-            end if
-          end do
-	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, 
-     .     F_cut_QMMM,
-     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
-
-
-c return forces to fullatom arrays
-          do i=1, natot
-	    if (i.le.na_u) then !QM atoms
-	      fdummy(1:3,i)=F_cut_QMMM(1:3,i)
-	    else if (r_cut_list_QMMM(i-na_u).ne.0) then !MM atoms in cut-off
-              fdummy(1:3,i)=
-     .        F_cut_QMMM(1:3,r_cut_list_QMMM(i-na_u)+na_u)
-	    end if
-          end do
-        endif !qm    termino el if(qm)
-! here Etot in Hartree, fdummy in Hartree/bohr
-
-! Start MMxQM loop
-          do imm=1,mmsteps    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
-            step = step +1
-            if(mmsteps.ne.1) then
-              write(6,*)
-              write(6,'(A)')    '*******************************'
-              write(6,'(A,i5)') '   MM x QM Step : ', imm 
-              write(6,'(A)')    '*******************************'
-            endif
-	
-! Calculation of last QM-MM interaction: LJ Energy and Forces only 
-            if((qm.and.mm)) then
-              call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
-            endif !qm & mm
-
-! LinkAtom: set again linkmm atoms parameters
-            if(qm.and.mm) then
-              if(linkatom) then
-                do i=1,numlink
-                  pc(linkmm(i,1:4))=pclinkmm(i,1:4)
-                  Em(na_u+linkmm(i,1:1))=Emlink(i,1:1)
-                enddo
-              endif !LA
-            endif !qm & mm
-
-! Calculate pure Solvent energy and forces
-! Forces in Hartree/bohr JOTA
-            if(mm) then
-
-      call solv_ene_fce(natot,na_u,nac,ng1,rclas,Em,Rm,pc(1:nac),
-     .    Etot_amber,fce_amber,attype,
-     .    nbond,nangle,ndihe,nimp,multidihe, multiimp,kbond,bondeq,
-     .    kangle,angleeq,kdihe,diheeq,kimp,impeq,perdihe,perimp,
-     .    bondtype,angletype,dihetype,imptype,
-     .    bondxat,angexat,angmxat,dihexat,dihmxat,impxat,atange,
-     .    atangm,atdihe,atdihm,atimp,
-     .    ng1type,angetype,angmtype,evaldihe,evaldihm,
-     .    dihety,dihmty,impty,nonbonded,scale,nonbondedxat,scalexat,
-     .    evaldihelog,evaldihmlog,step,nparm,
-     .    actualiz,rcortemm,
-     .    atname,aaname,sfc,dt,
-     .    water,masst,radblommbond)
-            endif !mm
-
-
-! fce_amber in kcal/(molAng) 
-
-! converts fdummy to Kcal/mol/Ang          
-            fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang*kcal/eV
-
-! here Etot in Hartree, fdummy in kcal/mol Ang
-
-! add famber to fdummy  
-            if(mm) then
-              fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot)
-     .        +fce_amber(1:3,1:nac)
-            endif !mm
-
-! here fdummy in kcal/mol/Ang
-
-! Calculation of LinkAtom Energy and Forces
-            if(qm.and.mm ) then
-              if(linkatom) then
-        call link2(numlink,linkat,linkqm,linkmm,linkmm2,rclas,
-     .  natot,nac,fdummy,attype,nparm,
-     .  nbond,nangle,ndihe,multidihe,kbond,bondeq,
-     .  kangle,angleeq,kdihe,diheeq,perdihe,
-     .  bondtype,angletype,dihetype,linkqmtype,
-     .  Elink,parametro,step)
-! Set again link atmos parameters to zero for next step  
-                do i=1,numlink
-        pclinkmm(i,1:4)=pc(linkmm(i,1:4))
-        pc(linkmm(i,1:1))=0.d0
-        pc(linkmm(i,2:4))=pc(linkmm(i,2:4))+pclinkmm(i,1)/3.d0
-        Em(na_u+linkmm(i,1:1))=0.d0
-                enddo
-              endif ! LA
-            endif !qm & mm
-
-        if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
-
-! Calculation of Constrained Optimization Energy and Forces 
-        if(imm.eq.1) then
-          if(constropt) then
-        call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
-     .  nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr,
-     .  ndists,coef)
-	  if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
-          endif 
-        endif !imm
-
-
-! Converts fdummy Hartree/bohr
-        fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*eV/(Ang*kcal)
-
-! here Etot in Hartree, fdummy in Hartree/bohr
-
-! Writes final energy decomposition
-
-	Etots=Etot+1.d0*(Elj+(Etot_amber+Elink)*eV/kcal) !Elj in Hartree, Etot_amber and Elink in kcal/mol
-       
-! here Etot in Hartree
-	write(6,*)
-	write(6,'(/,a)') 'hybrid: Energy Decomposition (eV):'
-	if(qm) write(6,999)           'Elio :',Etot/eV      
-	if(qm.and.mm) write(6,999)    'Elj:    ',Elj/eV       
-	if(mm) write(6,999)      'Esolv:  ',Etot_amber/kcal   
-	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink/kcal
-	write(6,999)    'Etots:  ',Etots/eV
-       call flush(6)
-! saque if para Etots
-
-! Sets fdummy to zero inside mmxqm step
-       if(qm.and.mm) then
-         if(imm.ne.1) then
-           fdummy(1:3,1:na_u) = 0.d0
-           vat(1:3,1:na_u) = 0.d0
-           if(linkatom) then
-             do i=1,numlink
-               fdummy(1:3,linkmm(i,1)+na_u)=0.d0
-               vat(1:3,linkmm(i,1)+na_u)=0.d0
-             enddo
-           endif !LA
-         endif !imm
-       endif !qm & mm
-
-! here Etot in Hartree, fdummy in Hartree/bohr
-
-! Impose constraints to atomic movements by changing forces
-       call fixed2(na_u,nac,natot,blocklist,blockqmmm,
-     .             fdummy,cfdummy,vat,optimization_lvl,blockall)
-! from here cfdummy is the reelevant forces for move system
-! here Etot in Hartree, cfdummy in Hartree/bohr
-
-
-! Accumulate coordinates in PDB/CRD file for animation
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
-
-! freeze QM atom   Jota, meter todo esto en fixed 2
-c        if (optimization_lvl .eq. 2)  then
-c          do inick=1, na_u
-c            cfdummy(1:3,inick) = 0.d0
-c          end do
-c        end if
-
-! freeze MM atom
-c	if (qm) then
-c        do inick=1, natot
-c          if(MM_freeze_list(inick)) then
-c            cfdummy(1:3,inick) = 0.d0
-c          end if
-c        end do
-c	endif !jota
-
-! partial freeze
-c	do inick=1,natoms_partial_freeze
-c	  do jnick=1,3
-c	    if (coord_freeze(inick,1+jnick) .eq. 1) then
-c	      cfdummy(jnick,coord_freeze(inick,1))=0.d0
-c	      vat(jnick,coord_freeze(inick,1))=0.d0 !JOTA
-c	    end if
-c	  end do
-c	enddo   JOTA lo pusimos en fixed2
-
-
-! write xyz, hay q ponerle un if para escribir solo cuando se necesita
-c	call write_xyz(natot, na_u, iza, pc, rclas)
 
 C Write atomic forces 
       fmax = 0.0_dp
@@ -922,7 +639,7 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
       endif
 
 ! Exit MMxQM loop
-      enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Pasos MMxQM
+	enddo !imm                          !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< <<< Pasos MMxQM REVISAR JOTA
 
       end do!<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
 
@@ -1016,13 +733,13 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 
 
 ! properties calculation in lio for optimized geometry
-      if (idyn .ne. 1 .and. qm) then
-      do_properties=.true.
-      call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
-     .     F_cut_QMMM,
-     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties)
-      do_properties=.false.
-      end if
+!      if (idyn .ne. 1 .and. qm) then
+!      do_properties=.true.
+!      call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot,
+!     .     F_cut_QMMM,
+!     .     Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties)
+!      do_properties=.false.
+!      end if
       enddo !istepconstr                 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 
 

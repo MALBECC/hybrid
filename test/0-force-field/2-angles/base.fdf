@@ -12,6 +12,7 @@ PFIntegrationOutput 1
 MD.UseSaveXV F
 MD.TypeOfRun    CG        
 MD.NumCGsteps   0       
+Verbose 9999
  
 %block SolventInput
 ATOM      1  H1  NICKH   1      -1.000   0.000   0.000
