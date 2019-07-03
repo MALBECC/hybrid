@@ -97,7 +97,7 @@
 
 	SUBROUTINE NEB_Force(replica_number,NEB_spring_constant)
 !this subroutine obtains nundged elastic band force for each atom in replica_number
-	use scarlett, only: natot, rclas_BAND, Energy_band, fclas_BAND, NEB_firstimage, NEB_lastimage, NEB_CI
+	use scarlett, only: natot, rclas_BAND, Energy_band, fclas_BAND, NEB_firstimage, NEB_lastimage, NEB_CI, NEB_Nimages
 	implicit none
 	integer, intent(in) :: replica_number
 	double precision, intent(in) :: NEB_spring_constant
@@ -107,7 +107,7 @@
 	integer :: Imax
 	integer :: i, j
 
-	if (replica_number.eq.NEB_firstimage .or. replica_number.eq. NEB_lastimage) return
+	if (replica_number.eq.1 .or. replica_number.eq. NEB_Nimages) return
 
 	if (NEB_CI.eq.1) then !find image with max energy
 	  Emax=-9.d99
@@ -153,6 +153,7 @@
 	END SUBROUTINE NEB_Force
 
 	SUBROUTINE NEB_status()
+!this subroutine calculate distance and angles betwee NEB replicas
 	use scarlett, only: natot, rclas_BAND, NEB_lastimage
 	implicit none
 	double precision :: cosphi, mod_prev, mod_next
@@ -471,16 +472,21 @@
 
 
 
-	subroutine NEB_save_traj_energy()
-	use scarlett, only: natot, na_u, iza, pc, NEB_Nimages, rclas_BAND, Energy_band, Ang, fclas_BAND, eV
+	subroutine NEB_save_traj_energy(step,slabel)
+	use scarlett, only: natot, na_u, iza, pc, NEB_Nimages, rclas_BAND, Energy_band, Ang, fclas_BAND, eV, idyn
 	implicit none
+	character*20, intent(in) :: slabel
+	integer,  intent(in) :: step
 	integer :: replica_number, i
 	integer :: unitnumber
 	character*13 :: fname
 	double precision :: Emax, Fmax
 	
+
 	Emax=maxval(dabs(Energy_band))
 	Fmax=maxval(dabs(fclas_BAND))
+
+	call wriene(step,slabel,idyn,Emax,Fmax) !Need to verify units here, Nick
 
 	!save energy
 	  write(*,*)"Energy-band in eV"
@@ -490,6 +496,7 @@
 	  write(*,*)"Energy-band"
 	
 	  write(*,*)"conv status", Emax/eV, Fmax*Ang/eV
+
 	if (.false.) then !needs to include a high level of verbose here
 	!open files
 	  do replica_number = 1, NEB_Nimages
@@ -502,7 +509,6 @@
 	    open(unit=unitnumber,file=fname, access='APPEND')
 	  end do
 	
-
 	!write .xyz
 	  do replica_number = 1, NEB_Nimages
 	    unitnumber=replica_number+500

@@ -434,9 +434,7 @@ C Calculate Rcut & block list QM-MM
       do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
         optimization_lvl=3
-        if (opt_scheme .eq. 1) then
-          optimization_lvl=1
-        end if
+        if (opt_scheme .eq. 1) optimization_lvl=1
 
         if(constropt) then
           write(6,*)
@@ -471,8 +469,16 @@ C Calculate Rcut & block list QM-MM
 
 !start loot over NEB images
 	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
-	  if (idyn .eq.1) then
-	    rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
+	  if (idyn .eq.1) rclas(1:3,1:natot)=
+     .                 rclas_BAND(1:3,1:natot,replica_number)
+
+	  if (NEB_Nimages.gt.1) then
+          write(6,'(/2a)') '                        ',
+     .           '================================================'
+          write(6,'(28(" "),a,i6)') 'Force calculation on Image = ',
+     .    replica_number
+          write(6,'(2a)') '                        ',
+     .           '================================================'
 	  end if
 
 
@@ -534,7 +540,6 @@ C Write atomic forces
 	   open(unit=969, file="Pos_forces.dat")
            do itest=1, natot
 	      write(969,423) itest, rclas(1:3,itest)*Ang,
-c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
      .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA saco *0.5 
            end do
 	   close(969)
@@ -555,8 +560,6 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 	  call check_convergence(relaxd, cfdummy)
 	  if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat,
      .    time_steep, Ndescend, time_steep_max, alpha)
-!call FIRE(natot, rclas,cfdummy, aat, vat, 
-!     .    masst, time_steep,Ndescend, time_steep_max, alpha)
 	elseif (idyn .eq. 4) then
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
      .        masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
@@ -668,8 +671,9 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 	end if
 
 
-	call NEB_save_traj_energy()
-	call NEB_steep(istep, relaxd) 
+!	call NEB_save_traj_energy(istp,slabel)
+	call NEB_steep(istp, relaxd) 
+	call NEB_save_traj_energy(istp,slabel)
 
 ! Calculation Hlink's New positions 
         if(qm.and.mm) then

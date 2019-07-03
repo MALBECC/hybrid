@@ -216,10 +216,6 @@
 	double precision :: NEB_spring_constant !cosntant for space images
 	double precision, allocatable, dimension(:,:,:) :: aclas_BAND_old !aceleration of previus step
 	double precision, dimension(:,:,:), allocatable :: rclas_BAND!Position of all atoms in BAND method
-
-!        real(qp), dimension(:,:,:), allocatable :: rclas_BAND
-
-
 	double precision, dimension(:,:,:), allocatable :: vclas_BAND!velocities of all atoms in BAND method
 	double precision, dimension(:,:,:), allocatable :: fclas_BAND!Force all atoms in BAND method
 	double precision, dimension(:,:,:), allocatable :: fclas_BAND_fresh !Force all atoms in BAND method just for energy gradient

@@ -1,5 +1,6 @@
 	subroutine FIRE(natot, pos, Force, vel,  time_steep, Ndescend, time_steep_max, alpha)
-!Herbol, H. C.; Stevenson J.; Clancy, P., JCTC 2017 13 (7), 3250-3259
+!Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
+!Herbol, Stevenson, Clancy, JCTC 2017 13 (7), 3250-3259
 !FIRE optimization algorithm, Nfoglia 05/19 
 	use scarlett, only : Ndamped
 	implicit none
@@ -29,7 +30,7 @@
 	  velocity_mod=sqrt(velocity_mod)
 	  Fmod=sqrt(Fmod)
 	  velocity_proyected=velocity_proyected+velocity_proyected_at !P in paper
-	  if (Fmod.ne. 0.d0) then
+	  if (Fmod.ne.0.d0) then
 	    vel_now(1:3,i)=(1.d0-alpha)*vel(1:3,i)+alpha*velocity_mod*Force(1:3,i)/Fmod
 	  else
 	    vel_now(1:3,i)=vel(1:3,i)
