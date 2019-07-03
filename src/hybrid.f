@@ -459,8 +459,8 @@ C Calculate Rcut & block list QM-MM
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 7) 
-     .    STOP 'only CG, QM, FIRE or NEB minimization available'
+          if (idyn .ge. 8) 
+     .    STOP 'only STEEP, CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
           write(6,'(2a)') '                        ',
@@ -540,7 +540,7 @@ C Write atomic forces
 	   open(unit=969, file="Pos_forces.dat")
            do itest=1, natot
 	      write(969,423) itest, rclas(1:3,itest)*Ang,
-     .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA saco *0.5 
+     .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol
            end do
 	   close(969)
         end if
@@ -572,6 +572,9 @@ C Write atomic forces
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
 !tauber, tt
 !iunit fijado en 3
+	elseif (idyn .eq. -1) then
+	  call check_convergence(relaxd, cfdummy)
+	  call steep(natot, rclas, cfdummy, Etots, istep)
 	else
 	  STOP "Wrong idyn value"
 	end if

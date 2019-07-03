@@ -25,7 +25,7 @@ what:
 	@echo
 
 # Note that machine-specific files are now in top Src directory.
-OBJS =  chkdim.o conjgr.o fixed.o iofa.o ofc.o functions.o \
+OBJS =  chkdim.o steep.o conjgr.o fixed.o iofa.o ofc.o functions.o \
 	inver.o ioxv.o paste.o reclat.o \
 	reinit.o timestamp.o volcel.o cgvc.o iocg.o \
 	centerall.o ran3.o dot.o readall.o subconstr.o \

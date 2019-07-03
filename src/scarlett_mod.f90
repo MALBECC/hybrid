@@ -38,16 +38,18 @@
 	integer, dimension(:), allocatable, save:: blockall !JOTA
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
-!Dynamics
+!Dynamics & optimization
+	double precision :: Eprev !total energy of previous steep for gradient descend
+	double precision :: lambda !steep size in gradient descend
 	double precision :: Ekinion ! Kinectic energy
 	double precision :: tempion ! Actual Temperature of system
-        double precision :: tempqm ! Actual Temperature of QM subsystem
+	double precision :: tempqm ! Actual Temperature of QM subsystem
 	double precision :: tempinit ! Starting Temperature
 	double precision :: tt ! Target Temperature
 	double precision :: tauber ! Bath Coupling Constant Berendsen
-        double precision :: kn ! Kinetic energy of Nose variable
-        double precision :: vn ! Potential energyy of Nose var
-        double precision :: mn ! Mass of Nose thermostat
+	double precision :: kn ! Kinetic energy of Nose variable
+	double precision :: vn ! Potential energyy of Nose var
+	double precision :: mn ! Mass of Nose thermostat
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms

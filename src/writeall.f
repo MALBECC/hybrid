@@ -1,41 +1,34 @@
 c subroutine that writes the energy  
 
-      subroutine wriene(istp,slabel,idyn,Etots,cfmax)  
+	subroutine wriene(istp,slabel,idyn,Etots,cfmax)  
 
-      use ionew
-      use scarlett, only: Ang,eV
-      implicit          none
-      character         slabel*20, paste*24
-      integer           istp,idyn
-      double precision  Etots, cfmax
-      external          paste 
+	use ionew, only:io_assign,io_close
+	use scarlett, only: Ang,eV
+	implicit          none
+	character         slabel*20, paste*24
+	integer           istp,idyn
+	double precision  Etots, cfmax
+	external          paste 
 
-      character         fname*24 
-      logical           frstme
-      integer           unit
-      save              frstme,unit,fname
-      data              frstme /.true./
+	character         fname*24 
+	logical           frstme
+	integer           unit
+	save              frstme,unit,fname
+	data              frstme /.true./
 
 c -------------------------------------------------------------------
+	if ( frstme ) then
+	  fname = paste(slabel,'.ene')
+	  frstme = .false.
+	endif
 
-      if ( frstme ) then
-        fname = paste(slabel,'.ene')
-c cambiado para E de lio
-        frstme = .false.
-      endif
-
-      call io_assign(unit)
-      open( unit, file=fname, form = 'formatted', position='append',
+	call io_assign(unit)
+	open( unit, file=fname, form = 'formatted', position='append',
      .      status='unknown')
-
-!	if(idyn .ne. 1) then
-	  write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
-!	endif
-
-      call io_close(unit)
- 
-      return
-      end
+	write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
+	call io_close(unit)
+ 	return
+	end subroutine wriene
 
 c*************************************************************************
 c subroutine that writes the coordinates in PDB/CRD format

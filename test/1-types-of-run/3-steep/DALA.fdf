@@ -10,7 +10,7 @@ MD.MaxForceTol    0.00004 eV/Ang
 NumberOfSolventAtoms   22
 MD.UseSaveXV F
 MD.UseSaveCG  F
-MD.TypeOfRun QM
+MD.TypeOfRun STEEP
 MD.NumCGsteps  50000
 
 
