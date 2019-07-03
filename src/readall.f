@@ -234,13 +234,19 @@ C Kind of dynamics
      .     'read: Dynamics option                  = ',
      .     '    STEEP coord. optimization'
           usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+        elseif (leqi(dyntype,'l-bfgs')) then
+        idyn = -2
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    L-BFGS coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
       else
         write(6,100) 
         write(6,101) 
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:  STEEP - CG - QM - FIRE - NEB            '
+        write(6,'(a)') 'read:  STEEP - CG - QM - FIRE - NEB - L-BFGS   '
         write(6,102)
         call die
       endif 

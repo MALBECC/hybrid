@@ -177,6 +177,20 @@
      . wripdb, wriene, wrirtc, subconstr1, subconstr2, subconstr3
 
 
+! L_BFGS variables
+	integer,  parameter    :: m = 5, iprint = 1
+	real(dp), parameter    :: factr  = 1.0d+7, pgtol  = 1.0d-99
+	character(len=60)      :: task, csave
+	logical                :: lsave(4)
+	integer                :: isave(44)
+	real(dp)               :: dsave(29)
+	integer,  allocatable  :: nbd(:), iwa(:)
+	real(dp), allocatable  :: wa(:), limlbfgd(:)
+	integer :: looplb
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 !--------------------------------------------------------------------
 !need to move this to an initializacion subroutine
       allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
@@ -417,6 +431,16 @@ C Calculate Rcut & block list QM-MM
      .  call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 !tempinit
 
+!L-BFGS initialization
+        if (idyn .eq.-2) then
+	write(*,*) "inicializo"
+          allocate ( nbd(3*natot),limlbfgd(3*natot))
+          allocate ( iwa(9*natot) )
+          allocate ( wa(6*m*natot + 15*natot + 11*m*m + 8*m) )
+          nbd=0
+          limlbfgd=0.d0
+          task = 'START'
+        endif
 
 
 
@@ -560,21 +584,30 @@ C Write atomic forces
 	  call check_convergence(relaxd, cfdummy)
 	  if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat,
      .    time_steep, Ndescend, time_steep_max, alpha)
-	elseif (idyn .eq. 4) then
+	elseif (idyn .eq. 4) then !verlet
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
      .        masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
 !iquench lo dejamos como 0, luego cambiar
-        elseif (idyn .eq. 5) then
+        elseif (idyn .eq. 5) then !berendsen
           call berendsen(istp,3,natot,cfdummy,dt,tauber,masst,
      .        ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
-        elseif (idyn .eq. 6) then
+        elseif (idyn .eq. 6) then !nose
           call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
 !tauber, tt
 !iunit fijado en 3
-	elseif (idyn .eq. -1) then
+	elseif (idyn .eq. -1) then !steepest descend
 	  call check_convergence(relaxd, cfdummy)
 	  call steep(natot, rclas, cfdummy, Etots, istep)
+	elseif (idyn .eq. -2) then !L-BFGS
+	  call check_convergence(relaxd, cfdummy)
+	  looplb=1
+	  do while(looplb.eq.1)
+	    call setulb (3*natot, m, rclas, limlbfgd, limlbfgd, nbd,
+     .                   Etots,-cfdummy, factr, pgtol, wa, iwa, task,
+     .                   iprint, csave, lsave, isave, dsave )
+	    if(task(1:2).eq.'FG') looplb=0
+	  end do
 	else
 	  STOP "Wrong idyn value"
 	end if

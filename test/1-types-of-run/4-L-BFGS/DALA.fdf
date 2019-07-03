@@ -6,12 +6,12 @@ NumberOfSpecies      0
 NetCharge 0.0
 FixSpin  T
 TotalSpin 0.0
-MD.MaxForceTol    0.00004 eV/Ang
+MD.MaxForceTol    0.0004 eV/Ang
 NumberOfSolventAtoms   22
 MD.UseSaveXV F
 MD.UseSaveCG  F
-MD.TypeOfRun FIRE
-MD.NumCGsteps  5000
+MD.TypeOfRun L-BFGS
+MD.NumCGsteps  50000
 
 
 %block SolventInput

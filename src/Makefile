@@ -1,10 +1,13 @@
 # Makefile for HYBRID 
 #
 
-default: what hybrid
+default: what LBFGS hybrid
 # what hybrid
 .SUFFIXES: .f .F .o .a  .f90 .F90
 #
+
+#LBFGSB  = L-BFGS/lbfgsb.f L-BFGS/linpack.f L-BFGS/blas.f L-BFGS/timer.f
+
 
 FC =
 FFLAGS =
@@ -23,6 +26,11 @@ what:
 	@echo "precision: ${precision}"
 	@echo "analytics: ${analytics}"
 	@echo
+
+LBFGS:
+	(cd L-BFGS ; $(MAKE) )
+
+LBFGSB  = L-BFGS/lbfgsb.f L-BFGS/linpack.f L-BFGS/blas.f L-BFGS/timer.f
 
 # Note that machine-specific files are now in top Src directory.
 OBJS =  chkdim.o steep.o conjgr.o fixed.o iofa.o ofc.o functions.o \
@@ -93,10 +101,10 @@ LIO_OBJS = $(wildcard $(LIO_PATH)/lioamber/obj/*.o)
 
 HFLAGS += -O2 -L../lio/g2g
 
-hybrid: version $(FDF) $(ALL_OBJS)
+hybrid: version $(FDF) $(ALL_OBJS) $(LBFGS)
 	@mkdir -p ../bin
 	$(FC) -o ../bin/hybrid \
-		$(HFLAGS) $(ALL_OBJS) $(LIO_OBJS) $(FDF) $(LIBS)  
+		$(HFLAGS) $(ALL_OBJS) $(LBFGSB) $(TIMER) $(LIO_OBJS) $(FDF) $(LIBS)  
 
 
 clean: 
@@ -105,4 +113,5 @@ clean:
 	rm -f *.mod
 	rm -f ../bin/hybrid
 	(cd fdf ; $(MAKE) clean)
+	(cd L-BFGS ; $(MAKE) clean)
 
