@@ -39,8 +39,6 @@
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
 !Dynamics & optimization
-	double precision :: Eprev !total energy of previous steep for gradient descend
-	double precision :: lambda !steep size in gradient descend
 	double precision :: Ekinion ! Kinectic energy
 	double precision :: tempion ! Actual Temperature of system
 	double precision :: tempqm ! Actual Temperature of QM subsystem
@@ -50,6 +48,15 @@
 	double precision :: kn ! Kinetic energy of Nose variable
 	double precision :: vn ! Potential energyy of Nose var
 	double precision :: mn ! Mass of Nose thermostat
+
+!optimization
+	double precision :: Eprev !total energy of previous steep for gradient descend
+	double precision :: lambda, lambda_i !steep size in gradient descend, and initial steep size
+	logical :: Steep_change !allow to modify lambda in gradient descend
+	double precision :: normal_mass
+	integer :: lbfgs_verbose
+	integer :: lbfgs_num_corr ! number of corrections used in the limited memory matrix.
+
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms

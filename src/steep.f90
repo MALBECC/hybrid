@@ -5,7 +5,8 @@
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 
 	SUBROUTINE steep(natot, rclas, cfdummy, Energy, istep)
-	use scarlett, only: Eprev, lambda
+	use scarlett, only: Eprev, lambda, lambda_i, Steep_change
+
 	implicit none
 	integer, intent(in) :: natot
 	real*8, intent(in) :: Energy !energy
@@ -16,17 +17,19 @@
 
 	Fmax=0.d0
 	if (istep.eq.1) Eprev=Energy
-	if (istep.eq.1) lambda=1d-3
+	if (istep.eq.1) lambda=lambda_i
 	call maxforce(cfdummy,natot,Fmax) !find max force
 	call move_movesteep(lambda, Fmax, natot, rclas, cfdummy)
 
-	if (Energy.le.Eprev) then
-	  lambda=lambda*1.2d0
-	else
-	  lambda=lambda*0.5d0
+	if (Steep_change) then
+	  if (Energy.le.Eprev) then
+	    lambda=lambda*1.2d0
+	  else
+	    lambda=lambda*0.5d0
+	  end if
+	  if (lambda.gt.0.1d0) lambda=0.5d0
+	  Eprev=Energy
 	end if
-	if (lambda.gt.0.1d0) lambda=0.5d0
-	Eprev=Energy
 	END SUBROUTINE steep
 
 

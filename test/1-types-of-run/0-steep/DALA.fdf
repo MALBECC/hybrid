@@ -11,6 +11,8 @@ NumberOfSolventAtoms   22
 MD.UseSaveXV F
 MD.UseSaveCG  F
 MD.TypeOfRun STEEP
+Steep.in 1d-3
+Steep.change 
 MD.NumCGsteps  50000
 
 

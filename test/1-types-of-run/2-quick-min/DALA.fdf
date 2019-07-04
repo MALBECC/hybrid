@@ -11,8 +11,9 @@ NumberOfSolventAtoms   22
 MD.UseSaveXV F
 MD.UseSaveCG  F
 MD.TypeOfRun QM
+MD.LengthTimeStep 0.5 fs
 MD.NumCGsteps  50000
-
+Mass.normalize 12.d0
 
 %block SolventInput
 ATOM      1  HH31ACE H   1       2.000   1.000   0.000

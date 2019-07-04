@@ -12,6 +12,9 @@ MD.UseSaveXV F
 MD.UseSaveCG  F
 MD.TypeOfRun L-BFGS
 MD.NumCGsteps  50000
+Lbfgs.Verbose  0
+Lbfgs.Corr 5
+
 
 
 %block SolventInput

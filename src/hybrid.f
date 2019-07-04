@@ -58,6 +58,8 @@
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !!FIRE
      . time_steep, Ndescend, time_steep_max, alpha,
+!! LBFGS
+     . lbfgs_verbose, lbfgs_num_corr,
 !!Lio
      . charge, spin,
 !!outputs
@@ -178,7 +180,7 @@
 
 
 ! L_BFGS variables
-	integer,  parameter    :: m = 5, iprint = 1
+!	integer,  parameter    :: m = 5, iprint = 1
 	real(dp), parameter    :: factr  = 1.0d+7, pgtol  = 1.0d-99
 	character(len=60)      :: task, csave
 	logical                :: lsave(4)
@@ -436,12 +438,12 @@ C Calculate Rcut & block list QM-MM
 	write(*,*) "inicializo"
           allocate ( nbd(3*natot),limlbfgd(3*natot))
           allocate ( iwa(9*natot) )
-          allocate ( wa(6*m*natot + 15*natot + 11*m*m + 8*m) )
+          allocate ( wa(6*lbfgs_num_corr*natot + 15*natot + 
+     .    11*lbfgs_num_corr**2 + 8*lbfgs_num_corr) )
           nbd=0
           limlbfgd=0.d0
           task = 'START'
         endif
-
 
 
 !########################################################################################
@@ -603,15 +605,15 @@ C Write atomic forces
 	  call check_convergence(relaxd, cfdummy)
 	  looplb=1
 	  do while(looplb.eq.1)
-	    call setulb (3*natot, m, rclas, limlbfgd, limlbfgd, nbd,
+	    call setulb (3*natot, lbfgs_num_corr, rclas, limlbfgd,
+     .                   limlbfgd, nbd,
      .                   Etots,-cfdummy, factr, pgtol, wa, iwa, task,
-     .                   iprint, csave, lsave, isave, dsave )
+     .                   lbfgs_verbose, csave, lsave, isave, dsave )
 	    if(task(1:2).eq.'FG') looplb=0
 	  end do
 	else
 	  STOP "Wrong idyn value"
 	end if
-
 
 
        if(idyn .gt. 3) then
