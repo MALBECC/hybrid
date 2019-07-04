@@ -1,80 +1,75 @@
-	subroutine FIRE(natot, pos, Force, acel, vel, masst, time_steep, Ndescend, time_steep_max, alpha)
-!FIRE, Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
-!FIRE optimization algorithm, Nfoglia 05/18 
+	subroutine FIRE(natot, pos, Force, vel,  time_steep, Ndescend, time_steep_max, alpha)
+!Bitzek, et. al., Phys. Rev. Lett. 97, 170201 (2006).
+!Herbol, Stevenson, Clancy, JCTC 2017 13 (7), 3250-3259
+!FIRE optimization algorithm, Nfoglia 05/19 
 	use scarlett, only : Ndamped
 	implicit none
-	integer, intent(in) :: natot
+	double precision, dimension(3,natot) :: vel_now, step !FIRE velocity, and movement step
+	double precision :: stepsize, stepmax !square distance and ma square distance in step
+	integer, intent(in) :: natot !number of atoms
 	double precision, dimension(3,natot), intent(in) :: Force
-	double precision, dimension(3,natot), intent(inout) :: vel, acel, pos
-	double precision, dimension(natot), intent(in) :: masst
-	double precision, dimension(3,natot) :: acel_new
-	double precision :: Fmod, velocity_proyected, velocity_proyected_at, velocity_mod
+	double precision, dimension(3,natot), intent(inout) :: vel, pos
+	double precision :: Fmod, velocity_proyected, velocity_proyected_at, velocity_mod 
 	double precision, intent(inout) :: time_steep, alpha, time_steep_max
 	integer, intent(inout) :: Ndescend
-	integer :: i,j
-	logical :: damp
-   	damp=.false.
-	Fmod=0.d0
+	logical :: damp !damping system
+	integer :: i,j !auxiliar
 
-	do i=1, natot
-	  acel_new(1:3, i) = Force(1:3, i)/masst(i)
-	  do j=1,3
-	    Fmod=Fmod + Force(j, i)**2
-	  end do
-	end do
-	Fmod=sqrt(Fmod)
-	vel=vel+0.5d0*(acel+acel_new)*time_steep
-	velocity_proyected=0.d0 !P in paper
-	velocity_mod=0.d0
-    
-	do i=1, natot
+!Assign FIRE velocities
+	velocity_proyected=0.d0
+	do  i=1, natot
+	  Fmod=0.d0
+	  velocity_mod=0.d0
 	  velocity_proyected_at=0.d0
 	  do j=1,3
-	    velocity_proyected_at=velocity_proyected_at+vel(j,i)*Force(j,i)
+	    Fmod=Fmod + Force(j, i)**2
 	    velocity_mod=velocity_mod+vel(j,i)*vel(j,i)
+	    velocity_proyected_at=velocity_proyected_at+vel(j,i)*Force(j,i)
 	    if (vel(j,i).ne.vel(j,i)) STOP "NAN in VEL FIRE"
 	  end do
-	  velocity_proyected=velocity_proyected+velocity_proyected_at
-	  if (velocity_proyected_at .lt. 0.d0) damp=.true.
+	  velocity_mod=sqrt(velocity_mod)
+	  Fmod=sqrt(Fmod)
+	  velocity_proyected=velocity_proyected+velocity_proyected_at !P in paper
+	  if (Fmod.ne.0.d0) then
+	    vel_now(1:3,i)=(1.d0-alpha)*vel(1:3,i)+alpha*velocity_mod*Force(1:3,i)/Fmod
+	  else
+	    vel_now(1:3,i)=vel(1:3,i)
+	  end if
 	end do
-!		damp=.false.
-!		if (velocity_proyected .lt. 0.d0) damp=.true.
-	velocity_mod=sqrt(velocity_mod)
 
+!damp system
+	damp=.false.
+	if (velocity_proyected .lt. 0.d0) damp=.true.
 	if (.not. damp) then
-	  Ndescend=Ndescend+1
-	  if (Ndescend .gt. 5) then
+	  if (Ndescend .gt. Ndamped) then
 	    time_steep=min(time_steep*1.1d0, time_steep_max)
 	    alpha=alpha*0.99d0
 	  end if
-	  do  i=1, natot
-	    Fmod=0.d0
-	    velocity_mod=0.d0
-	
-	    do j=1,3
-	      Fmod=Fmod + Force(j, i)**2
-	      velocity_mod=velocity_mod+vel(j,i)*vel(j,i)
-	    end do
-	     velocity_mod=sqrt(velocity_mod)
-	     Fmod=sqrt(Fmod)
-	     if (Fmod.ne. 0.d0) then
-	       vel(1:3,i)=(1.d0-alpha)*vel(1:3,i)+alpha*velocity_mod*Force(1:3,i)/Fmod
-	     else
-	        vel(1:3,i)=(1.d0-alpha)*vel(1:3,i)
-	     end if
-	  end do
+	  Ndescend=Ndescend+1
 	else
-	  Ndamped=Ndamped+1
-	  write(*,*) "damping system", Ndamped
-	  Ndescend=0
+	  write(*,*) "damping system", alpha, time_steep
+	  vel_now=0.d0
 	  alpha=0.1d0
 	  time_steep=time_steep*0.5d0
-	  vel=0.d0
+	  Ndescend=0
 	end if
 
-!move images
-	pos=pos+vel*time_steep+0.5d0*acel*time_steep**2
-	acel=acel_new
-	return
+
+!Euler step
+	vel=vel_now + Force*time_steep
+	step=vel*time_steep
+	stepmax=0.d0
+	do i=1,natot
+	  stepsize=0.d0
+	  do j=1,3
+	    stepsize=stepmax+step(j,i)**2
+	  enddo
+	  if (stepsize.gt.stepmax) stepmax=stepsize
+	end do
+
+	if(stepmax .gt. 0.1d0) step=0.1d0*step/sqrt(stepmax)
+	pos=pos+step
+
 	end subroutine FIRE
+
 

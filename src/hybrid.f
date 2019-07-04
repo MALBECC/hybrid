@@ -58,6 +58,8 @@
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !!FIRE
      . time_steep, Ndescend, time_steep_max, alpha,
+!! LBFGS
+     . lbfgs_verbose, lbfgs_num_corr,
 !!Lio
      . charge, spin,
 !!outputs
@@ -176,6 +178,20 @@
      . mmForce, readcrd,  prversion, ioxvconstr,  
      . wripdb, wriene, wrirtc, subconstr1, subconstr2, subconstr3
 
+
+! L_BFGS variables
+!	integer,  parameter    :: m = 5, iprint = 1
+	real(dp), parameter    :: factr  = 1.0d+7, pgtol  = 1.0d-99
+	character(len=60)      :: task, csave
+	logical                :: lsave(4)
+	integer                :: isave(44)
+	real(dp)               :: dsave(29)
+	integer,  allocatable  :: nbd(:), iwa(:)
+	real(dp), allocatable  :: wa(:), limlbfgd(:)
+	integer :: looplb
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !--------------------------------------------------------------------
 !need to move this to an initializacion subroutine
@@ -417,7 +433,17 @@ C Calculate Rcut & block list QM-MM
      .  call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 !tempinit
 
-
+!L-BFGS initialization
+        if (idyn .eq.-2) then
+	write(*,*) "inicializo"
+          allocate ( nbd(3*natot),limlbfgd(3*natot))
+          allocate ( iwa(9*natot) )
+          allocate ( wa(6*lbfgs_num_corr*natot + 15*natot + 
+     .    11*lbfgs_num_corr**2 + 8*lbfgs_num_corr) )
+          nbd=0
+          limlbfgd=0.d0
+          task = 'START'
+        endif
 
 
 !########################################################################################
@@ -434,9 +460,7 @@ C Calculate Rcut & block list QM-MM
       do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
         optimization_lvl=3
-        if (opt_scheme .eq. 1) then
-          optimization_lvl=1
-        end if
+        if (opt_scheme .eq. 1) optimization_lvl=1
 
         if(constropt) then
           write(6,*)
@@ -461,8 +485,8 @@ C Calculate Rcut & block list QM-MM
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 7) 
-     .    STOP 'only CG, QM, FIRE or NEB minimization available'
+          if (idyn .ge. 8) 
+     .    STOP 'only STEEP, CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
           write(6,'(2a)') '                        ',
@@ -471,8 +495,16 @@ C Calculate Rcut & block list QM-MM
 
 !start loot over NEB images
 	do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
-	  if (idyn .eq.1) then
-	    rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
+	  if (idyn .eq.1) rclas(1:3,1:natot)=
+     .                 rclas_BAND(1:3,1:natot,replica_number)
+
+	  if (NEB_Nimages.gt.1) then
+          write(6,'(/2a)') '                        ',
+     .           '================================================'
+          write(6,'(28(" "),a,i6)') 'Force calculation on Image = ',
+     .    replica_number
+          write(6,'(2a)') '                        ',
+     .           '================================================'
 	  end if
 
 
@@ -534,14 +566,15 @@ C Write atomic forces
 	   open(unit=969, file="Pos_forces.dat")
            do itest=1, natot
 	      write(969,423) itest, rclas(1:3,itest)*Ang,
-c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
-     .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol JOTA saco *0.5 
+     .        cfdummy(1:3,itest)*kcal*Ang/eV  ! Ang, kcal/ang mol
            end do
 	   close(969)
         end if
 
 	Ekinion=0.d0
  
+
+!Move system
 	if (idyn .eq. 0) then !Conjugated Gradient
 	  call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
@@ -551,23 +584,37 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
      .    vat, masst)
 	elseif (idyn .eq. 3) then !FIRE
 	  call check_convergence(relaxd, cfdummy)
-	  if (.not. relaxd) call FIRE(natot, rclas,cfdummy, aat, vat, 
-     .    masst, time_steep,Ndescend, time_steep_max, alpha)
-	elseif (idyn .eq. 4) then
+	  if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat,
+     .    time_steep, Ndescend, time_steep_max, alpha)
+	elseif (idyn .eq. 4) then !verlet
 	  call verlet2(istp, 3, 0, natot, cfdummy, dt,
      .        masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
 !iquench lo dejamos como 0, luego cambiar
-        elseif (idyn .eq. 5) then
+        elseif (idyn .eq. 5) then !berendsen
           call berendsen(istp,3,natot,cfdummy,dt,tauber,masst,
      .        ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
-        elseif (idyn .eq. 6) then
+        elseif (idyn .eq. 6) then !nose
           call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
 !tauber, tt
 !iunit fijado en 3
+	elseif (idyn .eq. -1) then !steepest descend
+	  call check_convergence(relaxd, cfdummy)
+	  call steep(natot, rclas, cfdummy, Etots, istep)
+	elseif (idyn .eq. -2) then !L-BFGS
+	  call check_convergence(relaxd, cfdummy)
+	  looplb=1
+	  do while(looplb.eq.1)
+	    call setulb (3*natot, lbfgs_num_corr, rclas, limlbfgd,
+     .                   limlbfgd, nbd,
+     .                   Etots,-cfdummy, factr, pgtol, wa, iwa, task,
+     .                   lbfgs_verbose, csave, lsave, isave, dsave )
+	    if(task(1:2).eq.'FG') looplb=0
+	  end do
 	else
 	  STOP "Wrong idyn value"
 	end if
+
 
        if(idyn .gt. 3) then
 	write(6,999)
@@ -662,8 +709,9 @@ c     .        cfdummy(1:3,itest)*kcal/(eV *Ang)  ! Ang, kcal/ang mol
 	end if
 
 
-	call NEB_save_traj_energy()
-	call NEB_steep(istep, relaxd) 
+!	call NEB_save_traj_energy(istp,slabel)
+	call NEB_steep(istp, relaxd) 
+	call NEB_save_traj_energy(istp,slabel)
 
 ! Calculation Hlink's New positions 
         if(qm.and.mm) then

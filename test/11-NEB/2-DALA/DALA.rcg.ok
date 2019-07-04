@@ -1,0 +1,240 @@
+
+ATOM      1  HH31ACE A   1       1.902   2.283   0.736
+ATOM      2  CH3 ACE A   1       1.829   3.350   0.533
+ATOM      3  HH32ACE A   1       1.132   3.806   1.235
+ATOM      4  HH33ACE A   1       1.479   3.513  -0.485
+ATOM      5  C   ACE A   1       3.189   3.983   0.712
+ATOM      6  O   ACE A   1       3.377   4.789   1.612
+ATOM      7  N   ALA A   2       4.113   3.675  -0.197
+ATOM      8  H   ALA A   2       3.851   3.026  -0.920
+ATOM      9  CA  ALA A   2       5.507   4.143  -0.208
+ATOM     10  HA  ALA A   2       5.905   4.017   0.800
+ATOM     11  CB  ALA A   2       6.288   3.207  -1.144
+ATOM     12  HB1 ALA A   2       5.936   3.325  -2.170
+ATOM     13  HB2 ALA A   2       7.351   3.453  -1.107
+ATOM     14  HB3 ALA A   2       6.161   2.170  -0.830
+ATOM     15  C   ALA A   2       5.703   5.645  -0.564
+ATOM     16  O   ALA A   2       6.623   5.988  -1.306
+ATOM     17  N   NME A   3       4.769   6.519  -0.165
+ATOM     18  H   NME A   3       4.066   6.163   0.474
+ATOM     19  CH3 NME A   3       4.766   7.955  -0.450
+ATOM     20  HH31NME A   3       3.902   8.207  -1.066
+ATOM     21  HH32NME A   3       4.715   8.514   0.485
+ATOM     22  HH33NME A   3       5.674   8.245  -0.982
+END  1
+
+ATOM      1  HH31ACE A   1       1.952   2.251   0.629
+ATOM      2  CH3 ACE A   1       1.788   3.307   0.425
+ATOM      3  HH32ACE A   1       1.083   3.720   1.149
+ATOM      4  HH33ACE A   1       1.416   3.457  -0.584
+ATOM      5  C   ACE A   1       3.071   4.066   0.593
+ATOM      6  O   ACE A   1       3.081   5.036   1.331
+ATOM      7  N   ALA A   2       4.107   3.649  -0.130
+ATOM      8  H   ALA A   2       3.937   2.848  -0.714
+ATOM      9  CA  ALA A   2       5.495   4.156  -0.125
+ATOM     10  HA  ALA A   2       5.883   4.005   0.884
+ATOM     11  CB  ALA A   2       6.299   3.237  -1.056
+ATOM     12  HB1 ALA A   2       5.960   3.361  -2.085
+ATOM     13  HB2 ALA A   2       7.357   3.490  -1.002
+ATOM     14  HB3 ALA A   2       6.179   2.196  -0.752
+ATOM     15  C   ALA A   2       5.724   5.665  -0.460
+ATOM     16  O   ALA A   2       6.743   6.017  -1.052
+ATOM     17  N   NME A   3       4.758   6.545  -0.184
+ATOM     18  H   NME A   3       3.965   6.189   0.334
+ATOM     19  CH3 NME A   3       4.772   7.970  -0.467
+ATOM     20  HH31NME A   3       3.909   8.232  -1.085
+ATOM     21  HH32NME A   3       4.717   8.533   0.467
+ATOM     22  HH33NME A   3       5.682   8.264  -1.000
+END  2
+
+ATOM      1  HH31ACE A   1       1.987   2.205   0.521
+ATOM      2  CH3 ACE A   1       1.745   3.247   0.325
+ATOM      3  HH32ACE A   1       1.039   3.619   1.072
+ATOM      4  HH33ACE A   1       1.341   3.388  -0.670
+ATOM      5  C   ACE A   1       2.959   4.111   0.448
+ATOM      6  O   ACE A   1       2.807   5.197   0.975
+ATOM      7  N   ALA A   2       4.098   3.634  -0.060
+ATOM      8  H   ALA A   2       4.016   2.720  -0.471
+ATOM      9  CA  ALA A   2       5.482   4.174  -0.043
+ATOM     10  HA  ALA A   2       5.860   4.012   0.969
+ATOM     11  CB  ALA A   2       6.311   3.267  -0.968
+ATOM     12  HB1 ALA A   2       5.984   3.397  -2.001
+ATOM     13  HB2 ALA A   2       7.365   3.527  -0.897
+ATOM     14  HB3 ALA A   2       6.196   2.223  -0.673
+ATOM     15  C   ALA A   2       5.748   5.684  -0.357
+ATOM     16  O   ALA A   2       6.843   6.039  -0.789
+ATOM     17  N   NME A   3       4.759   6.563  -0.212
+ATOM     18  H   NME A   3       3.899   6.203   0.172
+ATOM     19  CH3 NME A   3       4.782   7.986  -0.480
+ATOM     20  HH31NME A   3       3.924   8.247  -1.104
+ATOM     21  HH32NME A   3       4.711   8.551   0.451
+ATOM     22  HH33NME A   3       5.698   8.283  -1.003
+END  3
+
+ATOM      1  HH31ACE A   1       2.031   2.147   0.423
+ATOM      2  CH3 ACE A   1       1.731   3.172   0.227
+ATOM      3  HH32ACE A   1       1.036   3.508   1.000
+ATOM      4  HH33ACE A   1       1.274   3.302  -0.747
+ATOM      5  C   ACE A   1       2.886   4.114   0.275
+ATOM      6  O   ACE A   1       2.613   5.266   0.545
+ATOM      7  N   ALA A   2       4.099   3.616   0.011
+ATOM      8  H   ALA A   2       4.085   2.635  -0.207
+ATOM      9  CA  ALA A   2       5.474   4.190   0.040
+ATOM     10  HA  ALA A   2       5.844   4.021   1.054
+ATOM     11  CB  ALA A   2       6.322   3.297  -0.881
+ATOM     12  HB1 ALA A   2       6.008   3.432  -1.917
+ATOM     13  HB2 ALA A   2       7.373   3.564  -0.792
+ATOM     14  HB3 ALA A   2       6.212   2.250  -0.595
+ATOM     15  C   ALA A   2       5.764   5.701  -0.252
+ATOM     16  O   ALA A   2       6.908   6.067  -0.516
+ATOM     17  N   NME A   3       4.762   6.574  -0.243
+ATOM     18  H   NME A   3       3.861   6.203   0.002
+ATOM     19  CH3 NME A   3       4.792   7.998  -0.498
+ATOM     20  HH31NME A   3       3.936   8.261  -1.127
+ATOM     21  HH32NME A   3       4.695   8.533   0.442
+ATOM     22  HH33NME A   3       5.714   8.302  -1.003
+END  4
+
+ATOM      1  HH31ACE A   1       2.091   2.097   0.330
+ATOM      2  CH3 ACE A   1       1.740   3.102   0.126
+ATOM      3  HH32ACE A   1       1.064   3.400   0.923
+ATOM      4  HH33ACE A   1       1.212   3.206  -0.812
+ATOM      5  C   ACE A   1       2.850   4.099   0.092
+ATOM      6  O   ACE A   1       2.506   5.264   0.079
+ATOM      7  N   ALA A   2       4.098   3.616   0.083
+ATOM      8  H   ALA A   2       4.118   2.611   0.075
+ATOM      9  CA  ALA A   2       5.466   4.208   0.122
+ATOM     10  HA  ALA A   2       5.823   4.031   1.139
+ATOM     11  CB  ALA A   2       6.333   3.327  -0.793
+ATOM     12  HB1 ALA A   2       6.032   3.467  -1.832
+ATOM     13  HB2 ALA A   2       7.381   3.599  -0.687
+ATOM     14  HB3 ALA A   2       6.224   2.278  -0.516
+ATOM     15  C   ALA A   2       5.769   5.718  -0.146
+ATOM     16  O   ALA A   2       6.935   6.097  -0.237
+ATOM     17  N   NME A   3       4.764   6.577  -0.276
+ATOM     18  H   NME A   3       3.843   6.189  -0.172
+ATOM     19  CH3 NME A   3       4.802   8.002  -0.516
+ATOM     20  HH31NME A   3       3.945   8.285  -1.131
+ATOM     21  HH32NME A   3       4.681   8.516   0.433
+ATOM     22  HH33NME A   3       5.736   8.295  -1.002
+END  5
+
+ATOM      1  HH31ACE A   1       2.125   2.051   0.220
+ATOM      2  CH3 ACE A   1       1.759   3.054   0.013
+ATOM      3  HH32ACE A   1       1.093   3.391   0.791
+ATOM      4  HH33ACE A   1       1.195   3.111  -0.904
+ATOM      5  C   ACE A   1       2.855   4.064  -0.093
+ATOM      6  O   ACE A   1       2.513   5.190  -0.393
+ATOM      7  N   ALA A   2       4.092   3.622   0.152
+ATOM      8  H   ALA A   2       4.098   2.638   0.357
+ATOM      9  CA  ALA A   2       5.456   4.222   0.205
+ATOM     10  HA  ALA A   2       5.803   4.042   1.224
+ATOM     11  CB  ALA A   2       6.344   3.357  -0.705
+ATOM     12  HB1 ALA A   2       6.055   3.502  -1.747
+ATOM     13  HB2 ALA A   2       7.388   3.642  -0.584
+ATOM     14  HB3 ALA A   2       6.240   2.305  -0.437
+ATOM     15  C   ALA A   2       5.756   5.737  -0.042
+ATOM     16  O   ALA A   2       6.912   6.148   0.040
+ATOM     17  N   NME A   3       4.757   6.570  -0.307
+ATOM     18  H   NME A   3       3.843   6.157  -0.344
+ATOM     19  CH3 NME A   3       4.789   7.995  -0.534
+ATOM     20  HH31NME A   3       3.950   8.292  -1.154
+ATOM     21  HH32NME A   3       4.664   8.501   0.424
+ATOM     22  HH33NME A   3       5.734   8.309  -0.990
+END  6
+
+ATOM      1  HH31ACE A   1       2.115   2.042   0.099
+ATOM      2  CH3 ACE A   1       1.770   3.050  -0.110
+ATOM      3  HH32ACE A   1       1.157   3.447   0.688
+ATOM      4  HH33ACE A   1       1.186   3.062  -1.027
+ATOM      5  C   ACE A   1       2.904   4.011  -0.267
+ATOM      6  O   ACE A   1       2.642   5.054  -0.833
+ATOM      7  N   ALA A   2       4.090   3.630   0.222
+ATOM      8  H   ALA A   2       4.061   2.712   0.630
+ATOM      9  CA  ALA A   2       5.450   4.234   0.288
+ATOM     10  HA  ALA A   2       5.790   4.047   1.310
+ATOM     11  CB  ALA A   2       6.355   3.387  -0.617
+ATOM     12  HB1 ALA A   2       6.078   3.536  -1.662
+ATOM     13  HB2 ALA A   2       7.393   3.689  -0.484
+ATOM     14  HB3 ALA A   2       6.265   2.331  -0.361
+ATOM     15  C   ALA A   2       5.734   5.755   0.062
+ATOM     16  O   ALA A   2       6.851   6.202   0.309
+ATOM     17  N   NME A   3       4.753   6.557  -0.337
+ATOM     18  H   NME A   3       3.868   6.114  -0.512
+ATOM     19  CH3 NME A   3       4.774   7.985  -0.543
+ATOM     20  HH31NME A   3       3.940   8.288  -1.180
+ATOM     21  HH32NME A   3       4.657   8.479   0.423
+ATOM     22  HH33NME A   3       5.713   8.309  -0.997
+END  7
+
+ATOM      1  HH31ACE A   1       2.083   2.040  -0.020
+ATOM      2  CH3 ACE A   1       1.789   3.065  -0.231
+ATOM      3  HH32ACE A   1       1.210   3.498   0.577
+ATOM      4  HH33ACE A   1       1.205   3.102  -1.153
+ATOM      5  C   ACE A   1       2.982   3.947  -0.425
+ATOM      6  O   ACE A   1       2.861   4.866  -1.213
+ATOM      7  N   ALA A   2       4.075   3.650   0.288
+ATOM      8  H   ALA A   2       3.966   2.836   0.867
+ATOM      9  CA  ALA A   2       5.437   4.245   0.371
+ATOM     10  HA  ALA A   2       5.766   4.051   1.395
+ATOM     11  CB  ALA A   2       6.366   3.417  -0.530
+ATOM     12  HB1 ALA A   2       6.100   3.570  -1.576
+ATOM     13  HB2 ALA A   2       7.398   3.734  -0.382
+ATOM     14  HB3 ALA A   2       6.286   2.358  -0.283
+ATOM     15  C   ALA A   2       5.695   5.770   0.161
+ATOM     16  O   ALA A   2       6.747   6.259   0.565
+ATOM     17  N   NME A   3       4.741   6.537  -0.361
+ATOM     18  H   NME A   3       3.909   6.065  -0.674
+ATOM     19  CH3 NME A   3       4.764   7.970  -0.555
+ATOM     20  HH31NME A   3       3.947   8.283  -1.204
+ATOM     21  HH32NME A   3       4.641   8.468   0.408
+ATOM     22  HH33NME A   3       5.713   8.286  -0.996
+END  8
+
+ATOM      1  HH31ACE A   1       2.077   2.049  -0.141
+ATOM      2  CH3 ACE A   1       1.841   3.093  -0.339
+ATOM      3  HH32ACE A   1       1.303   3.531   0.496
+ATOM      4  HH33ACE A   1       1.248   3.178  -1.253
+ATOM      5  C   ACE A   1       3.102   3.875  -0.550
+ATOM      6  O   ACE A   1       3.161   4.632  -1.503
+ATOM      7  N   ALA A   2       4.070   3.681   0.349
+ATOM      8  H   ALA A   2       3.848   3.007   1.060
+ATOM      9  CA  ALA A   2       5.430   4.262   0.453
+ATOM     10  HA  ALA A   2       5.748   4.063   1.480
+ATOM     11  CB  ALA A   2       6.377   3.448  -0.442
+ATOM     12  HB1 ALA A   2       6.123   3.605  -1.491
+ATOM     13  HB2 ALA A   2       7.404   3.772  -0.277
+ATOM     14  HB3 ALA A   2       6.299   2.386  -0.204
+ATOM     15  C   ALA A   2       5.649   5.792   0.256
+ATOM     16  O   ALA A   2       6.609   6.331   0.801
+ATOM     17  N   NME A   3       4.734   6.518  -0.388
+ATOM     18  H   NME A   3       3.978   6.008  -0.824
+ATOM     19  CH3 NME A   3       4.744   7.956  -0.561
+ATOM     20  HH31NME A   3       3.931   8.265  -1.221
+ATOM     21  HH32NME A   3       4.622   8.450   0.406
+ATOM     22  HH33NME A   3       5.693   8.270  -1.002
+END  9
+
+ATOM      1  HH31ACE A   1       2.046   2.035  -0.258
+ATOM      2  CH3 ACE A   1       1.896   3.096  -0.449
+ATOM      3  HH32ACE A   1       1.368   3.554   0.386
+ATOM      4  HH33ACE A   1       1.313   3.221  -1.361
+ATOM      5  C   ACE A   1       3.236   3.768  -0.628
+ATOM      6  O   ACE A   1       3.493   4.337  -1.680
+ATOM      7  N   ALA A   2       4.068   3.707   0.413
+ATOM      8  H   ALA A   2       3.728   3.210   1.219
+ATOM      9  CA  ALA A   2       5.424   4.276   0.536
+ATOM     10  HA  ALA A   2       5.739   4.089   1.563
+ATOM     11  CB  ALA A   2       6.388   3.478  -0.354
+ATOM     12  HB1 ALA A   2       6.146   3.639  -1.406
+ATOM     13  HB2 ALA A   2       7.411   3.810  -0.172
+ATOM     14  HB3 ALA A   2       6.315   2.414  -0.126
+ATOM     15  C   ALA A   2       5.597   5.806   0.349
+ATOM     16  O   ALA A   2       6.445   6.384   1.025
+ATOM     17  N   NME A   3       4.716   6.489  -0.390
+ATOM     18  H   NME A   3       4.074   5.942  -0.954
+ATOM     19  CH3 NME A   3       4.730   7.939  -0.570
+ATOM     20  HH31NME A   3       3.921   8.242  -1.236
+ATOM     21  HH32NME A   3       4.607   8.431   0.397
+ATOM     22  HH33NME A   3       5.685   8.246  -1.000
+END 10

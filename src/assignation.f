@@ -4,6 +4,8 @@ c subroutine that asignates masses and specie
       use precision, only : dp
       use fdf, only : fdf_block
       use sys, only : die
+      use scarlett, only: normal_mass
+
       implicit          none
       integer           i,k, na_u, nac, iu
       integer           iza(na_u), izs(na_u+nac)
@@ -15,6 +17,8 @@ C Assigantes solute atomic masses (masst) and atomic symbol (sym)
       masst=0.0
       do i=1,na_u
         masst(i) = ATMASS(iza(i))
+        if (normal_mass .gt. 0.d0 .and. masst(i) .gt. 0.d0)
+     .      masst(i) = normal_mass !normalize mass for optimizations
         sym(i) = SYMBOL(iza(i))
         if(masst(i).eq.0.0) then
           call die("assign: There are solute atoms without mass")
@@ -54,6 +58,8 @@ C Assigantes solvent atomic masses (masst) and atomic symbol (sym)
        call die('assign: There are solvent atoms without atomic number')
       endif
        masst(k) = ATMASS (izs(k))
+       if (normal_mass .gt. 0.d0 .and. masst(k) .gt. 0.d0)
+     . masst(k) = normal_mass
        sym(k)= SYMBOL(izs(k))
       if(masst(k).eq.0.0) then
        call die('assign: There are solvent atoms without mass')

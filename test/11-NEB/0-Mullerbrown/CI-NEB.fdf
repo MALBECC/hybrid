@@ -1,0 +1,39 @@
+SystemName     Test-NEB
+SystemLabel    Test-NEB      
+CenterMolecule T    
+NumberOfAtoms        0
+NumberOfSpecies      0
+NetCharge 0.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.1 eV/Ang 
+NumberOfSolventAtoms      4
+ExternalPot 1
+MD.UseSaveXV T
+MD.TypeOfRun    NEB
+MD.NumCGsteps   5000
+NEB.NumImages   20
+NEB.OptimizationMethod 3
+NEB.SpringConstant 0.051
+Tstep 0.1
+CI-NEB 1
+
+
+NumberOfPartialFreeze 3
+%block PartialFreeze
+2 1 1 1
+3 1 1 1
+4 1 1 1
+%endblock PartialFreeze
+
+
+%block SolventInput
+ATOM      1  H1  NICKH   1      -0.500   1.500   0.000
+ATOM      2  H1  NICKH   2       0.000   0.000   0.000
+ATOM      3  H1  NICKH   3       1.000   0.000   0.000
+ATOM      4  H1  NICKH   4       0.000   1.000   0.000
+%endblock SolventInput
+
+
+
+

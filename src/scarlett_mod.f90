@@ -1,7 +1,7 @@
 	module scarlett
 !general module for hybrid
 !In future i will move most variables to this module 03/2018
-	use precision, only: dp
+	use precision, only: dp, qp
 	implicit none
 
 ! General Variables
@@ -38,16 +38,25 @@
 	integer, dimension(:), allocatable, save:: blockall !JOTA
 !listas para congelar atomos, hay q reveer estas subrutinas, por ahora estoy usando mis subrutinas, nick
 
-!Dynamics
+!Dynamics & optimization
 	double precision :: Ekinion ! Kinectic energy
 	double precision :: tempion ! Actual Temperature of system
-        double precision :: tempqm ! Actual Temperature of QM subsystem
+	double precision :: tempqm ! Actual Temperature of QM subsystem
 	double precision :: tempinit ! Starting Temperature
 	double precision :: tt ! Target Temperature
 	double precision :: tauber ! Bath Coupling Constant Berendsen
-        double precision :: kn ! Kinetic energy of Nose variable
-        double precision :: vn ! Potential energyy of Nose var
-        double precision :: mn ! Mass of Nose thermostat
+	double precision :: kn ! Kinetic energy of Nose variable
+	double precision :: vn ! Potential energyy of Nose var
+	double precision :: mn ! Mass of Nose thermostat
+
+!optimization
+	double precision :: Eprev !total energy of previous steep for gradient descend
+	double precision :: lambda, lambda_i !steep size in gradient descend, and initial steep size
+	logical :: Steep_change !allow to modify lambda in gradient descend
+	double precision :: normal_mass
+	integer :: lbfgs_verbose
+	integer :: lbfgs_num_corr ! number of corrections used in the limited memory matrix.
+
 ! Solvent (MM) General variables
 	integer :: nac !number of MM atoms
 	integer :: na_u !number of QM atoms
@@ -227,6 +236,10 @@
 	double precision, dimension(:,:), allocatable :: NEB_distl !distancia del link atom i al atomo QM mas cercano
 	double precision, dimension(:), allocatable :: NEB_time_steep, NEB_alpha ! time steep and alpha value for image i in FIRE NEB
 	integer, dimension(:), allocatable :: NEB_Ndescend !number of consecutive steps in which F·v >= 0 for image i in FIRE NEB
+	integer :: NEB_CI !turn on NEB climb image
+!external potential
+	integer :: external_potential
+
 !outputs
 	integer :: writeRF ! force integration
 	integer :: traj_frec ! Frecuency to write trayectory and Energy in .rcg and .rce files
