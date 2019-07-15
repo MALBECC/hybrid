@@ -432,6 +432,13 @@ c subroutine that counts fixed degrees of freedom
 
 ! partial freeze
        do inick=1,natoms_partial_freeze
+	if (coord_freeze(inick,1).gt.natot) then
+	  write(*,*) "problems in block PartialFreeze trying to freeze", 
+     .    " atom: ", coord_freeze(inick,1), "but system have only: ", 
+     .    natot, "atoms"
+	  stop
+	end if
+
 	if (blockall(coord_freeze(inick,1)) .eq. 0) then 
          do jnick=1,3
            if (coord_freeze(inick,1+jnick) .eq. 1) ntcon=ntcon+1 

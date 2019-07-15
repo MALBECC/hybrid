@@ -7,7 +7,7 @@
 	use sys, only: die
 	use scarlett, only: natot, aclas_BAND_old, rclas_BAND, vclas_BAND, &
 	fclas_BAND, fclas_BAND_fresh, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
-	PNEB, PNEB_ini_atom, PNEB_last_atom, NEB_distl, &
+	PNEB, PNEB_ini_atom, PNEB_last_atom, NEB_distl, NEB_CI,&
 	Ang, eV, kcal, na_u, qm, mm, nesp, natoms_partial_freeze, coord_freeze, &
 	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, MM_freeze_list, &
 	masst, vat, aat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
@@ -17,7 +17,8 @@
 	bondxat, angexat, dihexat, dihmxat, angmxat, impxat,  &
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
-	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level
+	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level, &
+	external_potential
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
@@ -105,8 +106,8 @@
 	  allocate( bondxat(nac), angexat(nac))
 	  allocate(dihexat(nac), dihmxat(nac), angmxat(nac))
 	  allocate(impxat(nac))
-!, atimp(nac,25,4))
 	
+	  external_potential=fdf_integer('ExternalPot',-1)
 	  writeRF=0
 	  writeRF = fdf_integer('PFIntegrationOutput',0)
 	  verbose_level = fdf_integer('Verbose',2)
@@ -149,7 +150,9 @@
 	    NEB_alpha=alpha
 	    NEB_Ndescend=0
 	  end if
-
+	
+	  NEB_CI=fdf_integer('CI-NEB',0)
+	
 	else
 	  STOP "Wrong init_type"
 	end if

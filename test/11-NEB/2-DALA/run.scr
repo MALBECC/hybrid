@@ -1,0 +1,7 @@
+#!/bin/bash
+rm *.rce *.rcg
+../../../bin/hybrid < DALA.fdf >> DALA.out
+./bandprog.sh
+
+
+

@@ -1,0 +1,20 @@
+bonds
+0
+angles   
+0
+dihes    
+0
+imps     
+0
+residues
+1
+NICK 1
+ "H1" "X" 0 1 131072 1 7 0.000000
+ljs  
+1       
+  X           0.1000  0.0000
+connectivity 
+0
+impropers 
+0
+DONE     

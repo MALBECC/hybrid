@@ -125,7 +125,10 @@ C  Modules
       use fdf
       use sys
       use scarlett, only: NEB_move_method, NEB_spring_constant,
-     .   NEB_Nimages, time_steep, time_steep_max, traj_frec
+     .   NEB_Nimages, time_steep, time_steep_max, traj_frec,
+     .   lambda_i, Steep_change, normal_mass, lbfgs_verbose,
+     .   lbfgs_num_corr
+
 
       implicit none
 
@@ -228,16 +231,40 @@ C Kind of dynamics
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for CG    = ',
      .     usesavecg
+	elseif (leqi(dyntype,'steep')) then
+        idyn = -1
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    STEEP coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
+        elseif (leqi(dyntype,'l-bfgs')) then
+        idyn = -2
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    L-BFGS coord. optimization'
+          usesavecg  = fdf_boolean('MD.UseSaveCG',.false.)
       else
         write(6,100) 
         write(6,101) 
         write(6,'(a)') 'read:  Wrong Dynamics Option Selected       '
         write(6,'(a)') 'read  You must choose one of the following:'
         write(6,'(a)') 'read:                                       '
-        write(6,'(a)') 'read:    - CG - QM - FIRE - NEB                '
+        write(6,'(a)') 'read:  STEEP - CG - QM - FIRE - NEB - L-BFGS   '
         write(6,102)
         call die
       endif 
+
+C Steepest-descend
+	lambda_i = fdf_double('Steep.in', 1d-3)
+	Steep_change = fdf_boolean('Steep.change',.true.)
+
+C L-BFGS
+	lbfgs_verbose = fdf_integer('Lbfgs.Verbose', 0)
+	lbfgs_num_corr = fdf_integer('Lbfgs.Corr', 5)
+
+C mass scalling
+	normal_mass = fdf_double('Mass.normalize', 0.d0)
+
 
 C Berensen coupling constant
       tauber = dt
@@ -310,13 +337,16 @@ C re-Center system
   
 
 C Length of time step for MD
-      dt_default = 0.1 
+      dt_default = 1d-1
         dt = fdf_physical('MD.LengthTimeStep',dt_default,'fs')
 C hay qunificar los timesteeps
       time_steep_default=1d-1
-      time_steep = fdf_double('Tstep',
-     .  time_steep_default)
-      time_steep_max=15.d0*time_steep
+      time_steep = dt
+
+!FIRE
+      time_steep_max=fdf_double('MD.MaxTimeStep', 15.d0*time_steep)
+
+
 C Trajectory frecuency to write coordinates and Energy 
 	traj_frec = fdf_integer('MD.TrajFrec',100)
 

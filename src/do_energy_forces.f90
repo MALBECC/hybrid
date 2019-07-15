@@ -32,6 +32,8 @@
 	linkat, linkqm, linkmm, linkmm2, parametro, linkqmtype, Elink, &
 !cutoff
 	r_cut_list_QMMM,blocklist,blockqmmm, blockall, listqmmm, &
+!external potential
+	external_potential, &
 !units
 	Ang, eV, kcal, &
 !outputs
@@ -220,7 +222,10 @@
 	fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*eV/(Ang*kcal) ! here Etot in Hartree, fdummy in Hartree/bohr
 ! Writes final energy decomposition
 	Etots=Etot+1.d0*(Elj+(Etot_amber+Elink)*eV/kcal) !Elj in Hartree, Etot_amber and Elink in kcal/mol
-       
+
+
+	if (external_potential .gt. 0) call external_bias(external_potential,natot,rclas,fdummy,Etots)
+      
 ! here Etot in Hartree
 	write(6,*)
 	write(6,'(/,a)') 'hybrid: Potential Energy Decomposition (eV):'

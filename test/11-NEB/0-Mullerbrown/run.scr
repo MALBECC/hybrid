@@ -1,0 +1,9 @@
+#!/bin/bash
+#First relaxation without CI
+../../../bin/hybrid < NEB.fdf >> NEB.out
+#Final relaxation using CI
+rm Test-NEB.rce
+../../../bin/hybrid < CI-NEB.fdf >> NEB.out
+
+./bandprog.sh
+
