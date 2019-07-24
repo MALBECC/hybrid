@@ -1,0 +1,39 @@
+SystemName     Temp
+SystemLabel    Temp      
+CenterMolecule T    
+NumberOfAtoms        0
+NumberOfSpecies      0
+NetCharge 0.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.04 eV/Ang 
+NumberOfSolventAtoms      8
+PFIntegrationOutput 1
+MD.UseSaveXV T
+MD.TypeOfRun    CG        
+MD.NumCGsteps   0       
+
+
+%block ConstrainedOpt
+nconstr 1
+nsteps 8
+type 9
+kte 500
+natmsconstr 8
+atoms 1 2 3 4 5 6 7 8 
+%endblock ConstrainedOpt
+
+
+
+ 
+%block SolventInput
+ATOM      1  H1  NICKH   1       0.000   0.000   0.000
+ATOM      2  H1  NICKH   2       2.000   0.000   0.000
+ATOM      3  H1  NICKH   3       0.000   2.000   0.000
+ATOM      4  H1  NICKH   4       2.000   2.000   0.000
+ATOM      5  H1  NICKH   5       0.000   0.000   2.000
+ATOM      6  H1  NICKH   6       2.000   0.000   2.000
+ATOM      7  H1  NICKH   7       0.000   2.000   2.000
+ATOM      8  H1  NICKH   8       2.000   2.000   2.000
+%endblock SolventInput
+

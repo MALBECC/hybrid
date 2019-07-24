@@ -1,7 +1,7 @@
 !****************************************************************************
 ! This routine read and assign parameters, coordinates and conectivity to
 ! all MM and QM/MM atoms.
-! modified from oroginal solv_assign subroutine
+! modified from original solv_assign subroutine
 ! N. Foglia 2019
 !*****************************************************************************
 
@@ -57,6 +57,9 @@
 	integer :: i, j, k
 	character*4 :: atom, ch4
 	character*1 ::  ch, ch1, exp
+
+
+
 
 
 ! Initialice variables
@@ -1407,8 +1410,8 @@
 	  read (ui,*,err=300,end=300) option
 	  if (option.eq.'dihes') then
 	    read(ui,*,err=300,end=300) ndihe
-	    allocate(dihetype(ndihe),multidihe(ndihe),kdihe(ndihe),diheeq(ndihe)&
-	    ,perdihe(ndihe))
+	    allocate(dihetype(ndihe),multidihe(ndihe),kdihe(ndihe),diheeq(ndihe), &
+	    perdihe(ndihe))
 	    dihetype=""
 	    multidihe=0
 	    kdihe=0.d0

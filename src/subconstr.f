@@ -4,6 +4,7 @@
 	use ionew
 	use fdf    
 	use sys
+        use scarlett, only: na_u, numlink, natmsconstr, rref, natot
 	implicit none
 	integer i,unit,iunit,nconstr,iconstr,typeconstr(20),k
 	integer nstepconstr,atmsconstr(20,20),ndists(20)
@@ -23,6 +24,8 @@ c 5 = r1 + r2 coupled
 c 6 = ( r1 + r2 ) - ( r3 + r4 ) coupled
 c 7 = plane to atom distance
 c 8 = c1*r1 + c2*r2 + c3*r3 + ....
+c 9 = quadratic potential acting on a subspace of cartesian coordinates
+
 
 c read variables
 	if ( fdf_block('ConstrainedOpt',iunit) ) then
@@ -49,11 +52,22 @@ c read variables
 	  do iconstr=1,nconstr
 	    read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
 	    read(iunit,*,err=100,end=100) exp,kforce(iconstr)
-	    if(iconstr.eq.1) then
-	      read(iunit,*,err=100,end=100) exp,rini,exp,rfin
-	    else
-	      read(iunit,*,err=100,end=100) exp,ro(iconstr)
-	    endif
+!	    if(iconstr.eq.1) then
+!	      read(iunit,*,err=100,end=100) exp,rini,exp,rfin
+!	    else
+!	      read(iunit,*,err=100,end=100) exp,ro(iconstr)
+!	    endif
+            if(iconstr.eq.1 .and. typeconstr(iconstr) .ne. 9) then
+              read(iunit,*,err=100,end=100) exp,rini,exp,rfin
+            elseif(typeconstr(iconstr) .ne. 9) then
+              read(iunit,*,err=100,end=100) exp,ro(iconstr)
+            else
+	    if(nconstr .gt. 1) STOP "multiple constraints with typeconstr=9"
+            endif
+
+
+
+
 
 	   if (typeconstr(iconstr).eq.1) then          
 		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
@@ -71,7 +85,6 @@ c read variables
 	read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
 	   elseif (typeconstr(iconstr).eq.8) then
 	     read(iunit,*,err=100,end=100) exp,ndists(iconstr)
-
 	     if(ndists(iconstr).gt.10) then
 		call die('constr opt: ndists in typeconstr 8 must not exceed 10')
 	     endif
@@ -79,15 +92,29 @@ c read variables
      . exp,(coef(iconstr,i),i=1,ndists(iconstr))
 	     read(iunit,*,err=100,end=100) 
      . exp,(atmsconstr(iconstr,i),i=1,ndists(iconstr)*2)
+             elseif (typeconstr(iconstr).eq.9) then   !------------------------------ Type 9   JOTA
+              rini=0.d0
+              rfin=0.d0
+              nstepconstr=0
+              read(iunit,*,err=100,end=100) exp,natmsconstr
+
+              if(natmsconstr .eq. 0) then
+                do i=1,na_u-numlink
+                  atmsconstr(iconstr,i)=i
+                enddo
+              else
+                read(iunit,*,err=100,end=100)
+     .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)
+              endif
+            allocate(rref(3,natot))
+            else
+              call die('constr opt: typeconstr must be 1-9')
+            endif
 
 	    if(i.gt.20) then
 	call die('constr opt: atoms with constrain must be lower than 20')
 	    endif
 
-
-	   else
-	     call die('constr opt: typeconstr must be 1-8')
-	   endif
 
 	enddo
 	else
@@ -140,16 +167,17 @@ c reads from .rce of a former run
 c****************************************************************************
 	subroutine subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istep,istepconstr,
-     .  ndists,coef)
+     .  ndists,coef,rref,natmsconstr)
 
 	use sys
 	implicit none
-	integer i,natot,iconstr,istep,istepconstr,ndists(20)
+	integer i,natot,iconstr,istep,istepconstr,ndists(20),natmsconstr
 	integer nconstr,typeconstr(20),atmsconstr(20,20),nstepconstr
 	double precision kforce(20),ro(20),rt(20),rini,rfin,coef(20,10)
 	
 	integer at1,at2,at3,at4,at5,at6,at7,at8
 	double precision, intent(inout) ::  rclas(3,natot),fdummy(3,natot)
+        double precision, intent(inout) :: rref(3,natot)
 	double precision fce,fnew(3,10),rp(3),r12,r34,r56,r78,dist,
      .  dx,dy,dz
 	double precision pi,fdihe(12),F,dihedro2,rtot,req,kf
@@ -159,6 +187,7 @@ c****************************************************************************
 
 c change units 
         rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !pasa a Angstroms
+        rref(1:3,1:natot)=rref(1:3,1:natot)*0.529177d0
 
 c loop over nconstr
         do iconstr=1,nconstr
@@ -661,11 +690,29 @@ c adding fnew to fdummy
 
 c ndists
         enddo
+      elseif (typeconstr(iconstr).eq.9) then !----------------------------- Type 9 JOTA
+
+        kf=kforce(iconstr)
+        dx=0.d0
+        dy=0.d0
+        dz=0.d0
+        do i=1,natmsconstr
+          at1=atmsconstr(iconstr,i)
+          dx=rclas(1,at1)-rref(1,at1)
+          dy=rclas(2,at1)-rref(2,at1)
+          dz=rclas(3,at1)-rref(3,at1)
+          fnew(1,1)=-dx*2.d0*kf
+          fnew(2,1)=-dy*2.d0*kf
+          fnew(3,1)=-dz*2.d0*kf
+          fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
+        enddo
+
+
 c constrype
       endif
 
 c writes variables for first step only
-        if(iconstr.eq.1) then
+        if(iconstr.eq.1.and.typeconstr(iconstr).ne.9) then
         if(istep.eq.1) then
         write(*,'(/,A)')     'constr opt: variable constraint'
         write(*,'(A,i4)')    'icosntr  :', iconstr
@@ -743,6 +790,7 @@ c nconstr
 
 c change units 
         rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177d0
+        rref(1:3,1:natot)=rref(1:3,1:natot)/0.529177d0
         end
 
 c**************************************************************

@@ -131,6 +131,9 @@ c       Close file
 
         endif
 
+        if (Band.eq.'r') then
+          fname = paste( sname, '.XV')
+        endif
   999 continue
 
       return

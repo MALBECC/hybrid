@@ -37,7 +37,10 @@
 !units
 	Ang, eV, kcal, &
 !outputs
-	slabel
+	slabel, &
+!restraint type 9
+	rref, natmsconstr
+
 
 	implicit none
 
@@ -219,7 +222,11 @@
 	  if(constropt) then
 	    call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt, &
 	    nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr, &
-	    ndists,coef)
+	    ndists,coef,rref,natmsconstr)
+
+
+
+
 	    if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
 	  endif 
 	endif !imm

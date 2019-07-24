@@ -1,0 +1,38 @@
+#!/bin/bash
+rm Test.out
+rm Forces.dat Pos_forces.dat Forces_X.dat Forces_Y.dat Forces_Z.dat
+
+for i in -2 -1 0 1 2 3 4 5 6 7 8; do
+for j in -2 -1 0 1 2 3 4 5 6 7 8; do
+for k in -2 -1 0 1 2 3 4 5 6 7 8; do
+
+
+cp base.XV Temp.XV
+sed -i -e s/X/$i/g Temp.XV
+sed -i -e s/Y/$j/g Temp.XV
+sed -i -e s/Z/$k/g Temp.XV
+
+../../../bin/hybrid < Test.fdf >> Test.out
+
+tail Pos_forces.dat >> Forces.dat
+rm Test.out
+if [ $i == 3 ] && [ $j == 3 ] && [ $k == 3 ]; then
+  tail -n 8 Forces.dat|grep "       1 "|awk '{print $2,$5}' >> Forces_X.dat
+  tail -n 8 Forces.dat|grep "       5 "|awk '{print $3,$6}' >> Forces_Y.dat
+  tail -n 8 Forces.dat|grep "       7 "|awk '{print $4,$7}' >> Forces_Z.dat
+elif [ $j == 3 ] && [ $k == 3 ]; then
+  tail -n 8 Forces.dat|grep "       1 "|awk '{print $2,$5}' >> Forces_X.dat
+elif [ $i == 3 ] && [ $k == 3 ]; then
+  tail -n 8 Forces.dat|grep "       5 "|awk '{print $3,$6}' >> Forces_Y.dat
+elif [ $i == 3 ] && [ $j == 3 ]; then
+  tail -n 8 Forces.dat|grep "       7 "|awk '{print $4,$7}' >> Forces_Z.dat
+fi
+done
+done
+done
+rm INPUT_TMP.*
+
+
+
+
+

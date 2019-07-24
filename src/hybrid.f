@@ -54,6 +54,8 @@
      . ucell,
      . ftol,
      . Ang, eV, kcal, 
+!Type 9 restraint
+     . rref,
 !Dynamics
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !!FIRE
@@ -112,6 +114,8 @@
       double precision, dimension(:,:), allocatable :: coef !coeficients for typeconstr=8
       integer, allocatable :: atmsconstr(:,:), ndists(:) !atomos incluidos en la coordenada de reaccion
       integer :: istepconstr !auxiliar
+      logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
+      double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
 
 ! Cut Off QM-MM variables
       double precision :: rcorteqm ! not used
@@ -458,10 +462,22 @@ C Calculate Rcut & block list QM-MM
 
 
 ! Start loop over constrained optimization steps
+
       if(constropt) then
         call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
+      if(nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
+     
+      allocate(vatr(3,natot))
+      call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
+!cambiar ucell cuando haya caja
       endif
+      endif
+
+
+
+
+
 
       do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
