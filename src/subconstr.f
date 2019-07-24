@@ -52,11 +52,6 @@ c read variables
 	  do iconstr=1,nconstr
 	    read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
 	    read(iunit,*,err=100,end=100) exp,kforce(iconstr)
-!	    if(iconstr.eq.1) then
-!	      read(iunit,*,err=100,end=100) exp,rini,exp,rfin
-!	    else
-!	      read(iunit,*,err=100,end=100) exp,ro(iconstr)
-!	    endif
             if(iconstr.eq.1 .and. typeconstr(iconstr) .ne. 9) then
               read(iunit,*,err=100,end=100) exp,rini,exp,rfin
             elseif(typeconstr(iconstr) .ne. 9) then
