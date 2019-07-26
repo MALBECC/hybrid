@@ -5,10 +5,8 @@
 default: module
 FC =
 OBJPATH := .
-LIO_PATH = ../../lio
-include ${LIO_PATH}/lioamber/Makefile.optchck
-include ${LIO_PATH}/lioamber/Makefile.options
-include ../Makefile.rulz
+include ../Makefile.options
+include Makefile.rulz
 RANLIB=ranlib
 
 
@@ -19,9 +17,9 @@ module:  libfdf.a
 libfdf.a:  fdf.o fdf_mod.o parse.o io.o 
 	ar qv libfdf.a fdf.o fdf_mod.o parse.o io.o 
 	-$(RANLIB) libfdf.a
-	cp libfdf.a ..
+	cp libfdf.a ../obj/.
 	@cp -p *.*d ..
-	@echo "fdf/work.pc" >> ../work.pcl
+#	@echo "fdf/work.pc" >> ../work.pcl
 
 
 #

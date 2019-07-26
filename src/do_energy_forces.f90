@@ -122,8 +122,14 @@
 	    end if
 	  end do
 
+
+#ifdef LIO
 	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
 	  F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
+# else
+	  STOP 'NO QM program defined in do_energy_forces'
+#endif
+
 
 ! return forces to fullatom arrays
 	  do i=1, natot

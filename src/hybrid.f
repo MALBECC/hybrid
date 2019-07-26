@@ -395,7 +395,11 @@
       if(qm) then
         Etot=0.d0
         fa=0.d0
+#ifdef LIO
         call init_lio_hybrid(na_u, nac, charge, iza, spin)
+#else
+	stop 'No QM program defined'
+#endif
 
 ! calculate cell volume
         volume = volcel( ucell )
@@ -794,7 +798,11 @@ C Write atomic forces
 
       close(34)
 
-      if(qm) call lio_finalize()
+
+#ifdef LIO
+        if(qm) call lio_finalize()
+#endif
+
 
 ! Dump last coordinates to output
       if (writeipl) then

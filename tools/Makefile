@@ -5,17 +5,12 @@ TARGETS := $(SOURCES:%.f90=%)
 CLTARGETS := $(TARGETS:%=../bin/%)
 
 FC =
-HFLAGS =
-LIO_PATH = ../lio
-include ${LIO_PATH}/lioamber/Makefile.optchck
-include ${LIO_PATH}/lioamber/Makefile.options
-include ../src/Makefile.rulz
-HFLAGS += -L$(LIO_PATH)/g2g
-
+include ../src/Makefile.options
+include ../src/fdf/Makefile.rulz
 
 all: $(TARGETS)
 %: %.f90 
-	$(FC) $(HFLAGS) -o ../bin/$@ $< $(LIBS)
+	$(FC) $(FFLAGS) -o ../bin/$@ $< $(LIBS)
 clean:
 	rm -r $(CLTARGETS)
 
