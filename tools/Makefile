@@ -10,7 +10,7 @@ include ../src/fdf/Makefile.rulz
 
 all: $(TARGETS)
 %: %.f90 
-	$(FC) $(FFLAGS) -o ../bin/$@ $< $(LIBS)
+	$(FC) $(FFLAGS) -o ../bin/$@ $< $(LFLAGS) $(LIBS)
 clean:
 	rm -r $(CLTARGETS)
 

@@ -2,6 +2,7 @@ default: hybrid
 
 FC =
 FFLAGS =
+LFLAGS =
 LIBS =
 OBJPATH := .
 LIO_PATH = 
@@ -37,6 +38,7 @@ ifeq (${qm_level},0)
 	@echo "qm_level: ${qm_level}, no QM program defined"
 else ifeq (${qm_level},1)
 	@echo "qm_level: ${qm_level}, using Lio as QM level"
+	@echo "LIOHOME= $${LIOHOME}"
 endif
 	@echo
 
@@ -55,30 +57,30 @@ $(FDF): $(OBJPATH)
 
 #RULZ
 $(OBJPATH)/%.o :  %.f  $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 $(OBJPATH)/%.o : L-BFGS/%.f $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 $(OBJPATH)/%.o :  %.F  $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 $(OBJPATH)/%.o :  %.f90  $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 $(OBJPATH)/%.o :  %.F90  $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 $(OBJPATH)/%.mod :  %.f90  $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 $(OBJPATH)/%.mod :  %.f  | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LIBS)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 
 hybrid: $(OBJECTS:%.o=$(OBJPATH)/%.o) $(MOD_OBJS:%.mod=$(OBJPATH)/%.mod) $(FDF) version options
 	@mkdir -p ../bin
-	$(FC) -cpp hybrid.f -o ../bin/$@ $(OBJECTS:%.o=$(OBJPATH)/%.o) $(MOD_OBJS:%.mod=$(OBJPATH)/%.mod) $(OBJPATH)/$(FDF) $(LIBS)
+	$(FC) -cpp hybrid.f -o ../bin/$@ $(OBJECTS:%.o=$(OBJPATH)/%.o) $(MOD_OBJS:%.mod=$(OBJPATH)/%.mod) $(OBJPATH)/$(FDF) $(LFLAGS) $(LIBS)
 	@echo
 	@echo "Compilation Succesfull "
 

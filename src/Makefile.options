@@ -57,8 +57,9 @@ qm_level  ?= 0
 #LIBS   += -lm -lstdc++ 
 
 ifeq ($(qm_level),1)
-LIBS += -lg2g
+LIBS += -lg2g -llio-g2g
 FFLAGS += -DLIO
+LFLAGS += -L$${LIOHOME}/g2g -L$${LIOHOME}/lioamber
 endif
 
 # These variables will be filled by compiler specific flags
