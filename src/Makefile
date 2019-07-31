@@ -5,13 +5,25 @@ FFLAGS =
 LFLAGS =
 LIBS =
 OBJPATH := .
+SRCDIRS :=
 LIO_PATH = 
 OBJPATH = obj
 
 include Makefile.options
 include Makefile.depends
 
-OBJECTS: $(MOD_OBJS:%.mod=$(OBJPATH)/%.mod)
+
+SRCDIRS += L-BFGS
+
+vpath %.f   $(SRCDIRS)
+vpath %.F   $(SRCDIRS)
+vpath %.f90 $(SRCDIRS)
+vpath %.F90 $(SRCDIRS)
+vpath %.o $(OBJPATH)
+vpath %.mod $(OBJPATH)
+vpath %.a $(OBJPATH)
+
+
 
 $(OBJPATH):
 	mkdir $@
@@ -45,8 +57,9 @@ endif
 version: $(OBJPATH)
 	@echo
 	@echo "==> Incorporating information about present compilation (compiler and flags)"
-	@sed  "s/SIESTA_ARCH/${SIESTA_ARCH}/g" version.f90 > temp0.f
-	@sed  "s/FFLAGS/${FC} ${FFLAGS}/g" temp0.f > compinfo.F90
+	@cp version.f90 compinfo.F90
+#	@sed  "s/SIESTA_ARCH/${SIESTA_ARCH}/g" version.f90 > temp0.f
+#	@sed  "s/FFLAGS/${FC} ${FFLAGS}/g" temp0.f > compinfo.F90
 	@($(MAKE) -s "FC=$(FC)" "FFLAGS=$(FFLAGS)" obj/version.o)
 	@rm -f temp0.f compinfo.F90
 	@echo
@@ -59,9 +72,6 @@ $(FDF): $(OBJPATH)
 $(OBJPATH)/%.o :  %.f  $(FDF) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
-$(OBJPATH)/%.o : L-BFGS/%.f $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
-
 $(OBJPATH)/%.o :  %.F  $(FDF) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
@@ -71,16 +81,14 @@ $(OBJPATH)/%.o :  %.f90  $(FDF) | $(OBJPATH)
 $(OBJPATH)/%.o :  %.F90  $(FDF) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
-$(OBJPATH)/%.mod :  %.f90  $(FDF) | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
-
-$(OBJPATH)/%.mod :  %.f  | $(OBJPATH)
-	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
+%.mod : %.o $(FDF) | $(OBJPATH)
+	@touch $@
 
 
-hybrid: $(OBJECTS:%.o=$(OBJPATH)/%.o) $(MOD_OBJS:%.mod=$(OBJPATH)/%.mod) $(FDF) version options
+
+hybrid: $(OBJECTS:%.o=$(OBJPATH)/%.o) $(OBJPATH)/$(FDF) | version options
 	@mkdir -p ../bin
-	$(FC) -cpp hybrid.f -o ../bin/$@ $(OBJECTS:%.o=$(OBJPATH)/%.o) $(MOD_OBJS:%.mod=$(OBJPATH)/%.mod) $(OBJPATH)/$(FDF) $(LFLAGS) $(LIBS)
+	$(FC) $(FFLAGS) hybrid.f -o ../bin/$@ $^ $(LFLAGS) $(LIBS)
 	@echo
 	@echo "Compilation Succesfull "
 

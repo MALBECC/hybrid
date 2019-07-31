@@ -75,6 +75,9 @@ MOD_OBJS += neutralatom.mod
 MOD_OBJS += parsing.mod
 MOD_OBJS += scarlett_mod.mod
 
+OBJECTS += $(MOD_OBJS:%.mod=%.o)
+
+
 ################################################################################
 # FDF dependens
 tmplist := assignation.o
@@ -120,7 +123,7 @@ tmplist += solv_ene_fce.o
 tmplist += subconstr.o
 tmplist += vmb.o
 tmplist += writeall.o
-$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/scarlett_mod.mod
+$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/scarlett_mod.mod 
 
 ################################################################################
 # precision dependens

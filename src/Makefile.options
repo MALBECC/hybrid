@@ -71,8 +71,7 @@ DEBUG02 =
 ################################################################################
 ifeq ($(intel),0)
   FC      = gfortran
-  FFLAGS += -cpp 
-#-I$(OBJPATH) -J$(OBJPATH)
+  FFLAGS += -cpp -I$(OBJPATH) -J$(OBJPATH)
   LIBS   += -llapack
 # -lblas
 
@@ -84,10 +83,11 @@ ifeq ($(intel),0)
 
 else ifeq ($(intel),1)
   FC      = ifort
-  FFLAGS += -fpp 
-#-module $(OBJPATH)
+  FFLAGS += -fpp -module $(OBJPATH)
+# -L/usr/local/cuda-6.0/lib64/
   LIBS   += -llapack
-# -lblas
+# -lm -lstdc++ -lcudart -lcublas -lblas 
+#  -lblas
 #  LIBS   += -liomp5 -lpthread
 
   DEBUG01 = -g -check bounds -traceback
@@ -137,7 +137,7 @@ endif
 
 ################################################################################
 ifeq ($(analytics),0)
-  FFLAGS += -O3
+#  FFLAGS += -O3
 else ifeq ($(analytics),1)
   DEFINE += -DPROFILING
   FFLAGS += -pg

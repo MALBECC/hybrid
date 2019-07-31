@@ -555,6 +555,10 @@ subroutine SCF(E)
 
       do 999 while ((good.ge.told.or.Egood.ge.Etold).and.niter.le.NMAX)
 
+!	write(*,*) "RMM(1:MM)", RMM(1:MM)
+!        write(*,*) "RMM(1+2*MM:1+3*MM)", RMM(1+2*MM:1+3*MM)
+
+
         call g2g_timer_start('Total iter')
         call g2g_timer_sum_start('Iteration')
         call g2g_timer_sum_start('Fock integrals')
@@ -899,7 +903,9 @@ subroutine SCF(E)
 
         Egood=abs(E+Ex-Evieja)
         Evieja=E+Ex
+	
 
+	write(*,*) "energies", E1,E2,En,Ex
         ! Write energy at every step
         call write_energy_convergence(niter, Evieja, good, told, egood, etold)
 

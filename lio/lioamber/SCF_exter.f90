@@ -239,7 +239,6 @@ subroutine SCF_hyb (hyb_natom, mm_natom, hyb_r, E, fdummy, Iz_cl,do_SCF, do_QM_f
     end if
 
     fa=-1.d0*fa  ! - change gradient to forces 
-                 ! 2 change units for hybrid
     fmm=-1.d0*fmm
 
     do j=1, 3
