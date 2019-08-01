@@ -12,6 +12,11 @@ OBJPATH = obj
 include Makefile.options
 include Makefile.depends
 
+MAKEFILES =  Makefile
+MAKEFILES += Makefile.depends
+MAKEFILES += Makefile.options
+
+
 
 SRCDIRS += L-BFGS
 
@@ -58,8 +63,6 @@ version: $(OBJPATH)
 	@echo
 	@echo "==> Incorporating information about present compilation (compiler and flags)"
 	@cp version.f90 compinfo.F90
-#	@sed  "s/SIESTA_ARCH/${SIESTA_ARCH}/g" version.f90 > temp0.f
-#	@sed  "s/FFLAGS/${FC} ${FFLAGS}/g" temp0.f > compinfo.F90
 	@($(MAKE) -s "FC=$(FC)" "FFLAGS=$(FFLAGS)" obj/version.o)
 	@rm -f temp0.f compinfo.F90
 	@echo
@@ -69,16 +72,16 @@ $(FDF): $(OBJPATH)
 
 
 #RULZ
-$(OBJPATH)/%.o :  %.f  $(FDF) | $(OBJPATH)
+$(OBJPATH)/%.o :  %.f  $(FDF) $(MAKEFILES) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
-$(OBJPATH)/%.o :  %.F  $(FDF) | $(OBJPATH)
+$(OBJPATH)/%.o :  %.F  $(FDF) $(MAKEFILES) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
-$(OBJPATH)/%.o :  %.f90  $(FDF) | $(OBJPATH)
+$(OBJPATH)/%.o :  %.f90  $(FDF)  $(MAKEFILES) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
-$(OBJPATH)/%.o :  %.F90  $(FDF) | $(OBJPATH)
+$(OBJPATH)/%.o :  %.F90  $(FDF)  $(MAKEFILES) | $(OBJPATH)
 	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
 %.mod : %.o $(FDF) | $(OBJPATH)
@@ -88,7 +91,7 @@ $(OBJPATH)/%.o :  %.F90  $(FDF) | $(OBJPATH)
 
 hybrid: $(OBJECTS:%.o=$(OBJPATH)/%.o) $(OBJPATH)/$(FDF) | version options
 	@mkdir -p ../bin
-	$(FC) $(FFLAGS) hybrid.f -o ../bin/$@ $^ $(LFLAGS) $(LIBS)
+	$(FC) $(FFLAGS) -fopenmp hybrid.f -o ../bin/$@ $^ $(LFLAGS) $(LIBS)
 	@echo
 	@echo "Compilation Succesfull "
 

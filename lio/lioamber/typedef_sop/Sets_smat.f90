@@ -30,6 +30,14 @@ subroutine Sets_smat( this, Smat )
    if ( allocated(this%Vtrp) ) deallocate(this%Vtrp)
    allocate( this%Vtrp( this%Nbasis, this%Nbasis ) )
 
+	this%Lmat=0.d0
+	this%Umat=0.d0
+	this%Utrp=0.d0
+	this%Gmat=0.d0
+	this%Ginv=0.d0
+	this%Vmat=0.d0
+	this%Vtrp=0.d0
+
    call this%Calc_fulldcmp_7m( this%Smat, this%Lmat, this%Umat, this%Utrp,     &
                              & this%Gmat, this%Ginv, this%Vmat, this%Vtrp )
 

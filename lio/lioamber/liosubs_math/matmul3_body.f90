@@ -19,8 +19,10 @@
 
 !------------------------------------------------------------------------------!
   allocate(Emat(size(Bmat,1),size(Bmat,2)))
+
   Emat = matmul( Amat, Bmat )
   Dmat = matmul( Emat, Cmat )
+
   deallocate(Emat)
 
 !end function matmul3_ddd

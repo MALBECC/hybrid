@@ -20,7 +20,6 @@ subroutine Calc_fulldcmp_4m( Smat, Lmat, Umat, Gmat, Vtrp )
    ! TODO: size consistency checks
 
    call matdcmp_cholesky( Smat, Lmat )
-
    call matdcmp_svd( Lmat, Umat, Gmat, Vtrp )
 
 end subroutine Calc_fulldcmp_4m

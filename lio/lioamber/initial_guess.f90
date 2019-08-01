@@ -121,10 +121,8 @@ subroutine get_initial_guess(M, MM, NCO, NCOb, Xmat, Hvec, Rhovec, rhoalpha, &
    double precision, intent(inout) :: Rhovec(:), rhoalpha(:), rhobeta(:)
    double precision :: ocupF
 
-
    call g2g_timer_start('initial guess')
    call g2g_timer_sum_start('initial guess')
-
 
    select case (initial_guess)
    case (0)

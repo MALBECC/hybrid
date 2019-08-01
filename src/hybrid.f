@@ -274,6 +274,8 @@
      . radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
      . nangle, ndihe, nimp, attype, pc, Rm, Em, ng1, bondxat,angexat,
      . angmxat, dihexat, dihmxat, impxat)
+	else
+	rcorteqmmm=0.d0
       endif !mm
 
 ! changing cutoff to atomic units
@@ -405,7 +407,7 @@
         volume = volcel( ucell )
 
 ! Center system 
-        if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
+!        if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
 
 C Calculate Rcut & block list QM-MM 

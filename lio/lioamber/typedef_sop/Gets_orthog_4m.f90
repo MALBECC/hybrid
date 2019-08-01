@@ -14,6 +14,17 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
    logical                 :: error_found
 
 
+
+   real*8    , allocatable :: Gmat_li(:,:), Ginv_li(:,:), Umat_li(:,:)
+
+   allocate( Gmat_li( this%Nbasis, this%Nbasis ) )
+   allocate( Ginv_li( this%Nbasis, this%Nbasis ) )
+   allocate( Umat_li( this%Nbasis, this%Nbasis ) )
+
+   Gmat_li = this%Gmat
+   Ginv_li = this%Ginv
+   Umat_li = this%Umat
+
 !  Checks and preps
 !------------------------------------------------------------------------------!
    if ( this%Nbasis <= 0 ) then
@@ -36,6 +47,7 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
 !------------------------------------------------------------------------------!
 
    call this%Gets_orthog_2m( method_id, maxval_ld, Xmat, Ymat )
+
    select case (method_id)
       case (0)
 !        Use last method saved inside the object
@@ -60,6 +72,5 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
          print*,"ABORTING RUN"; stop
 
    end select
-
 end subroutine Gets_orthog_4m
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!

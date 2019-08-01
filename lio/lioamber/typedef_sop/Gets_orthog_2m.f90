@@ -47,6 +47,7 @@ subroutine Gets_orthog_2m( this, method_id, maxval_ld, Xmat, Ymat )
       case (1)
 !        Cholesky Decomposition
 !        S = Y * Yt = L * Lt
+
          call matmul3( Umat_li, Ginv_li, this%Vtrp, Xmat )
          call matmul3( Umat_li, Gmat_li, this%Vtrp, Ymat )
       case (2)

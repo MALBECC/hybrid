@@ -439,6 +439,7 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
     call read_options(inputFile)
     !select spin case
     Nunp_aux=int(spin)
+	write(*,*) "ESPIN", spin, Nunp, Nunp_aux
     if (Nunp_aux .ne. Nunp) STOP "lio.in have a different spin than *.fdf"
     if (Nunp .ne. 0) OPEN=.true.
     if (OPEN) write(*,*) "Runing hybrid open shell, with ", Nunp, "unpaired electrons"
