@@ -467,7 +467,6 @@ C Calculate Rcut & block list QM-MM
       if(constropt) then
         call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
-	write(456456,*) rini,rfin
       if(nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
      
       allocate(vatr(3,natot))
