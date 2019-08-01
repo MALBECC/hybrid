@@ -54,7 +54,6 @@ c read variables
 	    read(iunit,*,err=100,end=100) exp,kforce(iconstr)
             if(iconstr.eq.1 .and. typeconstr(iconstr) .ne. 9) then
               read(iunit,*,err=100,end=100) exp,rini,exp,rfin
-		write(456456,*) rini,rfin
             elseif(typeconstr(iconstr) .ne. 9) then
               read(iunit,*,err=100,end=100) exp,ro(iconstr)
             else
@@ -713,7 +712,6 @@ c constrype
 
 c writes variables for first step only
         if(iconstr.eq.1.and.typeconstr(iconstr).ne.9) then
-	write(456456,*) rini, rfin
         if(istep.eq.1) then
         write(*,'(/,A)')     'constr opt: variable constraint'
         write(*,'(A,i4)')    'icosntr  :', iconstr
