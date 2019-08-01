@@ -17116,3 +17116,669 @@ Timer functions: 346us.
 MM point charges: 0
  NO CONVERGENCE AT         2000  ITERATIONS
  stop for not convergion 4 times
+HYBRID 2.0 -- [ Lio-hybrid ] (1 Jun 2018)
+>> Start of run:  30-JUL-2019  15:14:46
+
+                           ***********************       
+                           *  WELCOME TO HYBRID  *       
+                           ***********************       
+
+reinit: Reading from standard input
+************************** Dump of input data file ****************************
+SystemName     cut5
+SystemLabel    cut5
+CenterMolecule T
+NumberOfAtoms         4
+NumberOfSpecies      2
+NetCharge 0.0
+FixSpin  T
+TotalSpin 0.0
+MD.MaxForceTol    0.04 eV/Ang
+NumberOfSolventAtoms      0
+%block ConstrainedOpt
+nconstr 1
+steps 99
+type 2
+kte 200
+inicoord 1.2 fincoord  5.000
+atoms 1 2
+%endblock ConstrainedOpt
+%block ChemicalSpeciesLabel
+       1   8  O
+       2   1  H
+%endblock ChemicalSpeciesLabel
+AtomicCoordinatesFormat  Ang
+%block AtomicCoordinatesAndAtomicSpecies
+   0.00000   0.00000   0.000000        1
+   0.00000   0.00000   1.480000        1
+   0.89567   0.00000  -0.316663        2
+  -0.44783   0.77567   1.796667        2
+%endblock AtomicCoordinatesAndAtomicSpecies
+%block SoluteAtomTypes
+  OH  O1    AOX
+  OH  O2    AOX
+  HO  H1    AOX
+  HO  H2    AOX
+%endblock SoluteAtomTypes
+PAO.BasisType split
+PAO.BasisSize       DZP
+PAO.EnergyShift      25 meV
+PAO.SplitNorm       0.15
+WriteMDXmol F
+WriteMullikenPop 0
+XC.functional       GGA
+XC.authors          PBE
+MeshCutoff         150.0 Ry
+SpinPolarized        T
+MaxSCFIterations    80
+DM.MixingWeight      0.1
+DM.NumberPulay       3
+DM.UseSaveDM   T
+MD.USeSaveXV   T
+MD.UseSaveCG   T
+LongOutput    F
+MD.TypeOfRun    CG
+MD.NumCGsteps   500
+%block CutOffRadius
+QM  0.2
+QMMM 100.0
+MM 80.0
+BLO 80.0
+%endblock CutOffRadius
+%block SolventInput
+%endblock SolventInput
+************************** End of input data file *****************************
+
+reinit: -----------------------------------------------------------------------
+reinit: System Name: cut5                                                       
+reinit: -----------------------------------------------------------------------
+reinit: System Label: cut5                
+reinit: -----------------------------------------------------------------------
+ Hi Angi!
+
+hybrid: Running with no MM atoms
+ 
+read:***********************************************************************
+read: Atomic-coordinates input format  =     Cartesian coordinates (in Ang)
+read: Total number of electrons        =    18
+ opt_scheme vale           0
+read: Dynamics option                  =     CG coord. optimization
+read: Use continuation files for CG    =     T
+read: Use continuation files for XV    =     T
+read: Maximum number of CG moves       =   500
+read: Max atomic displ per move        =     0.2000  Bohr
+read: Force tolerance                  =     0.0016  Ry/Bohr
+read: Write coordinates each           =     1  steps
+read: MM x QM steps                    =     1
+read: Write forces QM-MM               =     1
+read: ***********************************************************************
+ reading: cut5.XV                          
+
+ioxv: Reading coordinates and velocities from file
+Error found in lionml namelist. Using defaults for namelist lionml.
+ 
+LIO input variables
+ ! -- General and theory level: -- !
+  Natom =      0, Nsol =        0, charge =     0, Nunp =     0, open =  T,
+  Nmax =  2000, int_basis =  F, basis_set = DZVP                     ,
+  fitting_set = DZVP Coulomb Fitting     , DIIS =  F, NDIIS =  30,
+  hybrid_converg =  F, Gold =    10.00000000, Told =     0.00000100,
+  Etold =     1.00000000, good_cut =     0.00001000, Rmax =    16.00000000,
+  RmaxS =     5.00000000, IExch =     9, IGrid =   2, IGrid2 =   2,
+  PredCoef =  F, initial_guess =   0, DBug =  F,
+  n_ghosts =     0
+ ! -- Input and output options: -- !
+  verbose =   3, style =  F, timers =   0, writeXYZ =  T, writeForces =  F,
+  dipole =  F, mulliken =  F, lowdin =  F, fukui =  F, print_coeffs =  F,
+  VCInp =  F, FRestartIn =      restart.in          , restart_freq =     0,
+  FRestart =      restart.out         , TDRestart =  F, writeDens =  F,
+  TD_rst_freq =    500, gaussian_convert =  F,
+  rst_dens =   0
+ ! -- TD-DFT and external field: -- !
+  timeDep =  0, NTDStep =          0, TDStep =     0.00200000, propagator =  1,
+  NBCH =   10, field =  F, a0 =  1000.00000000, epsilon =     1.00000000,
+  Fx =     0.00000000, Fy =     0.00000000, Fz =     0.00000000, n_fields_iso =     0,
+  n_fields_aniso =     0, field_iso_file =      field.in            ,
+  field_aniso_file =      fieldaniso.in       , td_do_pop =     0
+ ! -- Effective Core Potentials: -- !
+  ECPMode =  F, ECPTypes =   0, TipeECP = NOT-DEFINED              ,
+  Fock_ECP_read =  F, Fock_ECP_write =  F, cutECP =  T, cut2_0 =    15.00000000,
+  cut3_0 =    12.00000000, verbose_ECP =  0, ECP_debug =  F, fullTimer_ECP =  F,
+  local_nonlocal =  0, ECP_full_range_int =  F
+  ZListECP = 
+ ! -- Minimizations and restraints: -- !
+  steep =  F, minimzation_steep =     0.05000000, energy_cut =     0.00010000,
+  force_cut =     0.00001000, n_min_steeps =   500, lineal_search =  T,
+  n_points =     5, number_restr =     0
+ ! -- CubeGen: -- !
+  CubeGen_only =  F, cube_res =    40, cube_sel =     0, cube_dens =  F,
+  cube_orb =  F, cube_elec =  F, cube_dens_file =      dens.cube           ,
+  cube_orb_file =      orb.cube            , cube_elec_file =      dens.cube           
+ ! -- GPU Options: -- !
+  energy_all_iterations =  F, assign_all_functions =  F, remove_zero_weights =  T,
+  max_function_exponent =    10, free_global_memory =     0.00000000,
+  sphere_radius =     0.60000002, little_cube_size =     8.00000000,
+  min_points_per_cube =     1
+ ! -- Transport and DFTB: -- !
+  transport_calc =  F, generate_rho0 =  F, driving_rate =     0.00100000,
+  gate_field =  F, pop_drive =   1, save_charge_freq =     1, DFTB_calc =  F,
+  MTB =     0, alfaTB =     0.00000000, betaTB =     0.00000000,
+  gammaTB =     0.00000000, VBias_TB =     0.00000000, start_TDTB =     0,
+  end_TDTB =     0, end_BTB =     0, TBLoad =  F, TBSave =  F
+  nbias=    0
+ ! -- Ehrenfest: -- !
+  ndyn_steps =      0, edyn_steps =      0, nullify_forces =  F,
+  wdip_nfreq =     0, wdip_fname = liorun.dip               , rsti_loads =  F,
+  rsto_saves =  F, rsto_nfreq =  F, rsti_fname = liorun.rsti              ,
+  rsto_fname = liorun.rsto              , eefld_on =  F, eefld_ampx =    0.00000000,
+  eefld_ampy =     0.00000000, eefld_ampz =     0.00000000,
+  eefld_timeamp =     0.20000000, eefld_timepos =     1.00000000,
+  eefld_timegfh =  F, eefld_timegih =  F, eefld_wavelen =     0.00000000
+ ! -- Fock Bias Potentials: -- !
+  fockbias_is_active =  F, fockbias_is_shaped =  F, fockbias_timeamp0 =     0.00000000,
+  fockbias_timegrow =     0.00000000, fockbias_timefall =     0.00000000,
+  fockbias_readfile = atombias.in              
+ Runing hybrid open shell, with            0 unpaired electrons
+ 
+LIO initialisation.
+  Using 4 CPU Threads and 0 GPU Threads.
+  QM atoms: 4 - MM atoms: 0
+  Total number of basis: 34 (s: 10 p: 4 d: 2)
+  Open shell calculation - Occupied MO(UP): 9 - Occupied MO(DOWN): 9
+
+hybrid: Total Free Atoms:      4
+
+constr opt: Starting a Constrained  optimization run
+
+constr opt: Re-starting a Constrained optimization run
+ 
+*******************************
+  Constrained Step :     1
+*******************************
+
+hybrid:                 ==============================
+                            Begin move =      0
+                        ==============================
+ Optimization level:            3
+ atoms QM, MM, totals           4           0           4
+ doing SCF? T
+ doing forces? T
+ 
+Starting SCF cycles.
+tipo: 7 0.193813 radio: 14.3661
+tipo: 7 0.193813 radio: 14.3661
+tipo: 0 0.15411 radio: 16.1107
+tipo: 0 0.15411 radio: 16.1107
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+  Step =      1  - QM Energy =      -121.47926 - Rho diff (crit) = 1.17E+00 (1.00E-06) - Energy diff (crit) = 1.21E+02 (1.00E+00)
+  Step =      2  - QM Energy =      -128.19089 - Rho diff (crit) = 4.18E-01 (1.00E-06) - Energy diff (crit) = 6.71E+00 (1.00E+00)
+  Step =      3  - QM Energy =      -130.22874 - Rho diff (crit) = 7.09E-01 (1.00E-06) - Energy diff (crit) = 2.04E+00 (1.00E+00)
+  Step =      4  - QM Energy =      -132.21116 - Rho diff (crit) = 6.55E-02 (1.00E-06) - Energy diff (crit) = 1.98E+00 (1.00E+00)
+  Step =      5  - QM Energy =      -133.18313 - Rho diff (crit) = 4.70E-02 (1.00E-06) - Energy diff (crit) = 9.72E-01 (1.00E+00)
+  Step =      6  - QM Energy =      -133.81556 - Rho diff (crit) = 3.49E-02 (1.00E-06) - Energy diff (crit) = 6.32E-01 (1.00E+00)
+  Step =      7  - QM Energy =      -134.15814 - Rho diff (crit) = 2.65E-02 (1.00E-06) - Energy diff (crit) = 3.43E-01 (1.00E+00)
+  Step =      8  - QM Energy =      -134.30086 - Rho diff (crit) = 2.02E-02 (1.00E-06) - Energy diff (crit) = 1.43E-01 (1.00E+00)
+  Step =      9  - QM Energy =      -134.32781 - Rho diff (crit) = 1.55E-02 (1.00E-06) - Energy diff (crit) = 2.70E-02 (1.00E+00)
+  Step =     10  - QM Energy =      -134.29740 - Rho diff (crit) = 1.19E-02 (1.00E-06) - Energy diff (crit) = 3.04E-02 (1.00E+00)
+  Step =     11  - QM Energy =      -134.24386 - Rho diff (crit) = 9.17E-03 (1.00E-06) - Energy diff (crit) = 5.35E-02 (1.00E+00)
+  Step =     12  - QM Energy =      -134.18514 - Rho diff (crit) = 7.09E-03 (1.00E-06) - Energy diff (crit) = 5.87E-02 (1.00E+00)
+  Step =     13  - QM Energy =      -134.12973 - Rho diff (crit) = 5.50E-03 (1.00E-06) - Energy diff (crit) = 5.54E-02 (1.00E+00)
+  Step =     14  - QM Energy =      -134.08104 - Rho diff (crit) = 4.29E-03 (1.00E-06) - Energy diff (crit) = 4.87E-02 (1.00E+00)
+  Step =     15  - QM Energy =      -134.03992 - Rho diff (crit) = 3.36E-03 (1.00E-06) - Energy diff (crit) = 4.11E-02 (1.00E+00)
+  Step =     16  - QM Energy =      -134.00602 - Rho diff (crit) = 2.65E-03 (1.00E-06) - Energy diff (crit) = 3.39E-02 (1.00E+00)
+  Step =     17  - QM Energy =      -133.97849 - Rho diff (crit) = 2.10E-03 (1.00E-06) - Energy diff (crit) = 2.75E-02 (1.00E+00)
+  Step =     18  - QM Energy =      -133.95638 - Rho diff (crit) = 1.69E-03 (1.00E-06) - Energy diff (crit) = 2.21E-02 (1.00E+00)
+  Step =     19  - QM Energy =      -133.93873 - Rho diff (crit) = 1.36E-03 (1.00E-06) - Energy diff (crit) = 1.76E-02 (1.00E+00)
+  Step =     20  - QM Energy =      -133.92471 - Rho diff (crit) = 1.11E-03 (1.00E-06) - Energy diff (crit) = 1.40E-02 (1.00E+00)
+  Step =     21  - QM Energy =      -133.91360 - Rho diff (crit) = 9.20E-04 (1.00E-06) - Energy diff (crit) = 1.11E-02 (1.00E+00)
+  Step =     22  - QM Energy =      -133.90482 - Rho diff (crit) = 7.68E-04 (1.00E-06) - Energy diff (crit) = 8.78E-03 (1.00E+00)
+  Step =     23  - QM Energy =      -133.89788 - Rho diff (crit) = 6.47E-04 (1.00E-06) - Energy diff (crit) = 6.94E-03 (1.00E+00)
+  Step =     24  - QM Energy =      -133.89240 - Rho diff (crit) = 5.50E-04 (1.00E-06) - Energy diff (crit) = 5.48E-03 (1.00E+00)
+  Step =     25  - QM Energy =      -133.88806 - Rho diff (crit) = 4.72E-04 (1.00E-06) - Energy diff (crit) = 4.34E-03 (1.00E+00)
+  Step =     26  - QM Energy =      -133.88462 - Rho diff (crit) = 4.09E-04 (1.00E-06) - Energy diff (crit) = 3.43E-03 (1.00E+00)
+  Step =     27  - QM Energy =      -133.88190 - Rho diff (crit) = 3.57E-04 (1.00E-06) - Energy diff (crit) = 2.72E-03 (1.00E+00)
+  Step =     28  - QM Energy =      -133.87973 - Rho diff (crit) = 3.14E-04 (1.00E-06) - Energy diff (crit) = 2.17E-03 (1.00E+00)
+  Step =     29  - QM Energy =      -133.87800 - Rho diff (crit) = 2.78E-04 (1.00E-06) - Energy diff (crit) = 1.73E-03 (1.00E+00)
+  Step =     30  - QM Energy =      -133.87662 - Rho diff (crit) = 2.48E-04 (1.00E-06) - Energy diff (crit) = 1.38E-03 (1.00E+00)
+  Step =     31  - QM Energy =      -133.87551 - Rho diff (crit) = 2.22E-04 (1.00E-06) - Energy diff (crit) = 1.11E-03 (1.00E+00)
+  Step =     32  - QM Energy =      -133.87462 - Rho diff (crit) = 1.99E-04 (1.00E-06) - Energy diff (crit) = 8.93E-04 (1.00E+00)
+  Step =     33  - QM Energy =      -133.87390 - Rho diff (crit) = 1.79E-04 (1.00E-06) - Energy diff (crit) = 7.23E-04 (1.00E+00)
+  Step =     34  - QM Energy =      -133.87331 - Rho diff (crit) = 1.61E-04 (1.00E-06) - Energy diff (crit) = 5.87E-04 (1.00E+00)
+  Step =     35  - QM Energy =      -133.87283 - Rho diff (crit) = 1.45E-04 (1.00E-06) - Energy diff (crit) = 4.79E-04 (1.00E+00)
+  Step =     36  - QM Energy =      -133.87244 - Rho diff (crit) = 1.31E-04 (1.00E-06) - Energy diff (crit) = 3.93E-04 (1.00E+00)
+  Step =     37  - QM Energy =      -133.87212 - Rho diff (crit) = 1.18E-04 (1.00E-06) - Energy diff (crit) = 3.24E-04 (1.00E+00)
+  Step =     38  - QM Energy =      -133.87185 - Rho diff (crit) = 1.06E-04 (1.00E-06) - Energy diff (crit) = 2.69E-04 (1.00E+00)
+  Step =     39  - QM Energy =      -133.87162 - Rho diff (crit) = 9.58E-05 (1.00E-06) - Energy diff (crit) = 2.24E-04 (1.00E+00)
+  Step =     40  - QM Energy =      -133.87144 - Rho diff (crit) = 8.65E-05 (1.00E-06) - Energy diff (crit) = 1.87E-04 (1.00E+00)
+  Step =     41  - QM Energy =      -133.87128 - Rho diff (crit) = 7.80E-05 (1.00E-06) - Energy diff (crit) = 1.58E-04 (1.00E+00)
+  Step =     42  - QM Energy =      -133.87115 - Rho diff (crit) = 7.05E-05 (1.00E-06) - Energy diff (crit) = 1.33E-04 (1.00E+00)
+  Step =     43  - QM Energy =      -133.87103 - Rho diff (crit) = 6.36E-05 (1.00E-06) - Energy diff (crit) = 1.13E-04 (1.00E+00)
+  Step =     44  - QM Energy =      -133.87094 - Rho diff (crit) = 5.75E-05 (1.00E-06) - Energy diff (crit) = 9.64E-05 (1.00E+00)
+  Step =     45  - QM Energy =      -133.87085 - Rho diff (crit) = 5.19E-05 (1.00E-06) - Energy diff (crit) = 8.26E-05 (1.00E+00)
+  Step =     46  - QM Energy =      -133.87078 - Rho diff (crit) = 4.69E-05 (1.00E-06) - Energy diff (crit) = 7.10E-05 (1.00E+00)
+  Step =     47  - QM Energy =      -133.87072 - Rho diff (crit) = 4.24E-05 (1.00E-06) - Energy diff (crit) = 6.13E-05 (1.00E+00)
+  Step =     48  - QM Energy =      -133.87067 - Rho diff (crit) = 3.84E-05 (1.00E-06) - Energy diff (crit) = 5.30E-05 (1.00E+00)
+  Step =     49  - QM Energy =      -133.87062 - Rho diff (crit) = 5.52E-04 (1.00E-06) - Energy diff (crit) = 4.56E-05 (1.00E+00)
+  Step =     50  - QM Energy =      -133.87065 - Rho diff (crit) = 4.24E-02 (1.00E-06) - Energy diff (crit) = 2.32E-05 (1.00E+00)
+  Step =     51  - QM Energy =      -133.86609 - Rho diff (crit) = 9.36E-03 (1.00E-06) - Energy diff (crit) = 4.56E-03 (1.00E+00)
+  Step =     52  - QM Energy =      -133.86379 - Rho diff (crit) = 1.45E-03 (1.00E-06) - Energy diff (crit) = 2.30E-03 (1.00E+00)
+  Step =     53  - QM Energy =      -133.86566 - Rho diff (crit) = 2.94E-04 (1.00E-06) - Energy diff (crit) = 1.86E-03 (1.00E+00)
+  Step =     54  - QM Energy =      -133.86661 - Rho diff (crit) = 2.41E-04 (1.00E-06) - Energy diff (crit) = 9.51E-04 (1.00E+00)
+  Step =     55  - QM Energy =      -133.86726 - Rho diff (crit) = 2.26E-04 (1.00E-06) - Energy diff (crit) = 6.50E-04 (1.00E+00)
+  Step =     56  - QM Energy =      -133.86772 - Rho diff (crit) = 2.12E-04 (1.00E-06) - Energy diff (crit) = 4.59E-04 (1.00E+00)
+  Step =     57  - QM Energy =      -133.86804 - Rho diff (crit) = 1.97E-04 (1.00E-06) - Energy diff (crit) = 3.22E-04 (1.00E+00)
+  Step =     58  - QM Energy =      -133.86826 - Rho diff (crit) = 1.83E-04 (1.00E-06) - Energy diff (crit) = 2.22E-04 (1.00E+00)
+  Step =     59  - QM Energy =      -133.86841 - Rho diff (crit) = 1.69E-04 (1.00E-06) - Energy diff (crit) = 1.47E-04 (1.00E+00)
+  Step =     60  - QM Energy =      -133.86850 - Rho diff (crit) = 1.57E-04 (1.00E-06) - Energy diff (crit) = 9.17E-05 (1.00E+00)
+  Step =     61  - QM Energy =      -133.86855 - Rho diff (crit) = 1.45E-04 (1.00E-06) - Energy diff (crit) = 5.06E-05 (1.00E+00)
+  Step =     62  - QM Energy =      -133.86857 - Rho diff (crit) = 1.34E-04 (1.00E-06) - Energy diff (crit) = 2.03E-05 (1.00E+00)
+  Step =     63  - QM Energy =      -133.86857 - Rho diff (crit) = 1.24E-04 (1.00E-06) - Energy diff (crit) = 1.62E-06 (1.00E+00)
+  Step =     64  - QM Energy =      -133.86855 - Rho diff (crit) = 1.15E-04 (1.00E-06) - Energy diff (crit) = 1.73E-05 (1.00E+00)
+  Step =     65  - QM Energy =      -133.86852 - Rho diff (crit) = 1.07E-04 (1.00E-06) - Energy diff (crit) = 2.83E-05 (1.00E+00)
+  Step =     66  - QM Energy =      -133.86849 - Rho diff (crit) = 9.91E-05 (1.00E-06) - Energy diff (crit) = 3.56E-05 (1.00E+00)
+  Step =     67  - QM Energy =      -133.86845 - Rho diff (crit) = 9.20E-05 (1.00E-06) - Energy diff (crit) = 4.03E-05 (1.00E+00)
+  Step =     68  - QM Energy =      -133.86840 - Rho diff (crit) = 8.54E-05 (1.00E-06) - Energy diff (crit) = 4.29E-05 (1.00E+00)
+  Step =     69  - QM Energy =      -133.86836 - Rho diff (crit) = 7.92E-05 (1.00E-06) - Energy diff (crit) = 4.41E-05 (1.00E+00)
+  Step =     70  - QM Energy =      -133.86832 - Rho diff (crit) = 7.36E-05 (1.00E-06) - Energy diff (crit) = 4.42E-05 (1.00E+00)
+  Step =     71  - QM Energy =      -133.86827 - Rho diff (crit) = 6.83E-05 (1.00E-06) - Energy diff (crit) = 4.34E-05 (1.00E+00)
+  Step =     72  - QM Energy =      -133.86823 - Rho diff (crit) = 6.34E-05 (1.00E-06) - Energy diff (crit) = 4.22E-05 (1.00E+00)
+  Step =     73  - QM Energy =      -133.86819 - Rho diff (crit) = 5.89E-05 (1.00E-06) - Energy diff (crit) = 4.05E-05 (1.00E+00)
+  Step =     74  - QM Energy =      -133.86815 - Rho diff (crit) = 5.47E-05 (1.00E-06) - Energy diff (crit) = 3.86E-05 (1.00E+00)
+  Step =     75  - QM Energy =      -133.86811 - Rho diff (crit) = 5.08E-05 (1.00E-06) - Energy diff (crit) = 3.66E-05 (1.00E+00)
+  Step =     76  - QM Energy =      -133.86808 - Rho diff (crit) = 4.71E-05 (1.00E-06) - Energy diff (crit) = 3.45E-05 (1.00E+00)
+  Step =     77  - QM Energy =      -133.86805 - Rho diff (crit) = 4.37E-05 (1.00E-06) - Energy diff (crit) = 3.24E-05 (1.00E+00)
+  Step =     78  - QM Energy =      -133.86802 - Rho diff (crit) = 4.06E-05 (1.00E-06) - Energy diff (crit) = 3.03E-05 (1.00E+00)
+  Step =     79  - QM Energy =      -133.86799 - Rho diff (crit) = 3.77E-05 (1.00E-06) - Energy diff (crit) = 2.83E-05 (1.00E+00)
+  Step =     80  - QM Energy =      -133.86796 - Rho diff (crit) = 3.49E-05 (1.00E-06) - Energy diff (crit) = 2.63E-05 (1.00E+00)
+  Step =     81  - QM Energy =      -133.86794 - Rho diff (crit) = 3.24E-05 (1.00E-06) - Energy diff (crit) = 2.44E-05 (1.00E+00)
+  Step =     82  - QM Energy =      -133.86792 - Rho diff (crit) = 3.00E-05 (1.00E-06) - Energy diff (crit) = 2.27E-05 (1.00E+00)
+  Step =     83  - QM Energy =      -133.86789 - Rho diff (crit) = 2.78E-05 (1.00E-06) - Energy diff (crit) = 2.10E-05 (1.00E+00)
+  Step =     84  - QM Energy =      -133.86788 - Rho diff (crit) = 2.58E-05 (1.00E-06) - Energy diff (crit) = 1.94E-05 (1.00E+00)
+  Step =     85  - QM Energy =      -133.86786 - Rho diff (crit) = 2.39E-05 (1.00E-06) - Energy diff (crit) = 1.79E-05 (1.00E+00)
+  Step =     86  - QM Energy =      -133.86784 - Rho diff (crit) = 2.21E-05 (1.00E-06) - Energy diff (crit) = 1.66E-05 (1.00E+00)
+  Step =     87  - QM Energy =      -133.86783 - Rho diff (crit) = 2.05E-05 (1.00E-06) - Energy diff (crit) = 1.53E-05 (1.00E+00)
+  Step =     88  - QM Energy =      -133.86781 - Rho diff (crit) = 1.90E-05 (1.00E-06) - Energy diff (crit) = 1.41E-05 (1.00E+00)
+  Step =     89  - QM Energy =      -133.86780 - Rho diff (crit) = 1.76E-05 (1.00E-06) - Energy diff (crit) = 1.30E-05 (1.00E+00)
+  Step =     90  - QM Energy =      -133.86779 - Rho diff (crit) = 1.63E-05 (1.00E-06) - Energy diff (crit) = 1.20E-05 (1.00E+00)
+  Step =     91  - QM Energy =      -133.86778 - Rho diff (crit) = 1.51E-05 (1.00E-06) - Energy diff (crit) = 1.10E-05 (1.00E+00)
+  Step =     92  - QM Energy =      -133.86777 - Rho diff (crit) = 1.39E-05 (1.00E-06) - Energy diff (crit) = 1.01E-05 (1.00E+00)
+  Step =     93  - QM Energy =      -133.86776 - Rho diff (crit) = 1.29E-05 (1.00E-06) - Energy diff (crit) = 9.33E-06 (1.00E+00)
+  Step =     94  - QM Energy =      -133.86775 - Rho diff (crit) = 1.19E-05 (1.00E-06) - Energy diff (crit) = 8.59E-06 (1.00E+00)
+  Step =     95  - QM Energy =      -133.86774 - Rho diff (crit) = 1.10E-05 (1.00E-06) - Energy diff (crit) = 7.90E-06 (1.00E+00)
+  Step =     96  - QM Energy =      -133.86773 - Rho diff (crit) = 1.02E-05 (1.00E-06) - Energy diff (crit) = 7.26E-06 (1.00E+00)
+  Step =     97  - QM Energy =      -133.86773 - Rho diff (crit) = 9.40E-06 (1.00E-06) - Energy diff (crit) = 6.68E-06 (1.00E+00)
+  Step =     98  - QM Energy =      -133.86772 - Rho diff (crit) = 8.69E-06 (1.00E-06) - Energy diff (crit) = 6.14E-06 (1.00E+00)
+  Step =     99  - QM Energy =      -133.86771 - Rho diff (crit) = 8.02E-06 (1.00E-06) - Energy diff (crit) = 5.64E-06 (1.00E+00)
+  Step =    100  - QM Energy =      -133.86771 - Rho diff (crit) = 7.41E-06 (1.00E-06) - Energy diff (crit) = 5.18E-06 (1.00E+00)
+  Step =    101  - QM Energy =      -133.86770 - Rho diff (crit) = 6.84E-06 (1.00E-06) - Energy diff (crit) = 4.76E-06 (1.00E+00)
+  Step =    102  - QM Energy =      -133.86770 - Rho diff (crit) = 6.32E-06 (1.00E-06) - Energy diff (crit) = 4.38E-06 (1.00E+00)
+  Step =    103  - QM Energy =      -133.86770 - Rho diff (crit) = 5.83E-06 (1.00E-06) - Energy diff (crit) = 4.02E-06 (1.00E+00)
+  Step =    104  - QM Energy =      -133.86769 - Rho diff (crit) = 5.38E-06 (1.00E-06) - Energy diff (crit) = 3.70E-06 (1.00E+00)
+  Step =    105  - QM Energy =      -133.86769 - Rho diff (crit) = 4.97E-06 (1.00E-06) - Energy diff (crit) = 3.40E-06 (1.00E+00)
+  Step =    106  - QM Energy =      -133.86769 - Rho diff (crit) = 4.58E-06 (1.00E-06) - Energy diff (crit) = 3.12E-06 (1.00E+00)
+  Step =    107  - QM Energy =      -133.86768 - Rho diff (crit) = 4.23E-06 (1.00E-06) - Energy diff (crit) = 2.87E-06 (1.00E+00)
+  Step =    108  - QM Energy =      -133.86768 - Rho diff (crit) = 3.90E-06 (1.00E-06) - Energy diff (crit) = 2.63E-06 (1.00E+00)
+  Step =    109  - QM Energy =      -133.86768 - Rho diff (crit) = 3.60E-06 (1.00E-06) - Energy diff (crit) = 2.42E-06 (1.00E+00)
+  Step =    110  - QM Energy =      -133.86768 - Rho diff (crit) = 3.32E-06 (1.00E-06) - Energy diff (crit) = 2.22E-06 (1.00E+00)
+  Step =    111  - QM Energy =      -133.86767 - Rho diff (crit) = 3.06E-06 (1.00E-06) - Energy diff (crit) = 2.04E-06 (1.00E+00)
+  Step =    112  - QM Energy =      -133.86767 - Rho diff (crit) = 2.82E-06 (1.00E-06) - Energy diff (crit) = 1.88E-06 (1.00E+00)
+  Step =    113  - QM Energy =      -133.86767 - Rho diff (crit) = 2.60E-06 (1.00E-06) - Energy diff (crit) = 1.72E-06 (1.00E+00)
+  Step =    114  - QM Energy =      -133.86767 - Rho diff (crit) = 2.40E-06 (1.00E-06) - Energy diff (crit) = 1.58E-06 (1.00E+00)
+  Step =    115  - QM Energy =      -133.86767 - Rho diff (crit) = 2.21E-06 (1.00E-06) - Energy diff (crit) = 1.45E-06 (1.00E+00)
+  Step =    116  - QM Energy =      -133.86767 - Rho diff (crit) = 2.04E-06 (1.00E-06) - Energy diff (crit) = 1.34E-06 (1.00E+00)
+  Step =    117  - QM Energy =      -133.86766 - Rho diff (crit) = 1.88E-06 (1.00E-06) - Energy diff (crit) = 1.23E-06 (1.00E+00)
+  Step =    118  - QM Energy =      -133.86766 - Rho diff (crit) = 1.74E-06 (1.00E-06) - Energy diff (crit) = 1.13E-06 (1.00E+00)
+  Step =    119  - QM Energy =      -133.86766 - Rho diff (crit) = 1.61E-06 (1.00E-06) - Energy diff (crit) = 1.04E-06 (1.00E+00)
+  Step =    120  - QM Energy =      -133.86766 - Rho diff (crit) = 1.48E-06 (1.00E-06) - Energy diff (crit) = 9.52E-07 (1.00E+00)
+  Step =    121  - QM Energy =      -133.86766 - Rho diff (crit) = 1.37E-06 (1.00E-06) - Energy diff (crit) = 8.74E-07 (1.00E+00)
+  Step =    122  - QM Energy =      -133.86766 - Rho diff (crit) = 1.26E-06 (1.00E-06) - Energy diff (crit) = 8.03E-07 (1.00E+00)
+  Step =    123  - QM Energy =      -133.86766 - Rho diff (crit) = 1.17E-06 (1.00E-06) - Energy diff (crit) = 7.38E-07 (1.00E+00)
+  Step =    124  - QM Energy =      -133.86766 - Rho diff (crit) = 1.08E-06 (1.00E-06) - Energy diff (crit) = 6.78E-07 (1.00E+00)
+  Step =    125  - QM Energy =      -133.86766 - Rho diff (crit) = 1.00E-06 (1.00E-06) - Energy diff (crit) = 6.23E-07 (1.00E+00)
+  Step =    126  - QM Energy =      -133.86766 - Rho diff (crit) = 9.27E-07 (1.00E-06) - Energy diff (crit) = 5.73E-07 (1.00E+00)
+  Convergence achieved in    126 iterations. Final energy   -133.8676564 A.U.
+ 
+Final Energy Contributions in A.U.
+  Total energy =  -151.347072
+  One electron =  -260.990752
+  Coulomb      =   100.519402
+  Nuclear      =    26.603694
+  Exch. Corr.  =   -17.479415
+ 
+ Lio  E(H)  -151.347071774230     
+ Lio  E(eV)  -4118.36512346680     
+
+constr opt: variable constraint
+icosntr  :   1
+type     :   2
+atoms    :   1   2
+constant : 200.000
+steps    :  61
+initial  :   1.200
+final    :   5.000
+targeted :   2.659
+actual   :   2.361
+ 
+
+hybrid: Potential Energy Decomposition (eV):
+Elio :        -4118.365123466801378527
+Etots:          -4118.365123466801378527
+
+hybrid: Atomic forces (eV/Ang):
+     1   -0.520155    0.443244   -3.465057
+     2    0.764708   -0.337310    3.473450
+     3    0.060444   -0.181406    0.059035
+     4   -0.303280    0.076915   -0.068371
+-------------------------------------------
+ Tot    0.001718    0.001443   -0.000943
+-------------------------------------------
+ Max    3.473450  free, atom      2
+ Res    1.454295  sqrt( Sum f_i^2 / 3N )
+-------------------------------------------
+ Max    3.473450  cons, atom      2
+
+iocg: Reading CG continuation file
+
+hybrid:                 ==============================
+                            Begin move =      1
+                        ==============================
+ Optimization level:            3
+ atoms QM, MM, totals           4           0           4
+ doing SCF? T
+ doing forces? T
+ 
+Starting SCF cycles.
+tipo: 7 0.193813 radio: 14.3661
+tipo: 7 0.193813 radio: 14.3661
+tipo: 0 0.15411 radio: 16.1107
+tipo: 0 0.15411 radio: 16.1107
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+  Step =      1  - QM Energy =      -133.86665 - Rho diff (crit) = 1.83E-03 (1.00E-06) - Energy diff (crit) = 1.34E+02 (1.00E+00)
+  Step =      2  - QM Energy =      -133.86277 - Rho diff (crit) = 1.09E-04 (1.00E-06) - Energy diff (crit) = 3.89E-03 (1.00E+00)
+  Step =      3  - QM Energy =      -133.86324 - Rho diff (crit) = 9.22E-05 (1.00E-06) - Energy diff (crit) = 4.79E-04 (1.00E+00)
+  Step =      4  - QM Energy =      -133.86361 - Rho diff (crit) = 7.47E-05 (1.00E-06) - Energy diff (crit) = 3.65E-04 (1.00E+00)
+  Step =      5  - QM Energy =      -133.86389 - Rho diff (crit) = 6.33E-05 (1.00E-06) - Energy diff (crit) = 2.77E-04 (1.00E+00)
+  Step =      6  - QM Energy =      -133.86410 - Rho diff (crit) = 5.19E-05 (1.00E-06) - Energy diff (crit) = 2.11E-04 (1.00E+00)
+  Step =      7  - QM Energy =      -133.86426 - Rho diff (crit) = 4.41E-05 (1.00E-06) - Energy diff (crit) = 1.60E-04 (1.00E+00)
+  Step =      8  - QM Energy =      -133.86438 - Rho diff (crit) = 3.65E-05 (1.00E-06) - Energy diff (crit) = 1.21E-04 (1.00E+00)
+  Step =      9  - QM Energy =      -133.86447 - Rho diff (crit) = 3.11E-05 (1.00E-06) - Energy diff (crit) = 9.10E-05 (1.00E+00)
+  Step =     10  - QM Energy =      -133.86454 - Rho diff (crit) = 2.60E-05 (1.00E-06) - Energy diff (crit) = 6.85E-05 (1.00E+00)
+  Step =     11  - QM Energy =      -133.86459 - Rho diff (crit) = 2.22E-05 (1.00E-06) - Energy diff (crit) = 5.13E-05 (1.00E+00)
+  Step =     12  - QM Energy =      -133.86463 - Rho diff (crit) = 1.87E-05 (1.00E-06) - Energy diff (crit) = 3.83E-05 (1.00E+00)
+  Step =     13  - QM Energy =      -133.86466 - Rho diff (crit) = 1.60E-05 (1.00E-06) - Energy diff (crit) = 2.84E-05 (1.00E+00)
+  Step =     14  - QM Energy =      -133.86468 - Rho diff (crit) = 1.35E-05 (1.00E-06) - Energy diff (crit) = 2.10E-05 (1.00E+00)
+  Step =     15  - QM Energy =      -133.86469 - Rho diff (crit) = 1.15E-05 (1.00E-06) - Energy diff (crit) = 1.54E-05 (1.00E+00)
+  Step =     16  - QM Energy =      -133.86470 - Rho diff (crit) = 9.78E-06 (1.00E-06) - Energy diff (crit) = 1.11E-05 (1.00E+00)
+  Step =     17  - QM Energy =      -133.86471 - Rho diff (crit) = 8.39E-06 (1.00E-06) - Energy diff (crit) = 7.99E-06 (1.00E+00)
+  Step =     18  - QM Energy =      -133.86472 - Rho diff (crit) = 7.14E-06 (1.00E-06) - Energy diff (crit) = 5.64E-06 (1.00E+00)
+  Step =     19  - QM Energy =      -133.86472 - Rho diff (crit) = 6.12E-06 (1.00E-06) - Energy diff (crit) = 3.90E-06 (1.00E+00)
+  Step =     20  - QM Energy =      -133.86472 - Rho diff (crit) = 5.23E-06 (1.00E-06) - Energy diff (crit) = 2.62E-06 (1.00E+00)
+  Step =     21  - QM Energy =      -133.86472 - Rho diff (crit) = 4.49E-06 (1.00E-06) - Energy diff (crit) = 1.68E-06 (1.00E+00)
+  Step =     22  - QM Energy =      -133.86473 - Rho diff (crit) = 3.85E-06 (1.00E-06) - Energy diff (crit) = 1.00E-06 (1.00E+00)
+  Step =     23  - QM Energy =      -133.86473 - Rho diff (crit) = 3.31E-06 (1.00E-06) - Energy diff (crit) = 5.19E-07 (1.00E+00)
+  Step =     24  - QM Energy =      -133.86473 - Rho diff (crit) = 2.84E-06 (1.00E-06) - Energy diff (crit) = 1.81E-07 (1.00E+00)
+  Step =     25  - QM Energy =      -133.86473 - Rho diff (crit) = 2.45E-06 (1.00E-06) - Energy diff (crit) = 5.09E-08 (1.00E+00)
+  Step =     26  - QM Energy =      -133.86473 - Rho diff (crit) = 2.12E-06 (1.00E-06) - Energy diff (crit) = 2.04E-07 (1.00E+00)
+  Step =     27  - QM Energy =      -133.86473 - Rho diff (crit) = 1.83E-06 (1.00E-06) - Energy diff (crit) = 3.01E-07 (1.00E+00)
+  Step =     28  - QM Energy =      -133.86473 - Rho diff (crit) = 1.59E-06 (1.00E-06) - Energy diff (crit) = 3.56E-07 (1.00E+00)
+  Step =     29  - QM Energy =      -133.86473 - Rho diff (crit) = 1.39E-06 (1.00E-06) - Energy diff (crit) = 3.83E-07 (1.00E+00)
+  Step =     30  - QM Energy =      -133.86472 - Rho diff (crit) = 1.21E-06 (1.00E-06) - Energy diff (crit) = 3.89E-07 (1.00E+00)
+  Step =     31  - QM Energy =      -133.86472 - Rho diff (crit) = 1.07E-06 (1.00E-06) - Energy diff (crit) = 3.82E-07 (1.00E+00)
+  Step =     32  - QM Energy =      -133.86472 - Rho diff (crit) = 9.45E-07 (1.00E-06) - Energy diff (crit) = 3.65E-07 (1.00E+00)
+  Convergence achieved in     32 iterations. Final energy   -133.8647239 A.U.
+ Lio  E(H)  -151.346031297172     
+ Lio  E(eV)  -4118.33681063341     
+ 
+
+hybrid: Potential Energy Decomposition (eV):
+Elio :        -4118.336810633410095761
+Etots:          -4118.336810633410095761
+
+hybrid: Atomic forces (eV/Ang):
+     1   -0.564533    0.446043   -3.228789
+     2    0.864193   -0.443818    3.245790
+     3    0.133952   -0.201996    0.066321
+     4   -0.431806    0.201401   -0.084088
+-------------------------------------------
+ Tot    0.001805    0.001630   -0.000767
+-------------------------------------------
+ Max    3.245790  free, atom      2
+ Res    1.375952  sqrt( Sum f_i^2 / 3N )
+-------------------------------------------
+ Max    3.245790  cons, atom      2
+
+hybrid:                 ==============================
+                            Begin move =      2
+                        ==============================
+ Optimization level:            3
+ atoms QM, MM, totals           4           0           4
+ doing SCF? T
+ doing forces? T
+ 
+Starting SCF cycles.
+tipo: 7 0.193813 radio: 14.3661
+tipo: 7 0.193813 radio: 14.3661
+tipo: 0 0.15411 radio: 16.1107
+tipo: 0 0.15411 radio: 16.1107
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+  Step =      1  - QM Energy =      -133.86310 - Rho diff (crit) = 2.84E-03 (1.00E-06) - Energy diff (crit) = 1.34E+02 (1.00E+00)
+  Step =      2  - QM Energy =      -133.85692 - Rho diff (crit) = 1.79E-04 (1.00E-06) - Energy diff (crit) = 6.18E-03 (1.00E+00)
+  Step =      3  - QM Energy =      -133.85768 - Rho diff (crit) = 1.53E-04 (1.00E-06) - Energy diff (crit) = 7.57E-04 (1.00E+00)
+  Step =      4  - QM Energy =      -133.85825 - Rho diff (crit) = 1.24E-04 (1.00E-06) - Energy diff (crit) = 5.77E-04 (1.00E+00)
+  Step =      5  - QM Energy =      -133.85869 - Rho diff (crit) = 1.06E-04 (1.00E-06) - Energy diff (crit) = 4.39E-04 (1.00E+00)
+  Step =      6  - QM Energy =      -133.85903 - Rho diff (crit) = 8.65E-05 (1.00E-06) - Energy diff (crit) = 3.34E-04 (1.00E+00)
+  Step =      7  - QM Energy =      -133.85928 - Rho diff (crit) = 7.46E-05 (1.00E-06) - Energy diff (crit) = 2.53E-04 (1.00E+00)
+  Step =      8  - QM Energy =      -133.85947 - Rho diff (crit) = 6.09E-05 (1.00E-06) - Energy diff (crit) = 1.92E-04 (1.00E+00)
+  Step =      9  - QM Energy =      -133.85962 - Rho diff (crit) = 5.28E-05 (1.00E-06) - Energy diff (crit) = 1.45E-04 (1.00E+00)
+  Step =     10  - QM Energy =      -133.85972 - Rho diff (crit) = 4.33E-05 (1.00E-06) - Energy diff (crit) = 1.09E-04 (1.00E+00)
+  Step =     11  - QM Energy =      -133.85981 - Rho diff (crit) = 3.76E-05 (1.00E-06) - Energy diff (crit) = 8.17E-05 (1.00E+00)
+  Step =     12  - QM Energy =      -133.85987 - Rho diff (crit) = 3.09E-05 (1.00E-06) - Energy diff (crit) = 6.11E-05 (1.00E+00)
+  Step =     13  - QM Energy =      -133.85991 - Rho diff (crit) = 2.69E-05 (1.00E-06) - Energy diff (crit) = 4.55E-05 (1.00E+00)
+  Step =     14  - QM Energy =      -133.85995 - Rho diff (crit) = 2.22E-05 (1.00E-06) - Energy diff (crit) = 3.37E-05 (1.00E+00)
+  Step =     15  - QM Energy =      -133.85997 - Rho diff (crit) = 1.93E-05 (1.00E-06) - Energy diff (crit) = 2.47E-05 (1.00E+00)
+  Step =     16  - QM Energy =      -133.85999 - Rho diff (crit) = 1.60E-05 (1.00E-06) - Energy diff (crit) = 1.80E-05 (1.00E+00)
+  Step =     17  - QM Energy =      -133.86000 - Rho diff (crit) = 1.40E-05 (1.00E-06) - Energy diff (crit) = 1.30E-05 (1.00E+00)
+  Step =     18  - QM Energy =      -133.86001 - Rho diff (crit) = 1.16E-05 (1.00E-06) - Energy diff (crit) = 9.23E-06 (1.00E+00)
+  Step =     19  - QM Energy =      -133.86002 - Rho diff (crit) = 1.01E-05 (1.00E-06) - Energy diff (crit) = 6.42E-06 (1.00E+00)
+  Step =     20  - QM Energy =      -133.86002 - Rho diff (crit) = 8.44E-06 (1.00E-06) - Energy diff (crit) = 4.38E-06 (1.00E+00)
+  Step =     21  - QM Energy =      -133.86002 - Rho diff (crit) = 7.37E-06 (1.00E-06) - Energy diff (crit) = 2.86E-06 (1.00E+00)
+  Step =     22  - QM Energy =      -133.86003 - Rho diff (crit) = 6.17E-06 (1.00E-06) - Energy diff (crit) = 1.77E-06 (1.00E+00)
+  Step =     23  - QM Energy =      -133.86003 - Rho diff (crit) = 5.40E-06 (1.00E-06) - Energy diff (crit) = 9.77E-07 (1.00E+00)
+  Step =     24  - QM Energy =      -133.86003 - Rho diff (crit) = 4.54E-06 (1.00E-06) - Energy diff (crit) = 4.27E-07 (1.00E+00)
+  Step =     25  - QM Energy =      -133.86003 - Rho diff (crit) = 3.98E-06 (1.00E-06) - Energy diff (crit) = 3.93E-08 (1.00E+00)
+  Step =     26  - QM Energy =      -133.86003 - Rho diff (crit) = 3.36E-06 (1.00E-06) - Energy diff (crit) = 2.16E-07 (1.00E+00)
+  Step =     27  - QM Energy =      -133.86003 - Rho diff (crit) = 2.96E-06 (1.00E-06) - Energy diff (crit) = 3.84E-07 (1.00E+00)
+  Step =     28  - QM Energy =      -133.86003 - Rho diff (crit) = 2.52E-06 (1.00E-06) - Energy diff (crit) = 4.81E-07 (1.00E+00)
+  Step =     29  - QM Energy =      -133.86003 - Rho diff (crit) = 2.23E-06 (1.00E-06) - Energy diff (crit) = 5.35E-07 (1.00E+00)
+  Step =     30  - QM Energy =      -133.86003 - Rho diff (crit) = 1.92E-06 (1.00E-06) - Energy diff (crit) = 5.52E-07 (1.00E+00)
+  Step =     31  - QM Energy =      -133.86003 - Rho diff (crit) = 1.71E-06 (1.00E-06) - Energy diff (crit) = 5.49E-07 (1.00E+00)
+  Step =     32  - QM Energy =      -133.86002 - Rho diff (crit) = 1.49E-06 (1.00E-06) - Energy diff (crit) = 5.29E-07 (1.00E+00)
+  Step =     33  - QM Energy =      -133.86002 - Rho diff (crit) = 1.35E-06 (1.00E-06) - Energy diff (crit) = 5.01E-07 (1.00E+00)
+  Step =     34  - QM Energy =      -133.86002 - Rho diff (crit) = 1.19E-06 (1.00E-06) - Energy diff (crit) = 4.66E-07 (1.00E+00)
+  Step =     35  - QM Energy =      -133.86002 - Rho diff (crit) = 1.10E-06 (1.00E-06) - Energy diff (crit) = 4.30E-07 (1.00E+00)
+  Step =     36  - QM Energy =      -133.86002 - Rho diff (crit) = 9.90E-07 (1.00E-06) - Energy diff (crit) = 3.92E-07 (1.00E+00)
+  Convergence achieved in     36 iterations. Final energy   -133.8600231 A.U.
+ Lio  E(H)  -151.344340921023     
+ Lio  E(eV)  -4118.29081313842     
+ 
+
+hybrid: Potential Energy Decomposition (eV):
+Elio :        -4118.290813138423800410
+Etots:          -4118.290813138423800410
+
+hybrid: Atomic forces (eV/Ang):
+     1   -0.634875    0.451609   -2.848985
+     2    1.029950   -0.616469    2.882477
+     3    0.249469   -0.234814    0.079248
+     4   -0.642694    0.401604   -0.113235
+-------------------------------------------
+ Tot    0.001849    0.001930   -0.000495
+-------------------------------------------
+ Max    2.882477  free, atom      2
+ Res    1.264386  sqrt( Sum f_i^2 / 3N )
+-------------------------------------------
+ Max    2.882477  cons, atom      2
+
+hybrid:                 ==============================
+                            Begin move =      3
+                        ==============================
+ Optimization level:            3
+ atoms QM, MM, totals           4           0           4
+ doing SCF? T
+ doing forces? T
+ 
+Starting SCF cycles.
+tipo: 7 0.193813 radio: 14.3661
+tipo: 7 0.193813 radio: 14.3661
+tipo: 0 0.15411 radio: 16.1107
+tipo: 0 0.15411 radio: 16.1107
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 22 capas de 35 (radio: 1.15629)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+esfera incluye 19 capas de 30 (radio: 0.682642)
+  Step =      1  - QM Energy =      -133.85739 - Rho diff (crit) = 4.39E-03 (1.00E-06) - Energy diff (crit) = 1.34E+02 (1.00E+00)
+  Step =      2  - QM Energy =      -133.84760 - Rho diff (crit) = 2.99E-04 (1.00E-06) - Energy diff (crit) = 9.79E-03 (1.00E+00)
+  Step =      3  - QM Energy =      -133.84879 - Rho diff (crit) = 2.67E-04 (1.00E-06) - Energy diff (crit) = 1.19E-03 (1.00E+00)
+  Step =      4  - QM Energy =      -133.84969 - Rho diff (crit) = 2.26E-04 (1.00E-06) - Energy diff (crit) = 9.05E-04 (1.00E+00)
+  Step =      5  - QM Energy =      -133.85038 - Rho diff (crit) = 2.10E-04 (1.00E-06) - Energy diff (crit) = 6.88E-04 (1.00E+00)
+  Step =      6  - QM Energy =      -133.85090 - Rho diff (crit) = 1.82E-04 (1.00E-06) - Energy diff (crit) = 5.24E-04 (1.00E+00)
+  Step =      7  - QM Energy =      -133.85130 - Rho diff (crit) = 1.75E-04 (1.00E-06) - Energy diff (crit) = 3.97E-04 (1.00E+00)
+  Step =      8  - QM Energy =      -133.85160 - Rho diff (crit) = 1.56E-04 (1.00E-06) - Energy diff (crit) = 3.02E-04 (1.00E+00)
+  Step =      9  - QM Energy =      -133.85183 - Rho diff (crit) = 1.53E-04 (1.00E-06) - Energy diff (crit) = 2.28E-04 (1.00E+00)
+  Step =     10  - QM Energy =      -133.85200 - Rho diff (crit) = 1.40E-04 (1.00E-06) - Energy diff (crit) = 1.72E-04 (1.00E+00)
+  Step =     11  - QM Energy =      -133.85213 - Rho diff (crit) = 1.39E-04 (1.00E-06) - Energy diff (crit) = 1.29E-04 (1.00E+00)
+  Step =     12  - QM Energy =      -133.85223 - Rho diff (crit) = 1.30E-04 (1.00E-06) - Energy diff (crit) = 9.72E-05 (1.00E+00)
+  Step =     13  - QM Energy =      -133.85230 - Rho diff (crit) = 1.29E-04 (1.00E-06) - Energy diff (crit) = 7.22E-05 (1.00E+00)
+  Step =     14  - QM Energy =      -133.85235 - Rho diff (crit) = 1.23E-04 (1.00E-06) - Energy diff (crit) = 5.39E-05 (1.00E+00)
+  Step =     15  - QM Energy =      -133.85239 - Rho diff (crit) = 1.22E-04 (1.00E-06) - Energy diff (crit) = 3.95E-05 (1.00E+00)
+  Step =     16  - QM Energy =      -133.85242 - Rho diff (crit) = 1.17E-04 (1.00E-06) - Energy diff (crit) = 2.92E-05 (1.00E+00)
+  Step =     17  - QM Energy =      -133.85244 - Rho diff (crit) = 1.16E-04 (1.00E-06) - Energy diff (crit) = 2.09E-05 (1.00E+00)
+  Step =     18  - QM Energy =      -133.85246 - Rho diff (crit) = 1.12E-04 (1.00E-06) - Energy diff (crit) = 1.53E-05 (1.00E+00)
+  Step =     19  - QM Energy =      -133.85247 - Rho diff (crit) = 1.11E-04 (1.00E-06) - Energy diff (crit) = 1.05E-05 (1.00E+00)
+  Step =     20  - QM Energy =      -133.85248 - Rho diff (crit) = 1.08E-04 (1.00E-06) - Energy diff (crit) = 7.52E-06 (1.00E+00)
+  Step =     21  - QM Energy =      -133.85248 - Rho diff (crit) = 1.07E-04 (1.00E-06) - Energy diff (crit) = 4.77E-06 (1.00E+00)
+  Step =     22  - QM Energy =      -133.85249 - Rho diff (crit) = 1.04E-04 (1.00E-06) - Energy diff (crit) = 3.31E-06 (1.00E+00)
+  Step =     23  - QM Energy =      -133.85249 - Rho diff (crit) = 1.03E-04 (1.00E-06) - Energy diff (crit) = 1.72E-06 (1.00E+00)
+  Step =     24  - QM Energy =      -133.85249 - Rho diff (crit) = 1.00E-04 (1.00E-06) - Energy diff (crit) = 1.11E-06 (1.00E+00)
+  Step =     25  - QM Energy =      -133.85249 - Rho diff (crit) = 9.87E-05 (1.00E-06) - Energy diff (crit) = 1.80E-07 (1.00E+00)
+  Step =     26  - QM Energy =      -133.85249 - Rho diff (crit) = 9.63E-05 (1.00E-06) - Energy diff (crit) = 3.07E-08 (1.00E+00)
+  Step =     27  - QM Energy =      -133.85249 - Rho diff (crit) = 9.49E-05 (1.00E-06) - Energy diff (crit) = 5.38E-07 (1.00E+00)
+  Step =     28  - QM Energy =      -133.85249 - Rho diff (crit) = 9.28E-05 (1.00E-06) - Energy diff (crit) = 4.45E-07 (1.00E+00)
+  Step =     29  - QM Energy =      -133.85249 - Rho diff (crit) = 9.13E-05 (1.00E-06) - Energy diff (crit) = 8.15E-07 (1.00E+00)
+  Step =     30  - QM Energy =      -133.85249 - Rho diff (crit) = 8.93E-05 (1.00E-06) - Energy diff (crit) = 6.02E-07 (1.00E+00)
+  Step =     31  - QM Energy =      -133.85249 - Rho diff (crit) = 8.79E-05 (1.00E-06) - Energy diff (crit) = 8.67E-07 (1.00E+00)
+  Step =     32  - QM Energy =      -133.85248 - Rho diff (crit) = 8.60E-05 (1.00E-06) - Energy diff (crit) = 6.01E-07 (1.00E+00)
+  Step =     33  - QM Energy =      -133.85248 - Rho diff (crit) = 8.45E-05 (1.00E-06) - Energy diff (crit) = 8.12E-07 (1.00E+00)
+  Step =     34  - QM Energy =      -133.85248 - Rho diff (crit) = 8.28E-05 (1.00E-06) - Energy diff (crit) = 5.31E-07 (1.00E+00)
+  Step =     35  - QM Energy =      -133.85248 - Rho diff (crit) = 8.14E-05 (1.00E-06) - Energy diff (crit) = 7.16E-07 (1.00E+00)
+  Step =     36  - QM Energy =      -133.85248 - Rho diff (crit) = 7.97E-05 (1.00E-06) - Energy diff (crit) = 4.36E-07 (1.00E+00)
+  Step =     37  - QM Energy =      -133.85248 - Rho diff (crit) = 7.83E-05 (1.00E-06) - Energy diff (crit) = 6.09E-07 (1.00E+00)
+  Step =     38  - QM Energy =      -133.85248 - Rho diff (crit) = 7.67E-05 (1.00E-06) - Energy diff (crit) = 3.41E-07 (1.00E+00)
+  Step =     39  - QM Energy =      -133.85248 - Rho diff (crit) = 7.54E-05 (1.00E-06) - Energy diff (crit) = 5.09E-07 (1.00E+00)
+  Step =     40  - QM Energy =      -133.85248 - Rho diff (crit) = 7.38E-05 (1.00E-06) - Energy diff (crit) = 2.56E-07 (1.00E+00)
+  Step =     41  - QM Energy =      -133.85248 - Rho diff (crit) = 7.25E-05 (1.00E-06) - Energy diff (crit) = 4.21E-07 (1.00E+00)
+  Step =     42  - QM Energy =      -133.85248 - Rho diff (crit) = 7.10E-05 (1.00E-06) - Energy diff (crit) = 1.84E-07 (1.00E+00)
+  Step =     43  - QM Energy =      -133.85248 - Rho diff (crit) = 6.98E-05 (1.00E-06) - Energy diff (crit) = 3.47E-07 (1.00E+00)
+  Step =     44  - QM Energy =      -133.85248 - Rho diff (crit) = 6.84E-05 (1.00E-06) - Energy diff (crit) = 1.25E-07 (1.00E+00)
+  Step =     45  - QM Energy =      -133.85248 - Rho diff (crit) = 6.72E-05 (1.00E-06) - Energy diff (crit) = 2.87E-07 (1.00E+00)
+  Step =     46  - QM Energy =      -133.85248 - Rho diff (crit) = 6.58E-05 (1.00E-06) - Energy diff (crit) = 7.81E-08 (1.00E+00)
+  Step =     47  - QM Energy =      -133.85248 - Rho diff (crit) = 6.47E-05 (1.00E-06) - Energy diff (crit) = 2.38E-07 (1.00E+00)
+  Step =     48  - QM Energy =      -133.85248 - Rho diff (crit) = 6.33E-05 (1.00E-06) - Energy diff (crit) = 4.20E-08 (1.00E+00)
+  Step =     49  - QM Energy =      -133.85248 - Rho diff (crit) = 6.22E-05 (1.00E-06) - Energy diff (crit) = 1.99E-07 (1.00E+00)
+  Step =     50  - QM Energy =      -133.85248 - Rho diff (crit) = 6.10E-05 (1.00E-06) - Energy diff (crit) = 1.44E-08 (1.00E+00)
+  Step =     51  - QM Energy =      -133.85248 - Rho diff (crit) = 5.99E-05 (1.00E-06) - Energy diff (crit) = 1.68E-07 (1.00E+00)
+  Step =     52  - QM Energy =      -133.85248 - Rho diff (crit) = 5.87E-05 (1.00E-06) - Energy diff (crit) = 6.20E-09 (1.00E+00)
+  Step =     53  - QM Energy =      -133.85248 - Rho diff (crit) = 5.76E-05 (1.00E-06) - Energy diff (crit) = 1.44E-07 (1.00E+00)
+  Step =     54  - QM Energy =      -133.85248 - Rho diff (crit) = 5.65E-05 (1.00E-06) - Energy diff (crit) = 2.14E-08 (1.00E+00)
+  Step =     55  - QM Energy =      -133.85248 - Rho diff (crit) = 5.55E-05 (1.00E-06) - Energy diff (crit) = 1.25E-07 (1.00E+00)
+  Step =     56  - QM Energy =      -133.85248 - Rho diff (crit) = 5.43E-05 (1.00E-06) - Energy diff (crit) = 3.24E-08 (1.00E+00)
+  Step =     57  - QM Energy =      -133.85248 - Rho diff (crit) = 5.34E-05 (1.00E-06) - Energy diff (crit) = 1.09E-07 (1.00E+00)
+  Step =     58  - QM Energy =      -133.85248 - Rho diff (crit) = 5.23E-05 (1.00E-06) - Energy diff (crit) = 4.02E-08 (1.00E+00)
+  Step =     59  - QM Energy =      -133.85248 - Rho diff (crit) = 5.14E-05 (1.00E-06) - Energy diff (crit) = 9.69E-08 (1.00E+00)
+  Step =     60  - QM Energy =      -133.85248 - Rho diff (crit) = 5.03E-05 (1.00E-06) - Energy diff (crit) = 4.53E-08 (1.00E+00)
+  Step =     61  - QM Energy =      -133.85248 - Rho diff (crit) = 4.95E-05 (1.00E-06) - Energy diff (crit) = 8.70E-08 (1.00E+00)
+  Step =     62  - QM Energy =      -133.85248 - Rho diff (crit) = 4.84E-05 (1.00E-06) - Energy diff (crit) = 4.87E-08 (1.00E+00)
+  Step =     63  - QM Energy =      -133.85248 - Rho diff (crit) = 4.76E-05 (1.00E-06) - Energy diff (crit) = 7.90E-08 (1.00E+00)
+  Step =     64  - QM Energy =      -133.85248 - Rho diff (crit) = 4.66E-05 (1.00E-06) - Energy diff (crit) = 5.07E-08 (1.00E+00)
+  Step =     65  - QM Energy =      -133.85248 - Rho diff (crit) = 4.58E-05 (1.00E-06) - Energy diff (crit) = 7.24E-08 (1.00E+00)
+  Step =     66  - QM Energy =      -133.85248 - Rho diff (crit) = 4.49E-05 (1.00E-06) - Energy diff (crit) = 5.16E-08 (1.00E+00)
+  Step =     67  - QM Energy =      -133.85248 - Rho diff (crit) = 4.41E-05 (1.00E-06) - Energy diff (crit) = 6.70E-08 (1.00E+00)
+  Step =     68  - QM Energy =      -133.85248 - Rho diff (crit) = 4.32E-05 (1.00E-06) - Energy diff (crit) = 5.16E-08 (1.00E+00)
+  Step =     69  - QM Energy =      -133.85248 - Rho diff (crit) = 4.25E-05 (1.00E-06) - Energy diff (crit) = 6.23E-08 (1.00E+00)
+  Step =     70  - QM Energy =      -133.85248 - Rho diff (crit) = 4.15E-05 (1.00E-06) - Energy diff (crit) = 5.12E-08 (1.00E+00)
+  Step =     71  - QM Energy =      -133.85248 - Rho diff (crit) = 4.09E-05 (1.00E-06) - Energy diff (crit) = 5.84E-08 (1.00E+00)
+  Step =     72  - QM Energy =      -133.85248 - Rho diff (crit) = 4.00E-05 (1.00E-06) - Energy diff (crit) = 5.03E-08 (1.00E+00)
+  Step =     73  - QM Energy =      -133.85248 - Rho diff (crit) = 3.93E-05 (1.00E-06) - Energy diff (crit) = 5.50E-08 (1.00E+00)
+  Step =     74  - QM Energy =      -133.85248 - Rho diff (crit) = 3.85E-05 (1.00E-06) - Energy diff (crit) = 4.90E-08 (1.00E+00)
+  Step =     75  - QM Energy =      -133.85248 - Rho diff (crit) = 3.79E-05 (1.00E-06) - Energy diff (crit) = 5.21E-08 (1.00E+00)
+  Step =     76  - QM Energy =      -133.85248 - Rho diff (crit) = 3.70E-05 (1.00E-06) - Energy diff (crit) = 4.76E-08 (1.00E+00)
+  Step =     77  - QM Energy =      -133.85248 - Rho diff (crit) = 3.65E-05 (1.00E-06) - Energy diff (crit) = 4.95E-08 (1.00E+00)
+  Step =     78  - QM Energy =      -133.85248 - Rho diff (crit) = 3.56E-05 (1.00E-06) - Energy diff (crit) = 4.61E-08 (1.00E+00)
+  Step =     79  - QM Energy =      -133.85248 - Rho diff (crit) = 3.51E-05 (1.00E-06) - Energy diff (crit) = 4.72E-08 (1.00E+00)
+  Step =     80  - QM Energy =      -133.85248 - Rho diff (crit) = 3.43E-05 (1.00E-06) - Energy diff (crit) = 4.44E-08 (1.00E+00)
+  Step =     81  - QM Energy =      -133.85248 - Rho diff (crit) = 3.38E-05 (1.00E-06) - Energy diff (crit) = 4.51E-08 (1.00E+00)
+  Step =     82  - QM Energy =      -133.85248 - Rho diff (crit) = 3.30E-05 (1.00E-06) - Energy diff (crit) = 4.27E-08 (1.00E+00)
+  Step =     83  - QM Energy =      -133.85248 - Rho diff (crit) = 3.25E-05 (1.00E-06) - Energy diff (crit) = 4.32E-08 (1.00E+00)
+  Step =     84  - QM Energy =      -133.85248 - Rho diff (crit) = 3.17E-05 (1.00E-06) - Energy diff (crit) = 4.09E-08 (1.00E+00)
+  Step =     85  - QM Energy =      -133.85248 - Rho diff (crit) = 3.13E-05 (1.00E-06) - Energy diff (crit) = 4.14E-08 (1.00E+00)
+  Step =     86  - QM Energy =      -133.85248 - Rho diff (crit) = 3.06E-05 (1.00E-06) - Energy diff (crit) = 3.91E-08 (1.00E+00)
+  Step =     87  - QM Energy =      -133.85248 - Rho diff (crit) = 3.01E-05 (1.00E-06) - Energy diff (crit) = 3.98E-08 (1.00E+00)
+  Step =     88  - QM Energy =      -133.85248 - Rho diff (crit) = 2.94E-05 (1.00E-06) - Energy diff (crit) = 3.74E-08 (1.00E+00)
+  Step =     89  - QM Energy =      -133.85248 - Rho diff (crit) = 2.90E-05 (1.00E-06) - Energy diff (crit) = 3.83E-08 (1.00E+00)
+  Step =     90  - QM Energy =      -133.85248 - Rho diff (crit) = 2.83E-05 (1.00E-06) - Energy diff (crit) = 3.56E-08 (1.00E+00)
+  Step =     91  - QM Energy =      -133.85248 - Rho diff (crit) = 2.79E-05 (1.00E-06) - Energy diff (crit) = 3.69E-08 (1.00E+00)
+  Step =     92  - QM Energy =      -133.85248 - Rho diff (crit) = 2.72E-05 (1.00E-06) - Energy diff (crit) = 3.39E-08 (1.00E+00)
+  Step =     93  - QM Energy =      -133.85248 - Rho diff (crit) = 2.69E-05 (1.00E-06) - Energy diff (crit) = 3.56E-08 (1.00E+00)
+  Step =     94  - QM Energy =      -133.85248 - Rho diff (crit) = 2.62E-05 (1.00E-06) - Energy diff (crit) = 3.22E-08 (1.00E+00)
+  Step =     95  - QM Energy =      -133.85248 - Rho diff (crit) = 2.59E-05 (1.00E-06) - Energy diff (crit) = 3.45E-08 (1.00E+00)
+  Step =     96  - QM Energy =      -133.85248 - Rho diff (crit) = 2.52E-05 (1.00E-06) - Energy diff (crit) = 3.05E-08 (1.00E+00)
+  Step =     97  - QM Energy =      -133.85248 - Rho diff (crit) = 2.49E-05 (1.00E-06) - Energy diff (crit) = 3.34E-08 (1.00E+00)
+  Step =     98  - QM Energy =      -133.85248 - Rho diff (crit) = 2.43E-05 (1.00E-06) - Energy diff (crit) = 2.88E-08 (1.00E+00)
+  Step =     99  - QM Energy =      -133.85248 - Rho diff (crit) = 2.40E-05 (1.00E-06) - Energy diff (crit) = 3.23E-08 (1.00E+00)
+  Step =    100  - QM Energy =      -133.85248 - Rho diff (crit) = 2.34E-05 (1.00E-06) - Energy diff (crit) = 2.71E-08 (1.00E+00)
+  Step =    101  - QM Energy =      -133.85248 - Rho diff (crit) = 2.31E-05 (1.00E-06) - Energy diff (crit) = 3.14E-08 (1.00E+00)
+  Step =    102  - QM Energy =      -133.85248 - Rho diff (crit) = 2.25E-05 (1.00E-06) - Energy diff (crit) = 2.55E-08 (1.00E+00)
+  Step =    103  - QM Energy =      -133.85248 - Rho diff (crit) = 2.23E-05 (1.00E-06) - Energy diff (crit) = 3.05E-08 (1.00E+00)
+  Step =    104  - QM Energy =      -133.85248 - Rho diff (crit) = 2.16E-05 (1.00E-06) - Energy diff (crit) = 2.40E-08 (1.00E+00)
+  Step =    105  - QM Energy =      -133.85248 - Rho diff (crit) = 2.14E-05 (1.00E-06) - Energy diff (crit) = 2.97E-08 (1.00E+00)
+  Step =    106  - QM Energy =      -133.85248 - Rho diff (crit) = 2.08E-05 (1.00E-06) - Energy diff (crit) = 2.24E-08 (1.00E+00)
+  Step =    107  - QM Energy =      -133.85248 - Rho diff (crit) = 2.06E-05 (1.00E-06) - Energy diff (crit) = 2.90E-08 (1.00E+00)
+  Step =    108  - QM Energy =      -133.85248 - Rho diff (crit) = 2.00E-05 (1.00E-06) - Energy diff (crit) = 2.08E-08 (1.00E+00)
+  Step =    109  - QM Energy =      -133.85248 - Rho diff (crit) = 1.99E-05 (1.00E-06) - Energy diff (crit) = 2.83E-08 (1.00E+00)
+  Step =    110  - QM Energy =      -133.85248 - Rho diff (crit) = 1.93E-05 (1.00E-06) - Energy diff (crit) = 1.93E-08 (1.00E+00)
+  Step =    111  - QM Energy =      -133.85248 - Rho diff (crit) = 1.92E-05 (1.00E-06) - Energy diff (crit) = 2.77E-08 (1.00E+00)
+  Step =    112  - QM Energy =      -133.85248 - Rho diff (crit) = 1.86E-05 (1.00E-06) - Energy diff (crit) = 1.77E-08 (1.00E+00)
+  Step =    113  - QM Energy =      -133.85248 - Rho diff (crit) = 1.85E-05 (1.00E-06) - Energy diff (crit) = 2.73E-08 (1.00E+00)
+  Step =    114  - QM Energy =      -133.85248 - Rho diff (crit) = 1.79E-05 (1.00E-06) - Energy diff (crit) = 1.62E-08 (1.00E+00)
+  Step =    115  - QM Energy =      -133.85248 - Rho diff (crit) = 1.78E-05 (1.00E-06) - Energy diff (crit) = 2.68E-08 (1.00E+00)
+  Step =    116  - QM Energy =      -133.85248 - Rho diff (crit) = 1.72E-05 (1.00E-06) - Energy diff (crit) = 1.47E-08 (1.00E+00)
+  Step =    117  - QM Energy =      -133.85248 - Rho diff (crit) = 1.71E-05 (1.00E-06) - Energy diff (crit) = 2.65E-08 (1.00E+00)
+  Step =    118  - QM Energy =      -133.85248 - Rho diff (crit) = 1.66E-05 (1.00E-06) - Energy diff (crit) = 1.32E-08 (1.00E+00)
+  Step =    119  - QM Energy =      -133.85248 - Rho diff (crit) = 1.65E-05 (1.00E-06) - Energy diff (crit) = 2.62E-08 (1.00E+00)
+  Step =    120  - QM Energy =      -133.85248 - Rho diff (crit) = 1.59E-05 (1.00E-06) - Energy diff (crit) = 1.17E-08 (1.00E+00)
+  Step =    121  - QM Energy =      -133.85248 - Rho diff (crit) = 1.59E-05 (1.00E-06) - Energy diff (crit) = 2.60E-08 (1.00E+00)
+  Step =    122  - QM Energy =      -133.85248 - Rho diff (crit) = 1.54E-05 (1.00E-06) - Energy diff (crit) = 1.01E-08 (1.00E+00)
+  Step =    123  - QM Energy =      -133.85248 - Rho diff (crit) = 1.54E-05 (1.00E-06) - Energy diff (crit) = 2.58E-08 (1.00E+00)
+  Step =    124  - QM Energy =      -133.85248 - Rho diff (crit) = 1.48E-05 (1.00E-06) - Energy diff (crit) = 8.56E-09 (1.00E+00)
+  Step =    125  - QM Energy =      -133.85248 - Rho diff (crit) = 1.48E-05 (1.00E-06) - Energy diff (crit) = 2.58E-08 (1.00E+00)
+  Step =    126  - QM Energy =      -133.85248 - Rho diff (crit) = 1.43E-05 (1.00E-06) - Energy diff (crit) = 6.97E-09 (1.00E+00)
+  Step =    127  - QM Energy =      -133.85248 - Rho diff (crit) = 1.43E-05 (1.00E-06) - Energy diff (crit) = 2.59E-08 (1.00E+00)
+  Step =    128  - QM Energy =      -133.85248 - Rho diff (crit) = 1.37E-05 (1.00E-06) - Energy diff (crit) = 5.40E-09 (1.00E+00)
+  Step =    129  - QM Energy =      -133.85248 - Rho diff (crit) = 1.38E-05 (1.00E-06) - Energy diff (crit) = 2.60E-08 (1.00E+00)
+  Step =    130  - QM Energy =      -133.85248 - Rho diff (crit) = 1.32E-05 (1.00E-06) - Energy diff (crit) = 3.73E-09 (1.00E+00)
+  Step =    131  - QM Energy =      -133.85248 - Rho diff (crit) = 1.33E-05 (1.00E-06) - Energy diff (crit) = 2.62E-08 (1.00E+00)
+  Step =    132  - QM Energy =      -133.85248 - Rho diff (crit) = 1.28E-05 (1.00E-06) - Energy diff (crit) = 2.10E-09 (1.00E+00)
+  Step =    133  - QM Energy =      -133.85248 - Rho diff (crit) = 1.29E-05 (1.00E-06) - Energy diff (crit) = 2.65E-08 (1.00E+00)
+  Step =    134  - QM Energy =      -133.85248 - Rho diff (crit) = 1.23E-05 (1.00E-06) - Energy diff (crit) = 3.58E-10 (1.00E+00)
+  Step =    135  - QM Energy =      -133.85248 - Rho diff (crit) = 1.24E-05 (1.00E-06) - Energy diff (crit) = 2.69E-08 (1.00E+00)
+  Step =    136  - QM Energy =      -133.85248 - Rho diff (crit) = 1.19E-05 (1.00E-06) - Energy diff (crit) = 1.34E-09 (1.00E+00)
+  Step =    137  - QM Energy =      -133.85248 - Rho diff (crit) = 1.20E-05 (1.00E-06) - Energy diff (crit) = 2.74E-08 (1.00E+00)

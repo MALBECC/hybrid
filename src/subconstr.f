@@ -54,6 +54,7 @@ c read variables
 	    read(iunit,*,err=100,end=100) exp,kforce(iconstr)
             if(iconstr.eq.1 .and. typeconstr(iconstr) .ne. 9) then
               read(iunit,*,err=100,end=100) exp,rini,exp,rfin
+		write(456456,*) rini,rfin
             elseif(typeconstr(iconstr) .ne. 9) then
               read(iunit,*,err=100,end=100) exp,ro(iconstr)
             else
@@ -162,9 +163,10 @@ c reads from .rce of a former run
 c****************************************************************************
 	subroutine subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istep,istepconstr,
-     .  ndists,coef,rref,natmsconstr)
+     .  ndists,coef,natmsconstr)
 
 	use sys
+        use scarlett, only: rref
 	implicit none
 	integer i,natot,iconstr,istep,istepconstr,ndists(20),natmsconstr
 	integer nconstr,typeconstr(20),atmsconstr(20,20),nstepconstr
@@ -172,7 +174,7 @@ c****************************************************************************
 	
 	integer at1,at2,at3,at4,at5,at6,at7,at8
 	double precision, intent(inout) ::  rclas(3,natot),fdummy(3,natot)
-        double precision, intent(inout) :: rref(3,natot)
+!        double precision, intent(inout) :: rref(3,natot)
 	double precision fce,fnew(3,10),rp(3),r12,r34,r56,r78,dist,
      .  dx,dy,dz
 	double precision pi,fdihe(12),F,dihedro2,rtot,req,kf
@@ -182,7 +184,7 @@ c****************************************************************************
 
 c change units 
         rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !pasa a Angstroms
-        rref(1:3,1:natot)=rref(1:3,1:natot)*0.529177d0
+!        rref(1:3,1:natot)=rref(1:3,1:natot)*0.529177d0
 
 c loop over nconstr
         do iconstr=1,nconstr
@@ -191,7 +193,7 @@ c loop over nconstr
 c loop over typeconstr
       if (typeconstr(iconstr).eq.1) then
 
-        at1=atmsconstr(iconstr,1)
+        at1=atmsconstr(iconstr,1) 
         at2=atmsconstr(iconstr,2)
         at3=atmsconstr(iconstr,3)
         at4=atmsconstr(iconstr,4)  
@@ -687,6 +689,8 @@ c ndists
         enddo
       elseif (typeconstr(iconstr).eq.9) then !----------------------------- Type 9 JOTA
 
+        rref(1:3,1:natot)=rref(1:3,1:natot)*0.529177d0
+
         kf=kforce(iconstr)
         dx=0.d0
         dy=0.d0
@@ -702,12 +706,14 @@ c ndists
           fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
         enddo
 
+        rref(1:3,1:natot)=rref(1:3,1:natot)/0.529177d0
 
 c constrype
       endif
 
 c writes variables for first step only
         if(iconstr.eq.1.and.typeconstr(iconstr).ne.9) then
+	write(456456,*) rini, rfin
         if(istep.eq.1) then
         write(*,'(/,A)')     'constr opt: variable constraint'
         write(*,'(A,i4)')    'icosntr  :', iconstr
@@ -785,7 +791,7 @@ c nconstr
 
 c change units 
         rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177d0
-        rref(1:3,1:natot)=rref(1:3,1:natot)/0.529177d0
+!        rref(1:3,1:natot)=rref(1:3,1:natot)/0.529177d0
         end
 
 c**************************************************************

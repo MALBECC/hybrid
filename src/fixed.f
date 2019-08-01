@@ -26,8 +26,8 @@ c calculate center of masses of all residues
           enddo
           cm(1:3,i)=cm(1:3,i)/atxres(i)
         enddo
-c fixing MM atoms beyond block cut off  
-        write(6,'(/a,f12.6)')
+c fixing MM atoms beyond block cut off 
+        write(6,'(/a,f20.5)') 
      .  'mm: cut off radius Block (Ang):',radiobloqmmm
         write(6,'(/a,f12.6)')
      .  'mm: inner cut off radius Block (Ang):',radinnerbloqmmm

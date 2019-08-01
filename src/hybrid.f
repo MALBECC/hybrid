@@ -283,9 +283,10 @@
       endif !mm
 
 ! changing cutoff to atomic units
+      if(qm.and.mm) then ! agrego if porque sino explota con calculos full qm
       rcorteqmmm=rcorteqmmm*Ang
       rcorteqmmm=rcorteqmmm**2 !we will compare square in cutoff
-
+      endif
       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
 ! Read simulation data 
@@ -466,6 +467,7 @@ C Calculate Rcut & block list QM-MM
       if(constropt) then
         call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
+	write(456456,*) rini,rfin
       if(nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
      
       allocate(vatr(3,natot))

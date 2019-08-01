@@ -188,7 +188,7 @@ c wirtes .rcg file !divide por Ang para pasar a angstrom
        write(unitc,'(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      . ('ATOM',na+i,atname(i),aaname(i),'A',aanum(i),
      . (rclas(ia,na+i)/Ang,ia=1,3), i=1,nac)
-      write(unitc,'(A3,i3)') 'END',constrpaso
+      write(unitc,'(A3,i5)') 'END',constrpaso
       call io_close(unitc) 
 
       return

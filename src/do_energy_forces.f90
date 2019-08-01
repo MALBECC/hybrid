@@ -222,7 +222,8 @@
 	  if(constropt) then
 	    call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt, &
 	    nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr, &
-	    ndists,coef,rref,natmsconstr)
+            ndists,coef,natmsconstr)
+!	    ndists,coef,rref,natmsconstr)
 
 
 
