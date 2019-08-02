@@ -444,10 +444,9 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
     if (Nunp .ne. 0) OPEN=.true.
     if (OPEN) write(*,*) "Runing hybrid open shell, with ", Nunp, "unpaired electrons"
 
-	write(*,*) "inicializo2", hyb_natom, mm_natom, chargein, iza, spin
     ! Initializes LIO. The last argument indicates LIO is not being used alone.
     call init_lio_common(hyb_natom, Iza, mm_natom, 1)
-	write(*,*) "end lio init"
+
     return
 end subroutine init_lio_hybrid
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
