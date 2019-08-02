@@ -14,17 +14,6 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
    logical                 :: error_found
 
 
-
-   real*8    , allocatable :: Gmat_li(:,:), Ginv_li(:,:), Umat_li(:,:)
-
-   allocate( Gmat_li( this%Nbasis, this%Nbasis ) )
-   allocate( Ginv_li( this%Nbasis, this%Nbasis ) )
-   allocate( Umat_li( this%Nbasis, this%Nbasis ) )
-
-   Gmat_li = this%Gmat
-   Ginv_li = this%Ginv
-   Umat_li = this%Umat
-
 !  Checks and preps
 !------------------------------------------------------------------------------!
    if ( this%Nbasis <= 0 ) then
