@@ -901,8 +901,6 @@ subroutine SCF(E)
         Egood=abs(E+Ex-Evieja)
         Evieja=E+Ex
 	
-
-	write(*,*) "energies", E1,E2,En,Ex
         ! Write energy at every step
         call write_energy_convergence(niter, Evieja, good, told, egood, etold)
 
