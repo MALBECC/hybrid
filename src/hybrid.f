@@ -407,7 +407,7 @@
         volume = volcel( ucell )
 
 ! Center system 
-!        if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
+        if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
 
 C Calculate Rcut & block list QM-MM 
