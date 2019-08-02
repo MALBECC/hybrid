@@ -176,8 +176,6 @@ subroutine SCF(E)
    integer :: nniter
    changed_to_LS=.false.
 
-	      MM=M*(M+1)/2
-
    call g2g_timer_start('SCF_full')
 
    if (verbose > 1) then
@@ -206,7 +204,6 @@ subroutine SCF(E)
 
    M_in = M
    if (dftb_calc) M_in=MDFTB
-
 !------------------------------------------------------------------------------!
    call ECP_init()
 
