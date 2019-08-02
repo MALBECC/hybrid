@@ -4,9 +4,7 @@ FC =
 FFLAGS =
 LFLAGS =
 LIBS =
-OBJPATH := .
 SRCDIRS :=
-LIO_PATH = 
 OBJPATH = obj
 
 include Makefile.options
@@ -17,21 +15,20 @@ MAKEFILES += Makefile.depends
 MAKEFILES += Makefile.options
 
 
-
 SRCDIRS += L-BFGS
 
 vpath %.f   $(SRCDIRS)
 vpath %.F   $(SRCDIRS)
 vpath %.f90 $(SRCDIRS)
 vpath %.F90 $(SRCDIRS)
-vpath %.o $(OBJPATH)
+vpath %.o   $(OBJPATH)
 vpath %.mod $(OBJPATH)
-vpath %.a $(OBJPATH)
-
+vpath %.a   $(OBJPATH)
 
 
 $(OBJPATH):
 	mkdir $@
+
 
 options:
 	@echo
@@ -58,6 +55,7 @@ else ifeq (${qm_level},1)
 	@echo "LIOHOME= $${LIOHOME}"
 endif
 	@echo
+
 
 version: $(OBJPATH)
 	@echo

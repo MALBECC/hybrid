@@ -521,7 +521,7 @@ C Calculate Rcut & block list QM-MM
      . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
      . rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
      . radblommbond, optimization_lvl, dt, sfc, water,
-     . imm)
+     . imm, rini, rfin)
 
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)

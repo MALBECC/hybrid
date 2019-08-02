@@ -10,7 +10,6 @@
 # intel : Enables the use of intel compilers.
 #    0 = no intel compilers; use gnu fortran compiler and libraries.
 #    1 = use the intel compilers instead of the GNU ones.
-#####    2 = use the intel compilers and the MKL library for lapack.
 #
 # parallel : Option not enabled yet. Will be reserved for activating the use
 # of openmp and mpi.
@@ -51,24 +50,8 @@ analytics ?= 0
 qm_level  ?= 0
 
 ################################################################################
-
-
-### test
-#FFLAGS += -fPIC # $(DEFINE)
-#FFLAGS += -shared
 FFLAGS += -Wl,--no-undefined
 FFLAGS += -L/usr/lib -L/usr/lib64
-#LIBS   += -lm -lstdc++
-
-
-#####
-
-
-ifeq ($(qm_level),1)
-LIBS += -lg2g -llio-g2g
-FFLAGS += -DLIO
-LFLAGS += -L$${LIOHOME}/g2g -L$${LIOHOME}/lioamber
-endif
 
 # These variables will be filled by compiler specific flags
 OPTIM0P =
@@ -76,13 +59,19 @@ OPTIM0I =
 DEBUG01 =
 DEBUG02 =
 
+
+################################################################################
+ifeq ($(qm_level),1)
+LIBS += -lg2g -llio-g2g
+FFLAGS += -DLIO
+LFLAGS += -L$${LIOHOME}/g2g -L$${LIOHOME}/lioamber
+endif
+
 ################################################################################
 ifeq ($(intel),0)
   FC      = gfortran
   FFLAGS += -cpp -I$(OBJPATH) -J$(OBJPATH) 
   LIBS   += -llapack
-# -lblas
-
   DEBUG01 = -g -Wno-tabs -fcheck=all
   DEBUG02 = -g -Wall -Wextra -fcheck=all -fbacktrace -Wtabs
 #  OPTIM0P = #TODO: no flags for parallelization using gfortran?
@@ -93,9 +82,6 @@ else ifeq ($(intel),1)
   FC      = ifort
   FFLAGS += -fpp -module $(OBJPATH)
   LIBS   += -llapack
-# -lm -lstdc++ -lcudart -lcublas -lblas 
-#  LIBS   += -liomp5 -lpthread
-
   DEBUG01 = -g -check bounds -traceback
   DEBUG02 = -g -check bounds -traceback -check all -fp-stack-check
 #  OPTIM0P = -parallel
@@ -128,7 +114,7 @@ endif
 
 ################################################################################
 ifeq ($(analytics),0)
-#  FFLAGS += -O3
+  FFLAGS += -O2
 else ifeq ($(analytics),1)
   DEFINE += -DPROFILING
   FFLAGS += -pg
@@ -144,17 +130,5 @@ else ifeq ($(analytics),3)
 else
   $(error Invalid value in option analytics = $(analytics))
 endif
-
-
-################################################################################
-# PRIVATE FLAGS: 
-#
-# The following section assigns to specific OBJECTS certain flags, such as
-# which level of optimization corresponds to each object. Intermediate flags
-# are used to store the private information and then these option is added
-# to the general compilation flags.
-
-#private_flag := -O3 
-#FFLAGS += $(private_flag)
 
 ################################################################################
