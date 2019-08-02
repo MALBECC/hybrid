@@ -1,0 +1,134 @@
+################################################################################
+# Makefile.options
+#
+# The following makefile translates the information provided in the form of
+# options ("make target opt1=n opt2=m ...") into definitions and flags passed
+# to the compiler, libraries included during linking, etc. All customization
+# involving options should be included here. The following is the list and
+# brief description of currently available options.
+#
+# intel : Enables the use of intel compilers.
+#    0 = no intel compilers; use gnu fortran compiler and libraries.
+#    1 = use the intel compilers instead of the GNU ones.
+#
+# parallel : Option not enabled yet. Will be reserved for activating the use
+# of openmp and mpi.
+#
+# precision : Increase the precision of some of the internal variables of the
+# program.
+#    0 = Use lowest real precision whenever possible.
+#    1 = Increase precision in ... (TODO).
+#
+# analytics : Enables profiling or debugging information and flags.
+#    0 = No extra information is provided.
+#    1 = Profiling information is enabled.
+#    2 = Basic debugging information is enabled.
+#    3 = Detailed debugging information is enabled.
+#
+# qm_level : Defines external program to compute QM & QM/MM energy and forces
+#    0 = No QM program
+#    1 = Lio
+#
+################################################################################
+##
+## -lname tells the linker to look for external procedures in libname library.
+##
+## -Lpathname tells the linker to look for libraries in pathname.
+##
+## -Wl,-rpath='pathname' saves pathname inside the executable so it will look
+## for libraries there at runtime
+##
+##
+
+
+################################################################################
+# Defaults
+intel     ?= 0
+parallel  ?= 0
+precision ?= 1
+analytics ?= 0
+qm_level  ?= 0
+
+################################################################################
+FFLAGS += -Wl,--no-undefined
+FFLAGS += -L/usr/lib -L/usr/lib64
+
+# These variables will be filled by compiler specific flags
+OPTIM0P =
+OPTIM0I =
+DEBUG01 =
+DEBUG02 =
+
+
+################################################################################
+ifeq ($(qm_level),1)
+LIBS += -lg2g -llio-g2g
+FFLAGS += -DLIO
+LFLAGS += -L$${LIOHOME}/g2g -L$${LIOHOME}/lioamber
+endif
+
+################################################################################
+ifeq ($(intel),0)
+  FC      = gfortran
+  FFLAGS += -cpp -I$(OBJPATH) -J$(OBJPATH) 
+  LIBS   += -llapack
+  DEBUG01 = -g -Wno-tabs -fcheck=all
+  DEBUG02 = -g -Wall -Wextra -fcheck=all -fbacktrace -Wtabs
+#  OPTIM0P = #TODO: no flags for parallelization using gfortran?
+#  OPTIM0I = #TODO: no flags for precision and inlining using gfortran?
+
+
+else ifeq ($(intel),1)
+  FC      = ifort
+  FFLAGS += -fpp -module $(OBJPATH)
+  LIBS   += -llapack
+  DEBUG01 = -g -check bounds -traceback
+  DEBUG02 = -g -check bounds -traceback -check all -fp-stack-check
+#  OPTIM0P = -parallel
+#  OPTIM0I = -mp1 -ip
+
+else
+  $(error Invalid value in option intel = $(intel))
+endif
+
+
+################################################################################
+ifeq ($(parallel),0)
+else
+  $(warning This option is not available yet, set it to 0 or avoid it.)
+  $(error Invalid value in option parallel = $(parallel))
+endif
+
+
+################################################################################
+ifeq ($(precision),0)
+FFLAGS += -DSPRESS
+else ifeq ($(precision),1)
+FFLAGS += -DDPRESS
+else ifeq ($(precision),2)
+FFLAGS += -DQPRESS
+else
+  $(error Invalid value in option precision = $(precision))
+endif
+
+
+################################################################################
+ifeq ($(analytics),0)
+  FFLAGS += -O2
+else ifeq ($(analytics),1)
+  DEFINE += -DPROFILING
+  FFLAGS += -pg
+
+else ifeq ($(analytics),2)
+  DEFINE += -DDEBUGGING -DPRINT_MATRICES
+  FFLAGS += $(DEBUG01)
+
+else ifeq ($(analytics),3)
+  DEFINE += -DDEBUGGING -DPRINT_MATRICES
+  FFLAGS += $(DEBUG02)
+
+else
+  $(error Invalid value in option analytics = $(analytics))
+endif
+
+################################################################################

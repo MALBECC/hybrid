@@ -36,6 +36,7 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
 !------------------------------------------------------------------------------!
 
    call this%Gets_orthog_2m( method_id, maxval_ld, Xmat, Ymat )
+
    select case (method_id)
       case (0)
 !        Use last method saved inside the object
@@ -60,6 +61,5 @@ subroutine Gets_orthog_4m( this, method_id, maxval_ld, Xmat, Ymat, Xtrp, Ytrp )
          print*,"ABORTING RUN"; stop
 
    end select
-
 end subroutine Gets_orthog_4m
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!

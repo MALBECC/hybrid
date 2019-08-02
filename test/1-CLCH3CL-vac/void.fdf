@@ -44,5 +44,6 @@ QM  0.2
 QMMM 100.0                 
 MM 80.0                    
 BLO 80.0                   
+MMBLO 80.0
 %endblock CutOffRadius    
  

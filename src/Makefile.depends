@@ -1,0 +1,197 @@
+################################################################################
+# Makefile.depends
+#
+# This file contains the information of dependencies between the different
+# objects. The list "OBJECTS" contains ALL the objects to be linked for making 
+# the library, including both free subroutines and modules 
+# (or rather their corresponding '.o' files).
+#
+# When adding new content, you should:
+#
+#  (1) Include in the list OBJECTS the object file to be included.
+#
+#  (2) Specify the dependencies related to this object, preferably adding
+#      it to the list of the objects it depends upon and adding the objects
+#      that would depend on it to his own list.
+#
+################################################################################
+
+OBJECTS = chkdim.o
+OBJECTS += steep.o
+OBJECTS += conjgr.o 
+OBJECTS += fixed.o
+OBJECTS += iofa.o
+OBJECTS += ofc.o
+OBJECTS += functions.o
+OBJECTS += inver.o
+OBJECTS += ioxv.o
+OBJECTS += paste.o
+OBJECTS += reclat.o
+OBJECTS += reinit.o
+OBJECTS += timestamp.o
+OBJECTS += volcel.o
+OBJECTS += cgvc.o
+OBJECTS += iocg.o
+OBJECTS += centerall.o
+OBJECTS += ran3.o
+OBJECTS += dot.o
+OBJECTS += readall.o
+OBJECTS += subconstr.o
+OBJECTS += writeall.o
+OBJECTS += qmmm_lst_blk.o
+OBJECTS += ljef.o
+OBJECTS += solv_ene_fce.o
+OBJECTS += linkatom.o
+OBJECTS += recipes.o
+OBJECTS += list_qmmm.o
+OBJECTS += assignation.o
+OBJECTS += center_rotation.o
+OBJECTS += init_hybrid.o
+OBJECTS += NEB_subs.o
+OBJECTS += quickmin.o 
+OBJECTS += FIRE.o 
+OBJECTS += check_convergence.o 
+OBJECTS += dynamics.o
+OBJECTS += vmb.o
+OBJECTS += check_and_debug.o
+OBJECTS += MM_atoms_assign.o
+OBJECTS += do_energy_forces.o
+OBJECTS += external_bias.o
+OBJECTS += lbfgsb.o
+OBJECTS += linpack.o
+OBJECTS += blas.o
+OBJECTS += timer.o
+
+FDF=libfdf.a
+
+# Modules
+MOD_OBJS = precision.mod
+MOD_OBJS += ionew.mod
+MOD_OBJS += parallel.mod
+MOD_OBJS += sys.mod
+MOD_OBJS += fsiesta.mod
+MOD_OBJS += version.mod
+MOD_OBJS += neutralatom.mod
+MOD_OBJS += parsing.mod
+MOD_OBJS += scarlett_mod.mod
+
+OBJECTS += $(MOD_OBJS:%.mod=%.o)
+
+
+################################################################################
+# FDF dependens
+tmplist := assignation.o
+tmplist += ioxv.o
+tmplist += readall.o
+tmplist += subconstr.o
+tmplist += writeall.o
+tmplist += MM_atoms_assign.o
+tmplist += cgvc.o
+tmplist += init_hybrid.o
+tmplist += linkatom.o
+tmplist += reinit.o
+tmplist += iocg.o
+tmplist += iofa.o
+tmplist += ofc.o
+tmplist += solv_assign.o
+tmplist += fixed.o 
+tmplist += linkatom.o 
+$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/$(FDF)
+
+################################################################################
+# Scarlett dependens
+tmplist := steep.o
+tmplist += assignation.o
+tmplist += check_and_debug.o
+tmplist += check_convergence.o
+tmplist += do_energy_forces.o
+tmplist += dynamics.o
+tmplist += external_bias.o
+tmplist += FIRE.o
+tmplist += fixed.o
+tmplist += init_hybrid.o
+tmplist += iofa.o
+tmplist += ioxv.o
+tmplist += linkatom.o
+tmplist += list_qmmm.o
+tmplist += MM_atoms_assign.o
+tmplist += NEB_subs.o
+tmplist += ofc.o
+tmplist += quickmin.o
+tmplist += readall.o
+tmplist += solv_ene_fce.o
+tmplist += subconstr.o
+tmplist += vmb.o
+tmplist += writeall.o
+$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/scarlett_mod.mod 
+
+################################################################################
+# precision dependens
+tmplist := assignation.o
+tmplist += ioxv.o
+tmplist += cgvc.o
+tmplist += qmmm_lst_blk.o
+tmplist += readall.o
+tmplist += fixed.o
+tmplist += chkdim.o
+tmplist += dynamics.o
+tmplist += init_hybrid.o
+tmplist += reinit.o
+tmplist += solv_assign.o
+tmplist += vmb.o
+tmplist += do_energy_forces.o
+tmplist += MM_atoms_assign.o  
+$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/precision.mod
+$(OBJPATH)/scarlett_mod.mod : $(OBJPATH)/precision.mod
+
+################################################################################
+# sys dependens
+tmplist := assignation.o
+tmplist += readall.o
+tmplist += subconstr.o
+tmplist += MM_atoms_assign.o
+tmplist += fixed.o
+tmplist += ionew.o
+tmplist += chkdim.o
+tmplist += qmmm_lst_blk.o
+tmplist += writeall.o
+tmplist += init_hybrid.o
+tmplist += linkatom.o
+tmplist += solv_assign.o
+tmplist += do_energy_forces.o
+$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/sys.mod
+
+################################################################################
+# temp lbfgs
+tmplist := lbfgsb.o
+tmplist:%.o=$(OBJPATH)/%.o
+tmplist : $(OBJPATH)/linpack.o $(OBJPATH)/blas.o $(OBJPATH)/timer.o
+
+################################################################################
+# ionew dependens
+tmplist := ioxv.o
+tmplist += readall.o
+tmplist += subconstr.o
+tmplist += writeall.o
+tmplist += MM_atoms_assign.o
+tmplist += reinit.o
+tmplist += iocg.o
+tmplist += iofa.o
+tmplist += ofc.o
+tmplist += qmmm_lst_blk.o
+tmplist += solv_assign.o
+tmplist += do_energy_forces.o
+$(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ionew.o
+
+################################################################################
+# aditional dependences for do_energy_forces
+deplist := list_qmmm.o
+deplist += ljef.o
+deplist += solv_ene_fce.o
+deplist += linkatom.o
+deplist += subconstr.o
+deplist += external_bias.o
+deplist += fixed.o
+$(OBJPATH)/do_energy_forces.o: $(deplist:%.o=$(OBJPATH)/%.o)
+
+################################################################################
