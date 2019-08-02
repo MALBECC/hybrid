@@ -78,8 +78,8 @@ subroutine matdcmp_svd( Matrix, Umat, Gmat, Vtrp )
 
 !<<<<<<<<<<<<<<<----------------------------------------TEST
 
-!   call dgesdd( 'A', Msize1, Msize2, Xmat, Msize1, Gvec, Umat, Msize1, Vtrp,   &
-!              & Msize2, lapack_WORK, lapack_LWORK, lapack_IWORK, lapack_INFO )
+   call dgesdd( 'A', Msize1, Msize2, Xmat, Msize1, Gvec, Umat, Msize1, Vtrp,   &
+              & Msize2, lapack_WORK, lapack_LWORK, lapack_IWORK, lapack_INFO )
 
    if (lapack_INFO /= 0) then
       print*, 'ERROR INSIDE matdcmp_svd'
@@ -115,15 +115,15 @@ subroutine matdcmp_svd( Matrix, Umat, Gmat, Vtrp )
 
 !---------------TEST NICK
 
-        lapack_LWORK=max(2*Msize1+Msize2,6*Msize2+2*Msize2*Msize2)
-	deallocate(lapack_WORK)
-        allocate(lapack_WORK(lapack_LWORK))
-   call dgejsv('C', 'F', 'V', 'R', 'N', 'N', Msize1, Msize2, Xmat, Msize1, Gvec, Umat, Msize1, Vtrp,   &
-              & Msize2, lapack_WORK, lapack_LWORK, lapack_IWORK, lapack_INFO )
+!        lapack_LWORK=max(2*Msize1+Msize2,6*Msize2+2*Msize2*Msize2)
+!	deallocate(lapack_WORK)
+!        allocate(lapack_WORK(lapack_LWORK))
+!   call dgejsv('C', 'F', 'V', 'R', 'N', 'N', Msize1, Msize2, Xmat, Msize1, Gvec, Umat, Msize1, Vtrp,   &
+!              & Msize2, lapack_WORK, lapack_LWORK, lapack_IWORK, lapack_INFO )
 !------------------------------------
 
-!   call dgesdd( 'A', Msize1, Msize2, Xmat, Msize1, Gvec, Umat, Msize1, Vtrp,   &
-!              & Msize2, lapack_WORK, lapack_LWORK, lapack_IWORK, lapack_INFO )
+  call dgesdd( 'A', Msize1, Msize2, Xmat, Msize1, Gvec, Umat, Msize1, Vtrp,   &
+              & Msize2, lapack_WORK, lapack_LWORK, lapack_IWORK, lapack_INFO )
 
    if (lapack_INFO /= 0) then
       print*, 'ERROR INSIDE matdcmp_svd'

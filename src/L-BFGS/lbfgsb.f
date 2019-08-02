@@ -487,7 +487,7 @@ c     ************
      +                 head,col,iter,itail,iupdat,
      +                 nseg,nfgv,info,ifun,
      +                 iword,nfree,nact,ileave,nenter
-      double precision theta,fold,ddot,dr,rr,tol,
+      double precision theta,fold,ddot_LBFGS,dr,rr,tol,
      +                 xstep,sbgnrm,ddum,dnorm,dtd,epsmch,
      +                 cpu1,cpu2,cachyt,sbtime,lnscht,time1,time2,
      +                 gd,gdold,stp,stpmx,time
@@ -498,7 +498,7 @@ c     ************
 
          epsmch = epsilon(one)
 
-         call timer(time1)
+         call timer_LBFGS(time1)
 
 c        Initialize counters and scalars when task='START'.
 
@@ -624,8 +624,8 @@ c        is to resume.
          if (task(1:4) .eq. 'STOP') then
             if (task(7:9) .eq. 'CPU') then
 c                                          restore the previous iterate.
-               call dcopy(n,t,1,x,1)
-               call dcopy(n,r,1,g,1)
+               call dcopy_LBFGS(n,t,1,x,1)
+               call dcopy_LBFGS(n,r,1,g,1)
                f = fold
             endif
             goto 999
@@ -662,7 +662,7 @@ c ----------------- the beginning of the loop --------------------------
 c
       if (.not. cnstnd .and. col .gt. 0) then 
 c                                            skip the search for GCP.
-         call dcopy(n,x,1,z,1)
+         call dcopy_LBFGS(n,x,1,z,1)
          wrk = updatd
          nseg = 0
          goto 333
@@ -674,7 +674,7 @@ c     Compute the Generalized Cauchy Point (GCP).
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      call timer(cpu1) 
+      call timer_LBFGS(cpu1) 
       call cauchy(n,x,l,u,nbd,g,indx2,iwhere,t,d,z,
      +            m,wy,ws,sy,wt,theta,col,head,
      +            wa(1),wa(2*m+1),wa(4*m+1),wa(6*m+1),nseg,
@@ -688,11 +688,11 @@ c         singular triangular system detected; refresh the lbfgs memory.
          theta  = one
          iupdat = 0
          updatd = .false.
-         call timer(cpu2) 
+         call timer_LBFGS(cpu2) 
          cachyt = cachyt + cpu2 - cpu1
          goto 222
       endif
-      call timer(cpu2) 
+      call timer_LBFGS(cpu2) 
       cachyt = cachyt + cpu2 - cpu1
       nintol = nintol + nseg
 
@@ -716,7 +716,7 @@ c     Subspace minimization.
 c
 cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
-      call timer(cpu1) 
+      call timer_LBFGS(cpu1) 
 
 c     Form  the LEL^T factorization of the indefinite
 c       matrix    K = [-D -Y'ZZ'Y/theta     L_a'-R_z'  ]
@@ -736,7 +736,7 @@ c          refresh the lbfgs memory and restart the iteration.
          theta  = one
          iupdat = 0
          updatd = .false.
-         call timer(cpu2) 
+         call timer_LBFGS(cpu2) 
          sbtime = sbtime + cpu2 - cpu1 
          goto 222
       endif 
@@ -762,12 +762,12 @@ c          refresh the lbfgs memory and restart the iteration.
          theta  = one
          iupdat = 0
          updatd = .false.
-         call timer(cpu2) 
+         call timer_LBFGS(cpu2) 
          sbtime = sbtime + cpu2 - cpu1 
          goto 222
       endif
  
-      call timer(cpu2) 
+      call timer_LBFGS(cpu2) 
       sbtime = sbtime + cpu2 - cpu1 
  555  continue
  
@@ -782,15 +782,15 @@ c     Generate the search direction d:=z-x.
       do 40 i = 1, n
          d(i) = z(i) - x(i)
   40  continue
-      call timer(cpu1) 
+      call timer_LBFGS(cpu1) 
  666  continue
       call lnsrlb(n,l,u,nbd,x,f,fold,gd,gdold,g,d,r,t,z,stp,dnorm,
      +            dtd,xstep,stpmx,iter,ifun,iback,nfgv,info,task,
      +            boxed,cnstnd,csave,isave(22),dsave(17))
       if (info .ne. 0 .or. iback .ge. 20) then
 c          restore the previous iterate.
-         call dcopy(n,t,1,x,1)
-         call dcopy(n,r,1,g,1)
+         call dcopy_LBFGS(n,t,1,x,1)
+         call dcopy_LBFGS(n,r,1,g,1)
          f = fold
          if (col .eq. 0) then
 c             abnormal termination.
@@ -815,7 +815,7 @@ c             refresh the lbfgs memory and restart the iteration.
             iupdat = 0
             updatd = .false.
             task   = 'RESTART_FROM_LNSRCH'
-            call timer(cpu2)
+            call timer_LBFGS(cpu2)
             lnscht = lnscht + cpu2 - cpu1
             goto 222
          endif
@@ -824,7 +824,7 @@ c          return to the driver for calculating f and g; reenter at 666.
          goto 1000
       else 
 c          calculate and print out the quantities related to the new X.
-         call timer(cpu2) 
+         call timer_LBFGS(cpu2) 
          lnscht = lnscht + cpu2 - cpu1
          iter = iter + 1
  
@@ -862,13 +862,13 @@ c     Compute d=newx-oldx, r=newg-oldg, rr=y'y and dr=y's.
       do 42 i = 1, n
          r(i) = g(i) - r(i)
   42  continue
-      rr = ddot(n,r,1,r,1)
+      rr = ddot_LBFGS(n,r,1,r,1)
       if (stp .eq. one) then  
          dr = gd - gdold
          ddum = -gdold
       else
          dr = (gd - gdold)*stp
-         call dscal(n,stp,d,1)
+         call dscal_LBFGS(n,stp,d,1)
          ddum = -gdold*stp
       endif
  
@@ -925,7 +925,7 @@ c -------------------- the end of the loop -----------------------------
  
       goto 222
  999  continue
-      call timer(time2)
+      call timer_LBFGS(time2)
       time = time2 - time1
       call prn3lb(n,x,f,task,iprint,info,itfile,
      +            iter,nfgv,nintol,nskip,nact,sbgnrm,
@@ -1185,7 +1185,7 @@ c       solve Jp2=v2+LD^(-1)v1.
          p(i2) = v(i2) + sum
   20  continue  
 c     Solve the triangular system
-      call dtrsl(wt,m,col,p(col+1),11,info)
+      call dtrsl_LBFGS(wt,m,col,p(col+1),11,info)
       if (info .ne. 0) return
  
 c       solve D^(1/2)p1=v1.
@@ -1197,7 +1197,7 @@ c     PART II: solve [ -D^(1/2)   D^(-1/2)*L'  ] [ p1 ] = [ p1 ]
 c                    [  0         J'           ] [ p2 ]   [ p2 ]. 
  
 c       solve J^Tp2=p2. 
-      call dtrsl(wt,m,col,p(col+1),01,info)
+      call dtrsl_LBFGS(wt,m,col,p(col+1),01,info)
       if (info .ne. 0) return
  
 c       compute p1=-D^(-1/2)(p1-D^(-1/2)L'p2)
@@ -1411,7 +1411,7 @@ c     ************
       integer          i,j,col2,nfree,nbreak,pointr,
      +                 ibp,nleft,ibkmin,iter
       double precision f1,f2,dt,dtm,tsum,dibp,zibp,dibp2,bkmin,
-     +                 tu,tl,wmc,wmp,wmw,ddot,tj,tj0,neggi,sbgnrm,
+     +                 tu,tl,wmc,wmp,wmw,ddot_LBFGS,tj,tj0,neggi,sbgnrm,
      +                 f2_org
       double precision one,zero
       parameter        (one=1.0d0,zero=0.0d0)
@@ -1422,7 +1422,7 @@ c       the derivative f1 and the vector p = W'd (for theta = 1).
  
       if (sbgnrm .le. zero) then
          if (iprint .ge. 0) write (6,*) 'Subgnorm = 0.  GCP = X.'
-         call dcopy(n,x,1,xcp,1)
+         call dcopy_LBFGS(n,x,1,xcp,1)
          return
       endif 
       bnded = .true.
@@ -1513,12 +1513,12 @@ c       The smallest of the nbreak breakpoints is in t(ibkmin)=bkmin.
  
       if (theta .ne. one) then
 c                   complete the initialization of p for theta not= one.
-         call dscal(col,theta,p(col+1),1)
+         call dscal_LBFGS(col,theta,p(col+1),1)
       endif
  
 c     Initialize GCP xcp = x.
 
-      call dcopy(n,x,1,xcp,1)
+      call dcopy_LBFGS(n,x,1,xcp,1)
 
       if (nbreak .eq. 0 .and. nfree .eq. n + 1) then
 c                  is a zero vector, return with the initial xcp as GCP.
@@ -1539,7 +1539,7 @@ c     Initialize derivative f2.
       if (col .gt. 0) then
          call bmv(m,sy,wt,col,p,v,info)
          if (info .ne. 0) return
-         f2 = f2 - ddot(col2,v,1,p,1)
+         f2 = f2 - ddot_LBFGS(col2,v,1,p,1)
       endif
       dtm = -f1/f2
       tsum = zero
@@ -1637,7 +1637,7 @@ c        temporarily set f1 and f2 for col=0.
 
       if (col .gt. 0) then
 c                          update c = c + dt*p.
-         call daxpy(col2,dt,p,1,c,1)
+         call daxpy_LBFGS(col2,dt,p,1,c,1)
  
 c           choose wbp,
 c           the row of W corresponding to the breakpoint encountered.
@@ -1651,12 +1651,12 @@ c           the row of W corresponding to the breakpoint encountered.
 c           compute (wbp)Mc, (wbp)Mp, and (wbp)M(wbp)'.
          call bmv(m,sy,wt,col,wbp,v,info)
          if (info .ne. 0) return
-         wmc = ddot(col2,c,1,v,1)
-         wmp = ddot(col2,p,1,v,1) 
-         wmw = ddot(col2,wbp,1,v,1)
+         wmc = ddot_LBFGS(col2,c,1,v,1)
+         wmp = ddot_LBFGS(col2,p,1,v,1) 
+         wmw = ddot_LBFGS(col2,wbp,1,v,1)
  
 c           update p = p - dibp*wbp. 
-         call daxpy(col2,-dibp,wbp,1,p,1)
+         call daxpy_LBFGS(col2,-dibp,wbp,1,p,1)
  
 c           complete updating f1 and f2 while col > 0.
          f1 = f1 + dibp*wmc
@@ -1691,14 +1691,14 @@ c------------------- the end of the loop -------------------------------
 c     Move free variables (i.e., the ones w/o breakpoints) and 
 c       the variables whose breakpoints haven't been reached.
  
-      call daxpy(n,tsum,d,1,xcp,1)
+      call daxpy_LBFGS(n,tsum,d,1,xcp,1)
  
  999  continue
  
 c     Update c = c + dtm*p = W'(x^c - x) 
 c       which will be used in computing r = Z'(B(x^c - x) + g).
  
-      if (col .gt. 0) call daxpy(col2,dtm,p,1,c,1)
+      if (col .gt. 0) call daxpy_LBFGS(col2,dtm,p,1,c,1)
       if (iprint .gt. 100) write (6,1010) (xcp(i),i = 1,n)
       if (iprint .ge. 99) write (6,2010)
 
@@ -1980,7 +1980,7 @@ c     ************
 
       integer          m2,ipntr,jpntr,iy,is,jy,js,is1,js1,k1,i,k,
      +                 col2,pbegin,pend,dbegin,dend,upcl
-      double precision ddot,temp1,temp2,temp3,temp4
+      double precision ddot_LBFGS,temp1,temp2,temp3,temp4
       double precision one,zero
       parameter        (one=1.0d0,zero=0.0d0)
 
@@ -1995,9 +1995,9 @@ c              R_z is the upper triangular part of S'ZZ'Y.
 c                                 shift old part of WN1.
             do 10 jy = 1, m - 1
                js = m + jy
-               call dcopy(m-jy,wn1(jy+1,jy+1),1,wn1(jy,jy),1)
-               call dcopy(m-jy,wn1(js+1,js+1),1,wn1(js,js),1)
-               call dcopy(m-1,wn1(m+2,jy+1),1,wn1(m+1,jy),1)
+               call dcopy_LBFGS(m-jy,wn1(jy+1,jy+1),1,wn1(jy,jy),1)
+               call dcopy_LBFGS(m-jy,wn1(js+1,js+1),1,wn1(js,js),1)
+               call dcopy_LBFGS(m-1,wn1(m+2,jy+1),1,wn1(m+1,jy),1)
   10        continue
          endif
  
@@ -2135,7 +2135,7 @@ c                                    [(-L_a +R_z)L'^-1   S'AA'S*theta  ]
 
 c        first Cholesky factor (1,1) block of wn to get LL'
 c                          with L' stored in the upper triangle of wn.
-      call dpofa(wn,m2,col,info)
+      call dpofa_LBFGS(wn,m2,col,info)
       if (info .ne. 0) then
          info = -1
          return
@@ -2143,7 +2143,7 @@ c                          with L' stored in the upper triangle of wn.
 c        then form L^-1(-L_a'+R_z') in the (1,2) block.
       col2 = 2*col
       do 71 js = col+1 ,col2
-         call dtrsl(wn,m2,col,wn(1,js),11,info)
+         call dtrsl_LBFGS(wn,m2,col,wn(1,js),11,info)
   71  continue
 
 c     Form S'AA'S*theta + (L^-1(-L_a'+R_z'))'L^-1(-L_a'+R_z') in the
@@ -2152,13 +2152,13 @@ c        upper triangle of (2,2) block of wn.
 
       do 72 is = col+1, col2
          do 74 js = is, col2
-               wn(is,js) = wn(is,js) + ddot(col,wn(1,is),1,wn(1,js),1)
+	       wn(is,js) = wn(is,js) + ddot_LBFGS(col,wn(1,is),1,wn(1,js),1)
   74        continue
   72     continue
 
 c     Cholesky factorization of (2,2) block of wn.
 
-      call dpofa(wn(col+1,col+1),m2,col,info)
+      call dpofa_LBFGS(wn(col+1,col+1),m2,col,info)
       if (info .ne. 0) then
          info = -2
          return
@@ -2227,7 +2227,7 @@ c        store T in the upper triangle of the array wt.
 c     Cholesky factorize T to J*J' with 
 c        J' stored in the upper triangle of wt.
  
-      call dpofa(wt,m,col,info)
+      call dpofa_LBFGS(wt,m,col,info)
       if (info .ne. 0) then
          info = -3
       endif
@@ -2490,7 +2490,7 @@ c
 c     **********
 
       integer          i
-      double           precision ddot,a1,a2
+      double           precision ddot_LBFGS,a1,a2
       double precision one,zero,big
       parameter        (one=1.0d0,zero=0.0d0,big=1.0d+10)
       double precision ftol,gtol,xtol
@@ -2498,7 +2498,7 @@ c     **********
 
       if (task(1:5) .eq. 'FG_LN') goto 556
 
-      dtd = ddot(n,d,1,d,1)
+      dtd = ddot_LBFGS(n,d,1,d,1)
       dnorm = sqrt(dtd)
 
 c     Determine the maximum step length.
@@ -2537,14 +2537,14 @@ c     Determine the maximum step length.
          stp = one
       endif 
 
-      call dcopy(n,x,1,t,1)
-      call dcopy(n,g,1,r,1)
+      call dcopy_LBFGS(n,x,1,t,1)
+      call dcopy_LBFGS(n,g,1,r,1)
       fold = f
       ifun = 0
       iback = 0
       csave = 'START'
  556  continue
-      gd = ddot(n,g,1,d,1)
+      gd = ddot_LBFGS(n,g,1,d,1)
       if (ifun .eq. 0) then
          gdold=gd
          if (gd .ge. zero) then
@@ -2565,7 +2565,7 @@ c                               Line search is impossible.
          nfgv = nfgv + 1
          iback = ifun - 1 
          if (stp .eq. one) then
-            call dcopy(n,z,1,x,1)
+            call dcopy_LBFGS(n,z,1,x,1)
          else
             do 41 i = 1, n
                x(i) = stp*d(i) + t(i)
@@ -2613,7 +2613,7 @@ c
 c     ************
  
       integer          j,pointr
-      double precision ddot
+      double precision ddot_LBFGS
       double precision one
       parameter        (one=1.0d0)
 
@@ -2629,8 +2629,8 @@ c     Set pointers for matrices WS and WY.
  
 c     Update matrices WS and WY.
 
-      call dcopy(n,d,1,ws(1,itail),1)
-      call dcopy(n,r,1,wy(1,itail),1)
+      call dcopy_LBFGS(n,d,1,ws(1,itail),1)
+      call dcopy_LBFGS(n,r,1,wy(1,itail),1)
  
 c     Set theta=yy/ys.
  
@@ -2643,16 +2643,16 @@ c                                         and the lower triangle of SY:
       if (iupdat .gt. m) then
 c                              move old information
          do 50 j = 1, col - 1
-            call dcopy(j,ss(2,j+1),1,ss(1,j),1)
-            call dcopy(col-j,sy(j+1,j+1),1,sy(j,j),1)
+            call dcopy_LBFGS(j,ss(2,j+1),1,ss(1,j),1)
+            call dcopy_LBFGS(col-j,sy(j+1,j+1),1,sy(j,j),1)
   50     continue
       endif
 c        add new information: the last row of SY
 c                                             and the last column of SS:
       pointr = head
       do 51 j = 1, col - 1
-         sy(col,j) = ddot(n,d,1,wy(1,pointr),1)
-         ss(j,col) = ddot(n,ws(1,pointr),1,d,1)
+         sy(col,j) = ddot_LBFGS(n,d,1,wy(1,pointr),1)
+         ss(j,col) = ddot_LBFGS(n,ws(1,pointr),1,d,1)
          pointr = mod(pointr,m) + 1
   51  continue
       if (stp .eq. one) then
@@ -3208,12 +3208,12 @@ c     Compute wv:=K^(-1)wv.
 
       m2 = 2*m
       col2 = 2*col
-      call dtrsl(wn,m2,col2,wv,11,info)
+      call dtrsl_LBFGS(wn,m2,col2,wv,11,info)
       if (info .ne. 0) return
       do 25 i = 1, col
          wv(i) = -wv(i)
   25     continue
-      call dtrsl(wn,m2,col2,wv,01,info)
+      call dtrsl_LBFGS(wn,m2,col2,wv,01,info)
       if (info .ne. 0) return
  
 c     Compute d = (1/theta)d + (1/theta**2)Z'W wv.
@@ -3229,14 +3229,14 @@ c     Compute d = (1/theta)d + (1/theta**2)Z'W wv.
          pointr = mod(pointr,m) + 1
   40  continue
 
-      call dscal( nsub, one/theta, d, 1 )
+      call dscal_LBFGS( nsub, one/theta, d, 1 )
 c 
 c-----------------------------------------------------------------
 c     Let us try the projection, d is the Newton direction
 
       iword = 0
 
-      call dcopy ( n, x, 1, xp, 1 )
+      call dcopy_LBFGS ( n, x, 1, xp, 1 )
 c
       do 50 i=1, nsub
          k  = ind(i)
@@ -3278,7 +3278,7 @@ c
          dd_p  = dd_p + (x(i) - xx(i))*gg(i)
  55   continue
       if ( dd_p .gt.zero ) then
-         call dcopy( n, xp, 1, x, 1 )
+         call dcopy_LBFGS( n, xp, 1, x, 1 )
          write(6,*) ' Positive dir derivative in projection '
          write(6,*) ' Using the backtracking step '
       else

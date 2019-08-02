@@ -3,7 +3,7 @@ c  L-BFGS-B is released under the “New BSD License” (aka “Modified BSD Lic
 c  or “3-clause license”)                                                              
 c  Please read attached file License.txt                                               
 c                                        
-      subroutine timer(ttime)
+      subroutine timer_LBFGS(ttime)
       double precision ttime
 c
       real temp
