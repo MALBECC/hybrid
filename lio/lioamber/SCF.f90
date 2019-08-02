@@ -411,7 +411,7 @@ subroutine SCF(E)
 
         call overop%Sets_smat( Smat )
 
-        if (lowdin) then ! <----------------------------------------------------------------------ACA HAY DIFERENCIA, NICK
+        if (lowdin) then 
 !          TODO: inputs insuficient; there is also the symetric orthog using
 !                3 instead of 2 or 1. Use integer for onbasis_id
            call overop%Gets_orthog_4m( 2, 0.0d0, X_min, Y_min, X_min_trans, Y_min_trans)
