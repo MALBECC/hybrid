@@ -1,6 +1,7 @@
 &lio
 !lowdin=.true.
 nsol=0
+writeforces=t
 nmax=200
 natom=3
 charge=0

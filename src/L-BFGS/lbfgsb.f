@@ -2152,7 +2152,7 @@ c        upper triangle of (2,2) block of wn.
 
       do 72 is = col+1, col2
          do 74 js = is, col2
-	       wn(is,js) = wn(is,js) + ddot_LBFGS(col,wn(1,is),1,wn(1,js),1)
+		wn(is,js) = wn(is,js) + ddot_LBFGS(col,wn(1,is),1,wn(1,js),1)
   74        continue
   72     continue
 
