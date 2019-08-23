@@ -1,117 +1,99 @@
-# Makefile for HYBRID 
-#
-
-default: what LBFGS hybrid
-# what hybrid
-.SUFFIXES: .f .F .o .a  .f90 .F90
-#
-
-#LBFGSB  = L-BFGS/lbfgsb.f L-BFGS/linpack.f L-BFGS/blas.f L-BFGS/timer.f
-
+default: hybrid
 
 FC =
 FFLAGS =
-OBJPATH := .
-LIO_PATH = ../lio
-include ${LIO_PATH}/lioamber/Makefile.optchck
-include ${LIO_PATH}/lioamber/Makefile.options
-include Makefile.rulz
+LFLAGS =
+LIBS =
+SRCDIRS :=
+OBJPATH = obj
 
-what:
+include Makefile.options
+include Makefile.depends
+
+MAKEFILES =  Makefile
+MAKEFILES += Makefile.depends
+MAKEFILES += Makefile.options
+
+
+SRCDIRS += L-BFGS
+
+vpath %.f   $(SRCDIRS)
+vpath %.F   $(SRCDIRS)
+vpath %.f90 $(SRCDIRS)
+vpath %.F90 $(SRCDIRS)
+vpath %.o   $(OBJPATH)
+vpath %.mod $(OBJPATH)
+vpath %.a   $(OBJPATH)
+
+
+$(OBJPATH):
+	mkdir $@
+
+
+options:
 	@echo
 	@echo "Compilation options used: "
+ifeq ($(intel),2)
+	@echo "Compiler : ${FC} and the MKL library for lapack"
+else
 	@echo "Compiler : ${FC}"
-	@echo "CUDA : ${cuda}"
-	@echo "intel: ${intel}"
-	@echo "precision: ${precision}"
+endif
+ifeq (${precision},0)
+	@echo "precision: ${precision} = simple"
+else ifeq (${precision},1)
+	@echo "precision: ${precision} = double"
+else ifeq (${precision},2)
+	@echo "precision: ${precision} = quad"
+endif
+	@echo "precision not full implemented yet"
+
 	@echo "analytics: ${analytics}"
+ifeq (${qm_level},0)
+	@echo "qm_level: ${qm_level}, no QM program defined"
+else ifeq (${qm_level},1)
+	@echo "qm_level: ${qm_level}, using Lio as QM level"
+	@echo "LIOHOME= $${LIOHOME}"
+endif
 	@echo
 
-LBFGS:
-	(cd L-BFGS ; $(MAKE) )
 
-LBFGSB  = L-BFGS/lbfgsb.f L-BFGS/linpack.f L-BFGS/blas.f L-BFGS/timer.f
-
-# Note that machine-specific files are now in top Src directory.
-OBJS =  chkdim.o steep.o conjgr.o fixed.o iofa.o ofc.o functions.o \
-	inver.o ioxv.o paste.o reclat.o \
-	reinit.o timestamp.o volcel.o cgvc.o iocg.o \
-	centerall.o ran3.o dot.o readall.o subconstr.o \
-	writeall.o qmmm_lst_blk.o  \
-	ljef.o solv_ene_fce.o linkatom.o recipes.o list_qmmm.o \
-	assignation.o center_rotation.o init_hybrid.o NEB_subs.o\
-	quickmin.o FIRE.o check_convergence.o dynamics.o vmb.o\
-        check_and_debug.o MM_atoms_assign.o do_energy_forces.o\
-        external_bias.o hybrid.o \
-
-# FDF Module
-FDF=libfdf.a
-$(FDF): 
-	(cd fdf ; $(MAKE) module)
-
-# Routines using fdf calls.
-ioxv.o iofa.o : $(FDF)
-cgvc.o iocg.o ioxvconstr.o ofc.o : $(FDF)
-fixed.o reinit.o readall.o writeall.o : $(FDF)
-subconstr.o : $(FDF)
-linkatom.o MM_atoms_assign.o : $(FDF)
-asign.o : $(FDF)
-
-# Rest of Modules
-# Note : precision must be the first module
-MOD_OBJS=precision.o \
-	 ionew.o \
-	 parallel.o \
-	 sys.o \
-	 fsiesta.o \
-	 version.o \
-	 neutralatom.o \
-         parsing.o \
-	 scarlett_mod.o \
-
-COM_OBJS=$(OBJS) $(SYSOBJ)
-ALL_OBJS=$(MOD_OBJS) $(COM_OBJS)
-
-# Routines using modules
-MM_atoms_assign.o ioxv.o : precision.o
-qmmm_lst_blk.o readall.o cgvc.o chkdim.o : precision.o
-iofa.o fixed.o ioxvconstr.o assign.o hybrid.o : precision.o
-ionew.o chkdim.o MM_atoms_assign.o hybrid.o readall.o qmmm_lst_blk.o fixed.o assign.o : sys.o
-subconstr.o :sys.o
-hybrid.o : fsiesta.o
-hybrid.o : neutralatom.o
-neutralatom.o hybrid.o MM_atoms_assign.o :ionew.o
-reinit.o readall.o writeall.o : ionew.o
-qmmm_lst_blk.o : ionew.o
-iofa.o iocg.o ioxv.o ioxvconstr.o ofc.o : ionew.o
-assign.o : parse.o
-
-version:
+version: $(OBJPATH)
 	@echo
 	@echo "==> Incorporating information about present compilation (compiler and flags)"
-	@sed  "s/SIESTA_ARCH/${SIESTA_ARCH}/g" version.f90 > temp0.f
-	@sed  "s/FFLAGS/${FC} ${FFLAGS}/g" temp0.f > compinfo.F90
-	@($(MAKE) -s "FC=$(FC)" "FFLAGS=$(FFLAGS)" compinfo.o)
+	@cp version.f90 compinfo.F90
+	@($(MAKE) -s "FC=$(FC)" "FFLAGS=$(FFLAGS)" obj/version.o)
 	@rm -f temp0.f compinfo.F90
-	@mv compinfo.o version.o
 	@echo
 
-LIO_OBJS = $(wildcard $(LIO_PATH)/lioamber/obj/*.o) 
+$(FDF): $(OBJPATH)
+	(cd fdf ; $(MAKE) module)
 
 
-HFLAGS += -O2 -L../lio/g2g
+#RULZ
+$(OBJPATH)/%.o :  %.f  $(FDF) $(MAKEFILES) | $(OBJPATH)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
 
-hybrid: version $(FDF) $(ALL_OBJS) $(LBFGS)
+$(OBJPATH)/%.o :  %.F  $(FDF) $(MAKEFILES) | $(OBJPATH)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
+
+$(OBJPATH)/%.o :  %.f90  $(FDF)  $(MAKEFILES) | $(OBJPATH)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
+
+$(OBJPATH)/%.o :  %.F90  $(FDF)  $(MAKEFILES) | $(OBJPATH)
+	$(FC) $(FFLAGS) -c $< -o $@ $(LFLAGS) $(LIBS)
+
+%.mod : %.o $(FDF) | $(OBJPATH)
+	@touch $@
+
+
+
+hybrid: $(OBJECTS:%.o=$(OBJPATH)/%.o) $(OBJPATH)/$(FDF) | version options
 	@mkdir -p ../bin
-	$(FC) -o ../bin/hybrid \
-		$(HFLAGS) $(ALL_OBJS) $(LBFGSB) $(TIMER) $(LIO_OBJS) $(FDF) $(LIBS)  
+	$(FC) $(FFLAGS) -fopenmp hybrid.f -o ../bin/$@ $^ $(LFLAGS) $(LIBS)
+	@echo
+	@echo "Compilation Succesfull "
 
-
-clean: 
-	@echo "==> Cleaning object, library, and executable files"
-	rm -f *.o  *.a *.pcl *.pc fdf.Standard
-	rm -f *.mod
-	rm -f ../bin/hybrid
+clean:
 	(cd fdf ; $(MAKE) clean)
-	(cd L-BFGS ; $(MAKE) clean)
+	rm -r obj ../bin *.mod
 

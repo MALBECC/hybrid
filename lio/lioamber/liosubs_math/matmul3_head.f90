@@ -6,6 +6,7 @@ subroutine matmul3_ddd( Amat, Bmat, Cmat, Dmat )
    real*8    , intent(in) :: Cmat(:,:)
    real*8    , intent(out) :: Dmat(:,:)
    real*8, allocatable     :: Emat(:,:)
+
 #  include "matmul3_body.f90"
 end subroutine matmul3_ddd
 

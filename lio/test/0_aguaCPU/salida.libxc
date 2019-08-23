@@ -1,12 +1,6 @@
 WELCOME TO LIO
-vie jun 29 17:49:51 -03 2018
-  Using 4 CPU Threads and 0 GPU Threads.
-  QM atoms: 3 - MM atoms: 0
-  Total number of basis: 19 (s: 7 p: 2 d: 1)
-  Closed shell calculation - Occupied MO: 5
-*Using Libxc
-Cannot find lio namelist. Using defaults for namelist lio.
-iostat = 5010
+mié jul 31 15:48:25 -03 2019
+Error found in lionml namelist. Using defaults for namelist lionml.
 
 LIO input variables
  ! -- General and theory level: -- !
@@ -16,19 +10,21 @@ LIO input variables
   hybrid_converg =  F, Gold =    10.00000000, Told =     0.00000100,
   Etold =     1.00000000, good_cut =     0.00001000, Rmax =    16.00000000,
   RmaxS =     5.00000000, IExch =     9, IGrid =   2, IGrid2 =   2,
-  PredCoef =  F, initial_guess =   0, DBug =  F
+  PredCoef =  F, initial_guess =   0, DBug =  F,
+  n_ghosts =     0
  ! -- Input and output options: -- !
-  verbose =   4, style =  F, timers =   0, writeXYZ =  T, writeForces =  T,
+  verbose =   3, style =  F, timers =   0, writeXYZ =  T, writeForces =  T,
   dipole =  F, mulliken =  F, lowdin =  F, fukui =  F, print_coeffs =  F,
   VCInp =  F, FRestartIn =      restart.in          , restart_freq =     0,
   FRestart =      restart.out         , TDRestart =  F, writeDens =  F,
-  TD_rst_freq =    500, gaussian_convert =  F
+  TD_rst_freq =    500, gaussian_convert =  F,
+  rst_dens =   0
  ! -- TD-DFT and external field: -- !
   timeDep =  0, NTDStep =       1000, TDStep =     0.00200000, propagator =  1,
   NBCH =   10, field =  F, a0 =  1000.00000000, epsilon =     1.00000000,
   Fx =     0.00000000, Fy =     0.00000000, Fz =     0.00000000, n_fields_iso =     0,
   n_fields_aniso =     0, field_iso_file =      field.in            ,
-  field_aniso_file =      fieldaniso.in       
+  field_aniso_file =      fieldaniso.in       , td_do_pop =     0
  ! -- Effective Core Potentials: -- !
   ECPMode =  F, ECPTypes =   0, TipeECP = NOT-DEFINED              ,
   Fock_ECP_read =  F, Fock_ECP_write =  F, cutECP =  T, cut2_0 =    15.00000000,
@@ -50,10 +46,11 @@ LIO input variables
   min_points_per_cube =     1
  ! -- Transport and DFTB: -- !
   transport_calc =  F, generate_rho0 =  F, driving_rate =     0.00100000,
-  gate_field =  F, pop_drive =   1, save_charge_freq =     0, DFTB_calc =  F,
+  gate_field =  F, pop_drive =   1, save_charge_freq =     1, DFTB_calc =  F,
   MTB =     0, alfaTB =     0.00000000, betaTB =     0.00000000,
   gammaTB =     0.00000000, VBias_TB =     0.00000000, start_TDTB =     0,
   end_TDTB =     0, end_BTB =     0, TBLoad =  F, TBSave =  F
+  nbias=    0
  ! -- Ehrenfest: -- !
   ndyn_steps =      0, edyn_steps =      0, nullify_forces =  F,
   wdip_nfreq =     0, wdip_fname = liorun.dip               , rsti_loads =  F,
@@ -65,26 +62,49 @@ LIO input variables
  ! -- Fock Bias Potentials: -- !
   fockbias_is_active =  F, fockbias_is_shaped =  F, fockbias_timeamp0 =     0.00000000,
   fockbias_timegrow =     0.00000000, fockbias_timefall =     0.00000000,
-  fockbias_readfile =                          
+  fockbias_readfile = atombias.in              
 
 LIO initialisation.
+  Using 4 CPU Threads and 0 GPU Threads.
+  QM atoms: 3 - MM atoms: 0
+  Total number of basis: 19 (s: 7 p: 2 d: 1)
+  Closed shell calculation - Occupied MO: 5
 
 Starting SCF cycles.
-  Step =      1  - QM Energy =    -69.78045 - Rho diff (crit) = 1.35E+00 (1.00E-06) - Energy diff (crit) = 6.98E+01 (1.00E+00)
-  Step =      2  - QM Energy =    -68.52422 - Rho diff (crit) = 6.81E-01 (1.00E-06) - Energy diff (crit) = 1.26E+00 (1.00E+00)
-  Step =      3  - QM Energy =    -70.65693 - Rho diff (crit) = 6.51E-01 (1.00E-06) - Energy diff (crit) = 2.13E+00 (1.00E+00)
-  Step =      4  - QM Energy =    -75.06123 - Rho diff (crit) = 2.11E-01 (1.00E-06) - Energy diff (crit) = 4.40E+00 (1.00E+00)
-G2G Deinitialisation.
-  Step =      5  - QM Energy =    -76.03342 - Rho diff (crit) = 1.70E-02 (1.00E-06) - Energy diff (crit) = 9.72E-01 (1.00E+00)
-  Step =      6  - QM Energy =    -76.02388 - Rho diff (crit) = 2.42E-02 (1.00E-06) - Energy diff (crit) = 9.55E-03 (1.00E+00)
-  Step =      7  - QM Energy =    -75.93348 - Rho diff (crit) = 4.33E-02 (1.00E-06) - Energy diff (crit) = 9.04E-02 (1.00E+00)
-  Step =      8  - QM Energy =    -76.06100 - Rho diff (crit) = 1.08E-02 (1.00E-06) - Energy diff (crit) = 1.28E-01 (1.00E+00)
-  Step =      9  - QM Energy =    -76.06528 - Rho diff (crit) = 6.61E-03 (1.00E-06) - Energy diff (crit) = 4.28E-03 (1.00E+00)
-  Step =     10  - QM Energy =    -76.06679 - Rho diff (crit) = 9.01E-04 (1.00E-06) - Energy diff (crit) = 1.52E-03 (1.00E+00)
-  Step =     11  - QM Energy =    -76.06683 - Rho diff (crit) = 4.69E-04 (1.00E-06) - Energy diff (crit) = 3.64E-05 (1.00E+00)
-  Step =     12  - QM Energy =    -76.06684 - Rho diff (crit) = 6.45E-05 (1.00E-06) - Energy diff (crit) = 1.20E-05 (1.00E+00)
-  Step =     13  - QM Energy =    -76.06684 - Rho diff (crit) = 2.60E-06 (1.00E-06) - Energy diff (crit) = 6.19E-07 (1.00E+00)
-  Step =     14  - QM Energy =    -76.06684 - Rho diff (crit) = 6.60E-07 (1.00E-06) - Energy diff (crit) = 1.74E-07 (1.00E+00)
+tipo: 7 0.193813 radio: 14.3661
+tipo: 0 0.15411 radio: 16.1107
+tipo: 0 0.15411 radio: 16.1107
+esfera incluye 18 capas de 35 (radio: 0.566918)
+esfera incluye 15 capas de 30 (radio: 0.298818)
+esfera incluye 15 capas de 30 (radio: 0.298818)
+ energies  -129.02026224856945        66.250072878059015        4.7729671017280442       -11.783230956503710     
+  Step =      1  - QM Energy =       -69.78045 - Rho diff (crit) = 1.35E+00 (1.00E-06) - Energy diff (crit) = 6.98E+01 (1.00E+00)
+ energies  -92.383828585437996        26.355196522458368        4.7729671017280442       -7.2685570620069599     
+  Step =      2  - QM Energy =       -68.52422 - Rho diff (crit) = 6.81E-01 (1.00E-06) - Energy diff (crit) = 1.26E+00 (1.00E+00)
+ energies  -95.538624863500033        27.361849839731295        4.7729671017280442       -7.2531217318994834     
+  Step =      3  - QM Energy =       -70.65693 - Rho diff (crit) = 6.51E-01 (1.00E-06) - Energy diff (crit) = 2.13E+00 (1.00E+00)
+ energies  -121.85673442245989        51.834372407567344        4.7729671017280442       -9.8118354609116381     
+  Step =      4  - QM Energy =       -75.06123 - Rho diff (crit) = 2.11E-01 (1.00E-06) - Energy diff (crit) = 4.40E+00 (1.00E+00)
+ energies  -112.99355335217049        40.848548928600991        4.7729671017280442       -8.6613860608332516     
+  Step =      5  - QM Energy =       -76.03342 - Rho diff (crit) = 1.70E-02 (1.00E-06) - Energy diff (crit) = 9.72E-01 (1.00E+00)
+ energies  -112.80120155058746        40.673793126527912        4.7729671017280442       -8.6694366285240427     
+  Step =      6  - QM Energy =       -76.02388 - Rho diff (crit) = 2.42E-02 (1.00E-06) - Energy diff (crit) = 9.55E-03 (1.00E+00)
+ energies  -111.60526168237104        39.467363573230756        4.7729671017280442       -8.5685473223291275     
+  Step =      7  - QM Energy =       -75.93348 - Rho diff (crit) = 4.33E-02 (1.00E-06) - Energy diff (crit) = 9.04E-02 (1.00E+00)
+ energies  -113.84863349409117        41.790393712907758        4.7729671017280442       -8.7757247244252525     
+  Step =      8  - QM Energy =       -76.06100 - Rho diff (crit) = 1.08E-02 (1.00E-06) - Energy diff (crit) = 1.28E-01 (1.00E+00)
+ energies  -114.12985707754244        42.094352714517733        4.7729671017280442       -8.8027377754094562     
+  Step =      9  - QM Energy =       -76.06528 - Rho diff (crit) = 6.61E-03 (1.00E-06) - Energy diff (crit) = 4.28E-03 (1.00E+00)
+ energies  -114.35663639593218        42.341839298833996        4.7729671017280442       -8.8249634824253285     
+  Step =     10  - QM Energy =       -76.06679 - Rho diff (crit) = 9.01E-04 (1.00E-06) - Energy diff (crit) = 1.52E-03 (1.00E+00)
+ energies  -114.37922428855592        42.366900939028199        4.7729671017280442       -8.8274736136502785     
+  Step =     11  - QM Energy =       -76.06683 - Rho diff (crit) = 4.69E-04 (1.00E-06) - Energy diff (crit) = 3.64E-05 (1.00E+00)
+ energies  -114.40301586604023        42.393138343027260        4.7729671017280442       -8.8299314731216274     
+  Step =     12  - QM Energy =       -76.06684 - Rho diff (crit) = 6.45E-05 (1.00E-06) - Energy diff (crit) = 1.20E-05 (1.00E+00)
+ energies  -114.40619756200081        42.396646646072291        4.7729671017280442       -8.8302587015479865     
+  Step =     13  - QM Energy =       -76.06684 - Rho diff (crit) = 2.60E-06 (1.00E-06) - Energy diff (crit) = 6.21E-07 (1.00E+00)
+ energies  -114.40615013810890        42.396594818067520        4.7729671017280442       -8.8302541087632100     
+  Step =     14  - QM Energy =       -76.06684 - Rho diff (crit) = 6.58E-07 (1.00E-06) - Energy diff (crit) = 1.89E-07 (1.00E+00)
   Convergence achieved in     14 iterations. Final energy    -76.0668423 A.U.
 
 Final Energy Contributions in A.U.

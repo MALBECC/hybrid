@@ -174,7 +174,6 @@ subroutine SCF(E)
 !%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
 ! lineal search
    integer :: nniter
-!%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%!
    changed_to_LS=.false.
 
    call g2g_timer_start('SCF_full')
@@ -211,7 +210,6 @@ subroutine SCF(E)
    call g2g_timer_start('SCF')
    call g2g_timer_sum_start('SCF')
    call g2g_timer_sum_start('Initialize SCF')
-
 
    npas=npas+1
    E=0.0D0
@@ -253,6 +251,8 @@ subroutine SCF(E)
          NCOb=NCO+Nunp
          ocupF=1.0d0
          allocate(rho_b0(M,M),fock_b0(M,M))
+      else
+	NCOb=0
       end if
 
       M1=1 ! first P
@@ -348,6 +348,7 @@ subroutine SCF(E)
       call aint_query_gpu_level(igpu)
       if (igpu.gt.1) call aint_new_step()
 
+
 ! Calculate 1e part of F here (kinetic/nuc in int1, MM point charges
 ! in intsol)
 !
@@ -356,7 +357,6 @@ subroutine SCF(E)
       call int1(En, RMM(M5:M5+MM), RMM(M11:M11+MM), Smat, d, r, Iz, natom, &
                 ntatom)
       call ECP_fock( MM, RMM(M11) )
-
 
 ! Other terms
 !
@@ -402,10 +402,16 @@ subroutine SCF(E)
         if ( allocated(Xmat) ) deallocate(Xmat)
         if ( allocated(Ymat) ) deallocate(Ymat)
         allocate(Xmat(M_in,M_in), Ymat(M_in,M_in))
-
+	Xmat=0.d0
+	Ymat=0.d0
+	X_min=0.d0
+	Y_min=0.d0
+	X_min_trans=0.d0
+	Y_min_trans=0.d0
 
         call overop%Sets_smat( Smat )
-        if (lowdin) then
+
+        if (lowdin) then 
 !          TODO: inputs insuficient; there is also the symetric orthog using
 !                3 instead of 2 or 1. Use integer for onbasis_id
            call overop%Gets_orthog_4m( 2, 0.0d0, X_min, Y_min, X_min_trans, Y_min_trans)
@@ -442,8 +448,6 @@ subroutine SCF(E)
         call fockbias_setmat( sqsmat )
         deallocate( sqsmat, tmpmat )
 
-
-
 !DFTB: Dimensions of Xmat and Ymat are modified for DFTB.
 !
 ! TODO: this is nasty, a temporary solution would be to have a Msize variable
@@ -469,7 +473,6 @@ subroutine SCF(E)
    call cublas_setmat( M_in, Xmat, dev_Xmat)
    call cublas_setmat( M_in, Ymat, dev_Ymat)
 
-
 ! Generates starting guess
 !
    if ( (.not.VCINP) .and. primera ) then
@@ -478,6 +481,7 @@ subroutine SCF(E)
                              natom, Iz, nshell, Nuc)
       primera = .false.
    end if
+
 
 !----------------------------------------------------------!
 ! Precalculate two-index (density basis) "G" matrix used in density fitting
@@ -517,8 +521,6 @@ subroutine SCF(E)
          call g2g_timer_sum_stop('Coulomb precalc')
       endif
 
-
-
 !
 !##########################################################!
 ! TODO: ...to here
@@ -539,7 +541,6 @@ subroutine SCF(E)
 ! vectors are 'coherent'
 
 
-
       if (hybrid_converg) DIIS=.true. ! cambio para convergencia damping-diis
       call g2g_timer_sum_stop('Initialize SCF')
 !------------------------------------------------------------------------------!
@@ -547,7 +548,6 @@ subroutine SCF(E)
 !DFTB: the density for DFTB is readed from an external file.
    if (dftb_calc.and.TBload) call read_rhoDFTB(M, MM, RMM(M1), rhoalpha, rhobeta, &
                                                OPEN)
-
 !------------------------------------------------------------------------------!
 ! TODO: Maybe evaluate conditions for loop continuance at the end of loop
 !       and condense in a single "keep_iterating" or something like that.
@@ -571,6 +571,7 @@ subroutine SCF(E)
 ! TODO: Calculation of fock terms should be separated. Also, maybe it would be
 !       convenient to add the NaN checks and the timers inside the subroutine
 !       calls is a more systematic way.
+
 
 !       Test for NaN
         if (Dbug) call SEEK_NaN(RMM,1,MM,"RHO Start")
@@ -899,7 +900,7 @@ subroutine SCF(E)
 
         Egood=abs(E+Ex-Evieja)
         Evieja=E+Ex
-
+	
         ! Write energy at every step
         call write_energy_convergence(niter, Evieja, good, told, egood, etold)
 

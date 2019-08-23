@@ -4,64 +4,7 @@ c  or “3-clause license”)
 c  Please read attached file License.txt                                               
 c                                        
 
-      double precision function dnrm2(n,x,incx)
-      integer n,incx
-      double precision x(n)
-c     **********
-c
-c     Function dnrm2
-c
-c     Given a vector x of length n, this function calculates the
-c     Euclidean norm of x with stride incx.
-c
-c     The function statement is
-c
-c       double precision function dnrm2(n,x,incx)
-c
-c     where
-c
-c       n is a positive integer input variable.
-c
-c       x is an input array of length n.
-c
-c       incx is a positive integer variable that specifies the 
-c         stride of the vector.
-c
-c     Subprograms called
-c
-c       FORTRAN-supplied ... abs, max, sqrt
-c
-c     MINPACK-2 Project. February 1991.
-c     Argonne National Laboratory.
-c     Brett M. Averick.
-c
-c     **********
-      integer i
-      double precision scale
-
-      dnrm2 = 0.0d0
-      scale = 0.0d0
-
-      do 10 i = 1, n, incx
-         scale = max(scale, abs(x(i)))
-   10 continue
-
-      if (scale .eq. 0.0d0) return
-
-      do 20 i = 1, n, incx
-         dnrm2 = dnrm2 + (x(i)/scale)**2
-   20 continue
-
-      dnrm2 = scale*sqrt(dnrm2)
-
- 
-      return
-
-      end
-      
-c====================== The end of dnrm2 ===============================
-
-      subroutine daxpy(n,da,dx,incx,dy,incy)
+      subroutine daxpy_LBFGS(n,da,dx,incx,dy,incy)
 c
 c     constant times a vector plus a vector.
 c     uses unrolled loops for increments equal to one.
@@ -111,7 +54,7 @@ c
       
 c====================== The end of daxpy ===============================
 
-      subroutine dcopy(n,dx,incx,dy,incy)
+      subroutine dcopy_LBFGS(n,dx,incx,dy,incy)
 c
 c     copies a vector, x, to a vector, y.
 c     uses unrolled loops for increments equal to one.
@@ -163,7 +106,7 @@ c
       
 c====================== The end of dcopy ===============================
 
-      double precision function ddot(n,dx,incx,dy,incy)
+      double precision function ddot_LBFGS(n,dx,incx,dy,incy)
 c
 c     forms the dot product of two vectors.
 c     uses unrolled loops for increments equal to one.
@@ -172,7 +115,7 @@ c
       double precision dx(*),dy(*),dtemp
       integer i,incx,incy,ix,iy,m,mp1,n
 c
-      ddot = 0.0d0
+      ddot_LBFGS = 0.0d0
       dtemp = 0.0d0
       if(n.le.0)return
       if(incx.eq.1.and.incy.eq.1)go to 20
@@ -189,7 +132,7 @@ c
         ix = ix + incx
         iy = iy + incy
    10 continue
-      ddot = dtemp
+      ddot_LBFGS = dtemp
       return
 c
 c        code for both increments equal to 1
@@ -208,13 +151,13 @@ c
         dtemp = dtemp + dx(i)*dy(i) + dx(i + 1)*dy(i + 1) +
      *   dx(i + 2)*dy(i + 2) + dx(i + 3)*dy(i + 3) + dx(i + 4)*dy(i + 4)
    50 continue
-   60 ddot = dtemp
+   60 ddot_LBFGS = dtemp
       return
       end
       
 c====================== The end of ddot ================================
 
-      subroutine  dscal(n,da,dx,incx)
+      subroutine  dscal_LBFGS(n,da,dx,incx)
 c
 c     scales a vector by a constant.
 c     uses unrolled loops for increment equal to one.

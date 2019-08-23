@@ -3,7 +3,7 @@ c  L-BFGS-B is released under the “New BSD License” (aka “Modified BSD Lic
 c  or “3-clause license”)                                                              
 c  Please read attached file License.txt                                               
 c                                        
-      subroutine dpofa(a,lda,n,info)
+      subroutine dpofa_LBFGS(a,lda,n,info)
       integer lda,n,info
       double precision a(lda,*)
 c
@@ -48,7 +48,7 @@ c     fortran sqrt
 c
 c     internal variables
 c
-      double precision ddot,t
+      double precision ddot_LBFGS,t
       double precision s
       integer j,jm1,k
 c     begin block with ...exits to 40
@@ -60,7 +60,7 @@ c
             jm1 = j - 1
             if (jm1 .lt. 1) go to 20
             do 10 k = 1, jm1
-               t = a(k,j) - ddot(k-1,a(1,k),1,a(1,j),1)
+               t = a(k,j) - ddot_LBFGS(k-1,a(1,k),1,a(1,j),1)
                t = t/a(k,k)
                a(k,j) = t
                s = s + t*t
@@ -78,7 +78,7 @@ c     ......exit
       
 c====================== The end of dpofa ===============================
 
-      subroutine dtrsl(t,ldt,n,b,job,info)
+      subroutine dtrsl_LBFGS(t,ldt,n,b,job,info)
       integer ldt,n,job,info
       double precision t(ldt,*),b(*)
 c
@@ -138,7 +138,7 @@ c     fortran mod
 c
 c     internal variables
 c
-      double precision ddot,temp
+      double precision ddot_LBFGS,temp
       integer case,j,jj
 c
 c     begin block permitting ...exits to 150
@@ -165,7 +165,7 @@ c
             if (n .lt. 2) go to 40
             do 30 j = 2, n
                temp = -b(j-1)
-               call daxpy(n-j+1,temp,t(j,j-1),1,b(j),1)
+               call daxpy_LBFGS(n-j+1,temp,t(j,j-1),1,b(j),1)
                b(j) = b(j)/t(j,j)
    30       continue
    40       continue
@@ -179,7 +179,7 @@ c
             do 60 jj = 2, n
                j = n - jj + 1
                temp = -b(j+1)
-               call daxpy(j,temp,t(1,j+1),1,b(1),1)
+               call daxpy_LBFGS(j,temp,t(1,j+1),1,b(1),1)
                b(j) = b(j)/t(j,j)
    60       continue
    70       continue
@@ -192,7 +192,7 @@ c
             if (n .lt. 2) go to 100
             do 90 jj = 2, n
                j = n - jj + 1
-               b(j) = b(j) - ddot(jj-1,t(j+1,j),1,b(j+1),1)
+               b(j) = b(j) - ddot_LBFGS(jj-1,t(j+1,j),1,b(j+1),1)
                b(j) = b(j)/t(j,j)
    90       continue
   100       continue
@@ -204,7 +204,7 @@ c
             b(1) = b(1)/t(1,1)
             if (n .lt. 2) go to 130
             do 120 j = 2, n
-               b(j) = b(j) - ddot(j-1,t(1,j),1,b(1),1)
+               b(j) = b(j) - ddot_LBFGS(j-1,t(1,j),1,b(1),1)
                b(j) = b(j)/t(j,j)
   120       continue
   130       continue

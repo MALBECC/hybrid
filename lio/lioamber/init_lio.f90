@@ -424,7 +424,7 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
     integer, dimension(hyb_natom), intent(in) :: iza  !array of charges of all QM/MM atoms
     double precision, intent(in) :: spin !number of unpaired electrons
     integer :: Nunp_aux !auxiliar
-   
+
     ! Gives default values to runtime variables.
     call lio_defaults()
     charge = chargein
@@ -438,6 +438,7 @@ subroutine init_lio_hybrid(hyb_natom, mm_natom, chargein, iza, spin)
     call read_options(inputFile)
     !select spin case
     Nunp_aux=int(spin)
+
     if (Nunp_aux .ne. Nunp) STOP "lio.in have a different spin than *.fdf"
     if (Nunp .ne. 0) OPEN=.true.
     if (OPEN) write(*,*) "Runing hybrid open shell, with ", Nunp, "unpaired electrons"
