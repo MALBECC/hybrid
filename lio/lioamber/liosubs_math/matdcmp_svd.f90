@@ -47,17 +47,17 @@ subroutine matdcmp_svd( Matrix, Umat, Gmat, Vtrp )
 
 	lapack_INFO=0
 	lapack_LWORK=0
-	write(33333333,*) "svd1"
-	write(33333333,*) "Msize1", Msize1
-	write(33333333,*) "Msize2", Msize2
-	write(33333333,*) "Xmat", Xmat
-	write(33333333,*) "Gvec", Gvec
-	write(33333333,*) "Umat", Umat
-	write(33333333,*) "Vtrp", Vtrp
-!	write(33333333,*) "lapack_WORK", lapack_WORK
-!	write(33333333,*) "lapack_LWORK", lapack_LWORK
-!	write(33333333,*) "lapack_IWORK", lapack_IWORK
-	write(33333333,*) "lapack_INFO", lapack_INFO
+!	write(33333333,*) "svd1"
+!	write(33333333,*) "Msize1", Msize1
+!	write(33333333,*) "Msize2", Msize2
+!	write(33333333,*) "Xmat", Xmat
+!	write(33333333,*) "Gvec", Gvec
+!	write(33333333,*) "Umat", Umat
+!	write(33333333,*) "Vtrp", Vtrp
+!!	write(33333333,*) "lapack_WORK", lapack_WORK
+!!	write(33333333,*) "lapack_LWORK", lapack_LWORK
+!!	write(33333333,*) "lapack_IWORK", lapack_IWORK
+!	write(33333333,*) "lapack_INFO", lapack_INFO
 
 !
 !
@@ -89,17 +89,17 @@ subroutine matdcmp_svd( Matrix, Umat, Gmat, Vtrp )
 !
 
 
-        write(33333333,*) "svd2"
-        write(33333333,*) "Msize1", Msize1
-        write(33333333,*) "Msize2", Msize2
-        write(33333333,*) "Xmat", Xmat
-        write(33333333,*) "Gvec", Gvec
-        write(33333333,*) "Umat", Umat
-        write(33333333,*) "Vtrp", Vtrp
-        write(33333333,*) "lapack_WORK", lapack_WORK
-        write(33333333,*) "lapack_LWORK", lapack_LWORK
-        write(33333333,*) "lapack_IWORK", lapack_IWORK
-        write(33333333,*) "lapack_INFO", lapack_INFO
+!        write(33333333,*) "svd2"
+!        write(33333333,*) "Msize1", Msize1
+!        write(33333333,*) "Msize2", Msize2
+!        write(33333333,*) "Xmat", Xmat
+!        write(33333333,*) "Gvec", Gvec
+!        write(33333333,*) "Umat", Umat
+!        write(33333333,*) "Vtrp", Vtrp
+!        write(33333333,*) "lapack_WORK", lapack_WORK
+!        write(33333333,*) "lapack_LWORK", lapack_LWORK
+!        write(33333333,*) "lapack_IWORK", lapack_IWORK
+!        write(33333333,*) "lapack_INFO", lapack_INFO
 
 
 
@@ -133,17 +133,17 @@ subroutine matdcmp_svd( Matrix, Umat, Gmat, Vtrp )
 !
 !
 
-        write(33333333,*) "svd3"
-        write(33333333,*) "Msize1", Msize1
-        write(33333333,*) "Msize2", Msize2
-        write(33333333,*) "Xmat", Xmat
-        write(33333333,*) "Gvec", Gvec
-        write(33333333,*) "Umat", Umat
-        write(33333333,*) "Vtrp", Vtrp
-        write(33333333,*) "lapack_WORK", lapack_WORK
-        write(33333333,*) "lapack_LWORK", lapack_LWORK
-        write(33333333,*) "lapack_IWORK", lapack_IWORK
-        write(33333333,*) "lapack_INFO", lapack_INFO
+!        write(33333333,*) "svd3"
+!        write(33333333,*) "Msize1", Msize1
+!        write(33333333,*) "Msize2", Msize2
+!        write(33333333,*) "Xmat", Xmat
+!        write(33333333,*) "Gvec", Gvec
+!        write(33333333,*) "Umat", Umat
+!        write(33333333,*) "Vtrp", Vtrp
+!        write(33333333,*) "lapack_WORK", lapack_WORK
+!        write(33333333,*) "lapack_LWORK", lapack_LWORK
+!        write(33333333,*) "lapack_IWORK", lapack_IWORK
+!        write(33333333,*) "lapack_INFO", lapack_INFO
 
 
 !  Copy results and exit

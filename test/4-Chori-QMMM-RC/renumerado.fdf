@@ -12,7 +12,7 @@ NumberOfSolventAtoms   10133
 
 %block ConstrainedOpt
 nconstr 1
-steps 99
+steps 50
 type 1
 kte 200
 inicoord 3.000 fincoord -3.000
@@ -111,6 +111,7 @@ QM  0.2
 QMMM 1000.0                 
 MM 800.0                    
 BLO 8.0                   
+MMBLO 10.0
 %endblock CutOffRadius    
  
  
