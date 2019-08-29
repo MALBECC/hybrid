@@ -398,7 +398,7 @@
         Etot=0.d0
         fa=0.d0
 #ifdef LIO
-        call init_lio_hybrid(na_u, nac, charge, iza, spin)
+        call init_lio_hybrid(1,na_u, nac, charge, iza, spin)
 #else
 	stop 'No QM program defined'
 #endif
