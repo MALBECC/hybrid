@@ -55,8 +55,6 @@ else ifeq (${qm_level},1)
 	@echo "LIOHOME= $${LIOHOME}"
 endif
 	@echo
-
-version: $(OBJPATH)
 	@echo
 	@echo "==> Incorporating information about present compilation (compiler and flags)"
 	@cp version.f90 compinfo.F90
