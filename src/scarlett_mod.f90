@@ -53,6 +53,17 @@
 ! Restraint stuff JOTA
         double precision, dimension(:,:), allocatable :: rref ! reference matrix values for quadratic potential 
 
+! FE calculations stuff JOTA
+	double precision, dimension(:,:), allocatable :: rshiftm ! displacements matrix from reference values for FE calculations 
+	double precision, dimension(:,:), allocatable :: rshiftm2 ! square displacements matrix from reference values for FE calculations
+	double precision, dimension(:,:), allocatable :: fef ! average forces for FE calculations
+	double precision, dimension(:,:), allocatable :: rshiftsd ! rshift standard deviations matrix for FE calculations
+	double precision, dimension(:,:), allocatable :: rclas_cut ! posiciones cortadas para optimizador
+	double precision, dimension(:,:), allocatable :: fef_cut !  gradiente de energia libre cortada para optimizador
+        double precision, dimension(:,:), allocatable :: rshxrshm ! <rshift(i)*reshift(j)> Matrix
+	double precision, dimension(:,:), allocatable :: cov_matrix !  
+	double precision, dimension(:,:), allocatable :: cov_matrix_inverted !  
+
 !optimization
 	double precision :: Eprev !total energy of previous steep for gradient descend
 	double precision :: lambda, lambda_i !steep size in gradient descend, and initial steep size

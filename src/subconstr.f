@@ -4,11 +4,12 @@
 	use ionew
 	use fdf    
 	use sys
-        use scarlett, only: na_u, numlink, natmsconstr, rref, natot
+        use scarlett, only: na_u, numlink, natmsconstr, rref, natot, 
+     .  rclas_cut,fef_cut,cov_matrix,cov_matrix_inverted,rshxrshm
 	implicit none
 	integer i,unit,iunit,nconstr,iconstr,typeconstr(20),k
-	integer nstepconstr,atmsconstr(20,20),ndists(20)
-	double precision kforce(20),ro(20),rini,rfin,dr,zo,coef(20,10)
+	integer nstepconstr,atmsconstr(25,25),ndists(20)
+	double precision kforce(25),ro(20),rini,rfin,dr,zo,coef(20,10)
 	character exp
         character slabel*24, paste*24,fname*24
         external  paste
@@ -101,13 +102,17 @@ c read variables
                 read(iunit,*,err=100,end=100)
      .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)
               endif
-            allocate(rref(3,natot))
+            allocate(rref(3,natot),rclas_cut(3,natmsconstr),
+     .      fef_cut(3,natmsconstr),
+     .      rshxrshm(3*natmsconstr,3*natmsconstr),
+     .      cov_matrix(3*natmsconstr,3*natmsconstr),
+     .      cov_matrix_inverted(3*natmsconstr,3*natmsconstr))
             else
               call die('constr opt: typeconstr must be 1-9')
             endif
 
-	    if(i.gt.20) then
-	call die('constr opt: atoms with constrain must be lower than 20')
+	    if(i.gt.25) then
+	call die('constr opt: atoms with constrain must be lower than 25')
 	    endif
 
 
@@ -168,8 +173,8 @@ c****************************************************************************
         use scarlett, only: rref
 	implicit none
 	integer i,natot,iconstr,istep,istepconstr,ndists(20),natmsconstr
-	integer nconstr,typeconstr(20),atmsconstr(20,20),nstepconstr
-	double precision kforce(20),ro(20),rt(20),rini,rfin,coef(20,10)
+	integer nconstr,typeconstr(20),atmsconstr(25,25),nstepconstr
+	double precision kforce(25),ro(20),rt(20),rini,rfin,coef(20,10)
 	
 	integer at1,at2,at3,at4,at5,at6,at7,at8
 	double precision, intent(inout) ::  rclas(3,natot),fdummy(3,natot)
@@ -252,7 +257,6 @@ c adding fnew to fdummy
         fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)      
 
 c test write de fuerzas
-c write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
 
 
@@ -267,8 +271,6 @@ c write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
         rt(iconstr)=rtot
         req=ro(iconstr)
         kf=kforce(iconstr)
-	write(6969,*) "kforce, req, rt" 
-        write(6969,*) kforce
 
 c atom1: dr12
         dx=0.d0
@@ -290,14 +292,10 @@ c atom2: -fce over atom1
         fnew(3,2)=-fnew(3,1)
  
 c adding fnew to fdummy
-	write(6969,*) "fnew" 
-        write(6969,*) fnew
 
         fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
 
-
-c        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
       elseif(typeconstr(iconstr).eq.3) then
         

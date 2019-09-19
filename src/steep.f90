@@ -15,6 +15,7 @@
 	integer :: istep !steep number
 	double precision, dimension(3, natot) :: rclas, cfdummy
 
+
 	Fmax=0.d0
 	if (istep.eq.1) Eprev=Energy
 	if (istep.eq.1) lambda=lambda_i

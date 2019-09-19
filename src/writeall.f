@@ -25,7 +25,7 @@ c -------------------------------------------------------------------
 	call io_assign(unit)
 	open( unit, file=fname, form = 'formatted', position='append',
      .      status='unknown')
-	write(unit,'(i5,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
+	write(unit,'(i9,2x,F18.7,2x,F14.7)') istp,Etots/eV,cfmax*Ang/eV
 	call io_close(unit)
  	return
 	end subroutine wriene
@@ -126,7 +126,7 @@ c writes actual coords in PDB format in .last.pdb file
        write(unitl,'(A4,I7,2x,A4,A4,A,I4,4x,3f8.3)')
      . ('ATOM',na+i,atname(i),aaname(i),chain(na+i),aanum(i),
      . (rclas(ia,na+i)/Ang,ia=1,3), i=1,nac)
-       write(unitl,'(A3,i5)') 'END',istp
+       write(unitl,'(A3,i9)') 'END',istp
        call io_close(unitl)
 
 	return
@@ -204,7 +204,7 @@ c*******************************************************************************
 	implicit none
 	integer natot
 	integer i,unit,iunit,nconstr,iconstr,typeconstr(20)
-	integer atmsconstr(20,20),ndists(20)
+	integer atmsconstr(25,25),ndists(20)
 	double precision rclas(3,natot),coef(20,10),rtot(20)
 	character exp
         character slabel*24, paste*24,fname*24

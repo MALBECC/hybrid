@@ -61,6 +61,7 @@ OBJECTS += lbfgsb.o
 OBJECTS += linpack.o
 OBJECTS += blas.o
 OBJECTS += timer.o
+OBJECTS += calculate_fef.o
 
 FDF=libfdf.a
 
