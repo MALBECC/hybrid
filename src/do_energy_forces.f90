@@ -263,6 +263,6 @@
 ! from here cfdummy is the reelevant forces for move system
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
- 999  format(a,2x,F30.18)
+ 999  format(a,2x,F30.12)
 	end subroutine do_energy_forces
 

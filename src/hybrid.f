@@ -550,11 +550,11 @@ C Write atomic forces
       write(6,'(i6,3f12.6)') (ia,(cfdummy(ix,ia)*Ang/eV,ix=1,3),
      .                        ia=1,nfce)
       write(6,'(43(1h-),/,a4,3f12.6)') 'Tot',(ftot(ix)*Ang/eV,ix=1,3)
-      write(6,'(43(1h-),/,a4,f12.6,a,i5)') 'Max',fmax*Ang/eV,
+      write(6,'(43(1h-),/,a4,f22.6,a,i5)') 'Max',fmax*Ang/eV,
      .                       '  free, atom  ',ifmax(2)
-      write(6,'(a4,f12.6,a)')'Res',fres*Ang/eV,
+      write(6,'(a4,f22.6,a)')'Res',fres*Ang/eV,
      .                       '  sqrt( Sum f_i^2 / 3N )'
-      write(6,'(43(1h-),/,a4,f12.6,a,i5)') 'Max',cfmax*Ang/eV,
+      write(6,'(43(1h-),/,a4,f22.6,a,i5)') 'Max',cfmax*Ang/eV,
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
 
@@ -829,7 +829,7 @@ C Write atomic forces
 
 ! 345  format(2x, I2,    2x, 3(f10.6,2x))
 ! 346  format(2x, f10.6, 2x, 3(f10.6,2x))
- 956  format(2x, "Econtribution", 7(f18.6,2x))
+ 956  format(2x, "Econtribution", 7(f22.8,2x))
  423  format(2x, I6,2x, 6(f20.10,2x))
 ! 444  format(2x, I6,2x, 3(f20.10,2x))
  999  format(a,2x,F30.18)

@@ -34,7 +34,7 @@
 
 !variable sde lectura de coordenadas
 	character :: atom*4 !for check end of PDB
-        character, allocatable, dimension(:) :: rname*4,atname*4 !residue and atom name
+        character*4, allocatable, dimension(:) :: rname,atname !residue and atom name
         integer, allocatable, dimension(:) :: atnu,resnu !residue and arom number
         double precision, allocatable, dimension(:,:) :: r !position
         character :: ch*1
@@ -349,15 +349,15 @@
 	write(10,*) "Defining QM subsystem"
 
         i2=1
-        do i=1,nqm !QM residues
-          do j=1,natpdb !total number of atoms
+        do i=1,nqm !QM residues 
+          do j=1,natpdb !total number of atoms pdb
             if(resnu(j).eq.resqm(i)) then
 
               if(tty(i).eq.'ALL '.or.tty(i).eq.'ALL') then !si el residuo esta marcado como ALL todo el residuo es QM          
                 indexqm(i2)=j
                 i2=i2+1
               else
-                do k=1,numres_p
+                do k=1,numres_p !number of residues in force field file
                   if(rname_p(k).eq.tty(i)) then
                     do l=1,atxres(k)
 ! busca si el atomo en el residuo queda o no como clasico 
@@ -367,7 +367,7 @@
                         goto 60
                       else
                       endif
-! si ninguno de los atomso coicnide con el  del residuo XXXL    
+! si ninguno de los atomso coincide con el del residuo XXXL    
 ! el atomo sea QM guarda indexqm
                     enddo
                     indexqm(i2)=j
@@ -400,6 +400,7 @@
           do j=1,numres_p !residuos en el campo de fuersas
             if(rname(indexqm(i)).eq.rname_p(j)) then !verifica mismo coincidencia en el nombre de residue
               do k=1,atxres(j) !cantidad de atomos en el residuo
+		write(*,*) atname(indexqm(i)), atname_p(j,k)
                 if(atname(indexqm(i)).eq.atname_p(j,k)) then !verifica mismo coincidencia en el nombre del atomo
                   attype(i)=attype_p(j,k) !asigna el tpo de atomo del campo de fuersas
                   goto 70
@@ -432,9 +433,9 @@
           endif
         
           if(attype(i).eq.'  ') then
-            write(*,*) 'QM resiue: ',i,atname(indexqm(i)),rname(indexqm(i))
+            write(*,*) 'QM residue: ',i,atname(indexqm(i)),rname(indexqm(i))
             write(*,*) 'not found in parm file assigning default types'
-            write(*,*) 'CHEK THEM'
+            write(*,*) 'CHECK THEM'
 	    Stop
           endif      
  70     continue
@@ -443,7 +444,7 @@
 
 !Pasa el Atname de los atomos QM a nombre del atomo
 	QMspec=.false.
-	allocate(at(natom), atsp(natom), coord(natom+nlink,3))
+	allocate(at(natom), atsp(natom+nlink), coord(natom+nlink,3))
 
         do i=1,natom
           ch4=atname(indexqm(i))
@@ -535,8 +536,14 @@
 	write (2,'(a30)')    'AtomicCoordinatesFormat  Ang   '
 	write (2,'(a40)')    '%block AtomicCoordinatesAndAtomicSpecies '
 
+	open(unit=75, file='pdb2hyb-QM.xyz')
+	write (75,*) natom+nlink
+	write (75,*) 
+
         do i=1,natom+nlink
 	  write (2,'(3F10.5,i10)') coord(i,1),coord(i,2),coord(i,3),atsp(i)
+	  write (75,*) specz(atsp(i)),coord(i,1),coord(i,2),coord(i,3)
+!#'(4(F10.5,2x))') specz(i),coord(i,1),coord(i,2),coord(i,3)
 	enddo
 
 	write (2,'(a43)')    '%endblock AtomicCoordinatesAndAtomicSpecies' 
