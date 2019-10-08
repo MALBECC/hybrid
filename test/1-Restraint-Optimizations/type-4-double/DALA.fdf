@@ -22,7 +22,7 @@ inicoord 0 fincoord 360
 atoms 7 9 15 17
 type 4
 kte 200
-fixcoord -70 fincoord -70
+fixcoord 180 fincoord 180
 atoms 5 7 9 15
 %endblock ConstrainedOpt
 
