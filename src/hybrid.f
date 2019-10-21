@@ -63,7 +63,10 @@
 !!Lio
      . charge, spin,
 !!outputs
-     . writeRF, slabel, traj_frec
+     . writeRF, slabel, traj_frec,
+!! QM LEVEL
+     . qm_level
+
 
       implicit none
 ! General Variables
@@ -155,6 +158,7 @@
 
 ! Auxiliars
       integer :: i, ia, imm, iunit, ix, itest!, k, j, jnick, inick
+      logical :: leqi
 
 ! Others that need check
 !!!! General Variables
@@ -400,7 +404,10 @@
 #ifdef LIO
         call init_lio_hybrid(1,na_u, nac, charge, iza, spin)
 #else
-	stop 'No QM program defined'
+	if (leqi(qm_level,'orca')) then
+	else
+	  stop 'No QM program defined'
+	end if
 #endif
 
 ! calculate cell volume

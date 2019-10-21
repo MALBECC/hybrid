@@ -20,6 +20,8 @@
 	use precision, only: dp
 	use sys, only: die
 	use ionew, only: io_setup
+	use fdf
+!, only: leqi
 	use scarlett, only: qm, mm, na_u, natot, nroaa, masst, pc, &
 	fdummy, cfdummy, nac, rclas, Em, Rm, linkatom, numlink, pclinkmm, & 
 	Emlink, istep, idyn, nparm, atname, aaname, attype, ng1, &
@@ -37,7 +39,9 @@
 !units
 	Ang, eV, kcal, &
 !outputs
-	slabel
+	slabel, &
+!QM level
+	qm_level
 
 	implicit none
 
@@ -93,6 +97,7 @@
 	logical, intent(in) :: water
 ! Auxiliars
 	integer :: i
+	logical :: leqi
 
 ! ---------------------------------------------------------------------------------------
 	at_MM_cut_QMMM = nac
@@ -127,7 +132,11 @@
 	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
 	  F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
 # else
-	  STOP 'NO QM program defined in do_energy_forces'
+	  if (leqi(qm_level,'orca')) then
+	    call SCF_orca(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, F_cut_QMMM, Iz_cut_QMMM )
+	  else
+	    STOP 'NO QM program defined in do_energy_forces'
+	  end if
 #endif
 
 

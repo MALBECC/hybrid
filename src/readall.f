@@ -127,7 +127,8 @@ C  Modules
       use scarlett, only: NEB_move_method, NEB_spring_constant,
      .   NEB_Nimages, time_steep, time_steep_max, traj_frec,
      .   lambda_i, Steep_change, normal_mass, lbfgs_verbose,
-     .   lbfgs_num_corr
+     .   lbfgs_num_corr, qm_level, qm_header_lines, qm_header,
+     .   qm_command
 
 
       implicit none
@@ -137,6 +138,8 @@ C  Modules
      .  nmove, 
      .  na, nfce, mmsteps,
      .  wricoord, nat
+
+      integer :: i, iunit
 
       double precision
      .  dt, dxmax, ftol, tempinit,
@@ -174,6 +177,20 @@ C Temperatura inicial
 C Target Temperature JOTA
 
         tt = fdf_physical('MD.TargetTemperature',300.d0,'K')
+C qm_level
+	qm_level = fdf_string('QM.level','')
+	qm_command = fdf_string('QM.call','')
+	qm_header_lines = fdf_integer('QM.header', 0)
+	if (qm_header_lines.gt.0) then
+	  allocate(qm_header(qm_header_lines))
+	  if ( fdf_block('QMheaderInput',iunit) ) then
+	    do i=1,qm_header_lines
+	      read(iunit,fmt='(A)') qm_header(i)
+	    end do
+	  end if
+	endif
+
+
 
 
 C Kind of dynamics

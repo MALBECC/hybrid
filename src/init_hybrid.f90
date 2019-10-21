@@ -18,7 +18,7 @@
 	xa, fa, isa, iza, atsym, charge, spin, writeRF, frstme, &
 	Ndescend, alpha, NEB_time_steep, NEB_alpha,NEB_Ndescend, time_steep, &
 	NEB_move_method, Ndamped, tempion, Nav, pi, blockall, nroaa, verbose_level, &
-	external_potential
+	external_potential, qm_level
 	
 	implicit none
 	character(len=*), intent(in) :: init_type
