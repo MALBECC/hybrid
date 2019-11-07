@@ -12,6 +12,7 @@ NumberOfSolventAtoms   723
 MD.LengthTimeStep 0.2 fs
 MD.InitialTemperature 200 K
 MD.TrajFrec 10
+QM.level lio
 %block ChemicalSpeciesLabel
        1   1  H
        2   8  O
