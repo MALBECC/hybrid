@@ -61,7 +61,7 @@ OBJECTS += lbfgsb.o
 OBJECTS += linpack.o
 OBJECTS += blas.o
 OBJECTS += timer.o
-OBJECTS += SCF_ORCA.o
+OBJECTS += SCF_orca.o
 
 FDF=libfdf.a
 

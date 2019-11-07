@@ -34,8 +34,8 @@
 	write(720,'(A)') '*'
 
 	close(720)
+
 !write poit charges file
-	
 	if (at_MM_cut_QMMM.gt.0) then
 	  open(unit=721, file='orca_pcharges.pc')
 	  write(721,*) at_MM_cut_QMMM
@@ -48,7 +48,6 @@
 !call orca SCF & forces calculation
 	command=paste(qm_command,' orca.in')
 	call execute_command_line(command)
-!command)
 
 !read energy & QM forces
 	F_cut_QMMM=0.d0
@@ -79,10 +78,6 @@
 	end if
 
 	F_cut_QMMM=-F_cut_QMMM
-
-!	do i=1,at_MM_cut_QMMM+na_u
-!	  write(*,*) F_cut_QMMM(1:3,i)
-!	end do
 
   700 FORMAT('a200')
 	end subroutine SCF_orca

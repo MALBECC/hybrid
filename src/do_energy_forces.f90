@@ -101,7 +101,7 @@
 
 ! ---------------------------------------------------------------------------------------
 	at_MM_cut_QMMM = nac
-! Calculate Energy and Forces using Lio as Subroutine
+! Calculate Energy and Forces form QM-QM/MM subsystems 
 	if(qm .and. (imm.eq.1)) then
 	  if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
 	  if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
@@ -128,16 +128,23 @@
 	  end do
 
 
+	  if (leqi(qm_level,'lio')) then ! call Lio QM/MM
 #ifdef LIO
-	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
-	  F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
-# else
-	  if (leqi(qm_level,'orca')) then
-	    call SCF_orca(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, F_cut_QMMM, Iz_cut_QMMM )
-	  else
-	    STOP 'NO QM program defined in do_energy_forces'
-	  end if
+	    call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
+	    F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
+#else
+	  stop('lio not defined compile with qm_lio=1')
 #endif
+	  elseif (leqi(qm_level,'orca')) then ! call Orca
+#ifdef ORCA
+	    call SCF_orca(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, F_cut_QMMM, Iz_cut_QMMM )
+#else
+          stop('orca not defined compile with qm_orca=1')
+#endif
+	  else
+	    STOP 'NO QM program defined in do_energy_forces compile with qm_lio=1 or qm_orca=1'
+!'
+	  end if
 
 
 ! return forces to fullatom arrays
