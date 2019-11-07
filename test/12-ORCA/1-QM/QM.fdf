@@ -10,7 +10,7 @@ MD.MaxForceTol    0.04 eV/Ang
 NumberOfSolventAtoms      0
 
 QM.level orca
-QM.call /home/nick/programas/Orca-4.1.2/orca_4_1_2_linux_x86-64_shared_openmpi215/orca
+QM.call COMPLETE_HERE_WITH_YOUR_ORCA_PATH/orca
 QM.header 8
 %block QMheaderInput
 ! PBE TZVP TightSCF

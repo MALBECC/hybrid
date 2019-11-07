@@ -142,7 +142,7 @@
           stop('orca not defined compile with qm_orca=1')
 #endif
 	  else
-	    STOP 'NO QM program defined in do_energy_forces compile with qm_lio=1 or qm_orca=1'
+	    STOP 'NO QM program defined in do_energy_forces'
 !'
 	  end if
 
