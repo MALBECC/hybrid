@@ -25,6 +25,10 @@
 	integer :: nparm !number of bond types in amber.parm. esta fijado en 500 por algun motivo, hay q arreglar esto, Nick
 	character, dimension(:), allocatable :: atsym*2 !atomic symbol
 	character :: slabel*20 ! system label, name of outputs
+	character*20 :: qm_level
+	integer :: qm_header_lines
+	character*500, dimension(:), allocatable :: qm_header
+	character*500 :: qm_command
 
 ! Cut Off & freeeze variables 
 	integer, allocatable, dimension(:) :: r_cut_list_QMMM

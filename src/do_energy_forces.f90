@@ -20,6 +20,8 @@
 	use precision, only: dp
 	use sys, only: die
 	use ionew, only: io_setup
+	use fdf
+!, only: leqi
 	use scarlett, only: qm, mm, na_u, natot, nroaa, masst, pc, &
 	fdummy, cfdummy, nac, rclas, Em, Rm, linkatom, numlink, pclinkmm, & 
 	Emlink, istep, idyn, nparm, atname, aaname, attype, ng1, &
@@ -37,7 +39,9 @@
 !units
 	Ang, eV, kcal, &
 !outputs
-	slabel
+	slabel, &
+!QM level
+	qm_level
 
 	implicit none
 
@@ -93,10 +97,11 @@
 	logical, intent(in) :: water
 ! Auxiliars
 	integer :: i
+	logical :: leqi
 
 ! ---------------------------------------------------------------------------------------
 	at_MM_cut_QMMM = nac
-! Calculate Energy and Forces using Lio as Subroutine
+! Calculate Energy and Forces form QM-QM/MM subsystems 
 	if(qm .and. (imm.eq.1)) then
 	  if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
 	  if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
@@ -110,7 +115,7 @@
 
 	  r_cut_QMMM=0.d0
 	  F_cut_QMMM=0.d0
-	  Iz_cut_QMMM=0
+	  Iz_cut_QMMM=0.d0
 
 !copy position and nuclear charges to cut-off arrays
 	  do i=1,natot !barre todos los atomos
@@ -123,12 +128,23 @@
 	  end do
 
 
+	  if (leqi(qm_level,'lio')) then ! call Lio QM/MM
 #ifdef LIO
-	  call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
-	  F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
-# else
-	  STOP 'NO QM program defined in do_energy_forces'
+	    call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
+	    F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
+#else
+	  stop('lio not defined compile with qm_lio=1')
 #endif
+	  elseif (leqi(qm_level,'orca')) then ! call Orca
+#ifdef ORCA
+	    call SCF_orca(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, F_cut_QMMM, Iz_cut_QMMM )
+#else
+          stop('orca not defined compile with qm_orca=1')
+#endif
+	  else
+	    STOP 'NO QM program defined in do_energy_forces'
+!'
+	  end if
 
 
 ! return forces to fullatom arrays

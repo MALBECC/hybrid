@@ -1,0 +1,74 @@
+SystemName     testorca            
+SystemLabel    testorca        
+CenterMolecule T    
+NumberOfAtoms         6
+NumberOfSpecies      3
+NetCharge -1.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.04 eV/Ang 
+NumberOfSolventAtoms      0
+
+%block ConstrainedOpt
+nconstr 1
+steps 50
+type 1
+kte 200
+inicoord 3.0 fincoord -3.0
+atoms 1 5 1 6
+%endblock ConstrainedOpt
+
+QM.level orca
+QM.call COMPLETE_HERE_WITH_YOUR_ORCA_PATH/orca
+QM.header 8
+%block QMheaderInput
+! PBE TZVP TightSCF
+%method
+RunTyp  Gradient
+end
+%elprop Dipole     false
+end
+%output PrintLevel     Nothing
+end
+%endblock QMheaderInput
+
+MD.TypeOfRun    FIRE
+MD.NumCGsteps   500
+
+
+
+%block ChemicalSpeciesLabel   
+       1   6  C 
+       2   1  H 
+       3  17  Cl
+%endblock ChemicalSpeciesLabel
+ 
+AtomicCoordinatesFormat  Ang  
+%block AtomicCoordinatesAndAtomicSpecies
+  35.68700  34.50600  35.99000         1
+  35.98000  34.12000  35.08700         2
+  36.08900  35.73700  36.24600         2
+  34.74800  34.44800  36.44800         2
+  33.49600  36.20600  33.44400         3
+  36.78400  33.67400  37.23300         3
+%endblock AtomicCoordinatesAndAtomicSpecies
+ 
+%block SoluteAtomTypes   
+  CT  C1    CHC 
+  HC  H1    CHC 
+  HC  H2    CHC 
+  HC  H3    CHC 
+  Cl  CL    CHC 
+  Cl  CL    CLO 
+%endblock SoluteAtomTypes
+ 
+OptimizationScheme 0
+ 
+%block CutOffRadius       
+QM  0.2                   
+QMMM 100.0                 
+MM 80.0                    
+BLO 80.0                   
+MMBLO 80.0
+%endblock CutOffRadius    
+ 

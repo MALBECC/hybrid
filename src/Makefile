@@ -48,11 +48,19 @@ endif
 	@echo "precision not full implemented yet"
 
 	@echo "analytics: ${analytics}"
-ifeq (${qm_level},0)
-	@echo "qm_level: ${qm_level}, no QM program defined"
-else ifeq (${qm_level},1)
-	@echo "qm_level: ${qm_level}, using Lio as QM level"
+
+ifeq (${qm_lio},0)
+ifeq (${qm_orca},0)
+	@echo "no QM program defined"
+endif
+endif
+
+ifeq (${qm_lio},1)
+	@echo "qm_level: ${qm_level}, adding Lio as QM level"
 	@echo "LIOHOME= $${LIOHOME}"
+endif
+ifeq (${qm_orca},1)
+        @echo "qm_level: ${qm_level}, adding Orca as QM level"
 endif
 	@echo
 

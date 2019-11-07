@@ -25,9 +25,12 @@
 #    2 = Basic debugging information is enabled.
 #    3 = Detailed debugging information is enabled.
 #
-# qm_level : Defines external program to compute QM & QM/MM energy and forces
-#    0 = No QM program
-#    1 = Lio
+# qm_lio : Enable Lio as external program to compute QM & QM/MM energy and forces
+#    0 = disable
+#    1 = enable
+# qm_orca : Enable Orca as external program to compute QM & QM/MM energy and forces
+#    0 = disable
+#    1 = enable
 #
 ################################################################################
 ##
@@ -47,7 +50,8 @@ intel     ?= 0
 parallel  ?= 0
 precision ?= 1
 analytics ?= 0
-qm_level  ?= 0
+qm_lio  ?= 0
+qm_orca ?= 0
 
 ################################################################################
 FFLAGS += -Wl,--no-undefined
@@ -61,10 +65,14 @@ DEBUG02 =
 
 
 ################################################################################
-ifeq ($(qm_level),1)
+ifeq ($(qm_lio),1)
 LIBS += -lg2g -llio-g2g
 FFLAGS += -DLIO
 LFLAGS += -L$${LIOHOME}/g2g -L$${LIOHOME}/lioamber
+endif
+
+ifeq ($(qm_orca),1)
+FFLAGS += -DORCA
 endif
 
 ################################################################################
