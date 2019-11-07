@@ -115,7 +115,7 @@
 
 	  r_cut_QMMM=0.d0
 	  F_cut_QMMM=0.d0
-	  Iz_cut_QMMM=0
+	  Iz_cut_QMMM=0.d0
 
 !copy position and nuclear charges to cut-off arrays
 	  do i=1,natot !barre todos los atomos
