@@ -11,6 +11,7 @@ MD.MaxForceTol    0.04 eV/Ang
 NumberOfSolventAtoms    5983
 LinkAtoms            10
 MD.save.frec 1
+QM.level lio
 
 %block ChemicalSpeciesLabel   
        1   1  H 

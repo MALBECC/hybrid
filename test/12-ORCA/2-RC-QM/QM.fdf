@@ -1,5 +1,5 @@
-SystemName     cut5            
-SystemLabel    cut5            
+SystemName     testorca            
+SystemLabel    testorca        
 CenterMolecule T    
 NumberOfAtoms         6
 NumberOfSpecies      3
@@ -8,7 +8,34 @@ FixSpin  T
 TotalSpin 0.0       
 MD.MaxForceTol    0.04 eV/Ang 
 NumberOfSolventAtoms      0
-QM.level lio
+
+%block ConstrainedOpt
+nconstr 1
+steps 50
+type 1
+kte 200
+inicoord 3.0 fincoord -3.0
+atoms 1 5 1 6
+%endblock ConstrainedOpt
+
+QM.level orca
+QM.call COMPLETE_HERE_WITH_YOUR_ORCA_PATH/orca
+QM.header 8
+%block QMheaderInput
+! PBE TZVP TightSCF
+%method
+RunTyp  Gradient
+end
+%elprop Dipole     false
+end
+%output PrintLevel     Nothing
+end
+%endblock QMheaderInput
+
+MD.TypeOfRun    FIRE
+MD.NumCGsteps   500
+
+
 
 %block ChemicalSpeciesLabel   
        1   6  C 
@@ -36,9 +63,6 @@ AtomicCoordinatesFormat  Ang
 %endblock SoluteAtomTypes
  
 OptimizationScheme 0
- 
-MD.TypeOfRun    CG        
-MD.NumCGsteps   0       
  
 %block CutOffRadius       
 QM  0.2                   
