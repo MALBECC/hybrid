@@ -36,13 +36,13 @@ c agregue 0 a pc, Nick
      .   ewat,fwat(3,nac)
        logical water
 c      vbles de los params de union
-       integer   nbond,nangle,ndihe,nimp,nparm,multidihe(nparm),
-     .    multiimp(nparm)
-       double precision   kbond(nparm),bondeq(nparm),kangle(nparm),
-     .   angleeq(nparm),kdihe(nparm),diheeq(nparm),kimp(nparm),
-     .   impeq(nparm),perdihe(nparm),perdihe2(nparm),perimp(nparm)
-       character   bondtype(nparm)*5,angletype(nparm)*8,
-     .   dihetype(nparm)*11,imptype(nparm)*11
+       integer   nbond,nangle,ndihe,nimp,nparm,multidihe(ndihe),
+     .    multiimp(nimp)
+       double precision   kbond(nbond),bondeq(nbond),kangle(nangle),
+     .   angleeq(nangle),kdihe(ndihe),diheeq(ndihe),kimp(nimp),
+     .   impeq(nimp),perdihe(ndihe),perdihe2(ndihe),perimp(nimp)
+       character   bondtype(nbond)*5,angletype(nangle)*8,
+     .   dihetype(ndihe)*11,imptype(nimp)*11
 c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac),angexat(nac),angmxat(nac),
      .   dihexat(nac),dihmxat(nac),impxat(nac)
@@ -59,6 +59,7 @@ c	vbles q faltaban
        logical  evaldihelog(nac,100),evaldihmlog(nac,100),actualiz
 c parche para omitir interaccion entre extremos terminales
       double precision, intent(in) :: radblommbond
+
 
 c inicializa las energias y fuerzas
       Etot_amber=0.d0
@@ -107,6 +108,7 @@ c  pasa a las unidades de Amber
       ramber(1:3,i)=ramber(1:3,i)/Ang   !ramber queda en angstroms
       enddo
 
+
 c  llama a subrutina q calcula la energia y fuerzas de bonds
         call amber_bonds(nac,ng1,ramber,Ebond_amber,attype,
      .       nbond,kbond,bondeq,bondtype,bondxat,fcebond_amber,
@@ -119,7 +121,6 @@ c  llama a subrutina q calcula la energia y fuerzas de angles
      .       atangm,fceangle_amber,angetype,angmtype,nparm)
 
 c  llama a subrutina q calcula la energia y fuerzas de dihedros     
-        
         perdihe2=perdihe  
         call amber_dihes(nac,ramber,Edihe_amber,
      .            attype,ndihe,kdihe,diheeq,perdihe2,multidihe,
@@ -177,8 +178,8 @@ c      vbles grales
        character   attype(nac)*4
 c      vbles de los params de union
        integer   nbond,nparm
-       double precision   kbond(nparm),bondeq(nparm)
-       character   bondtype(nparm)*5
+       double precision   kbond(nbond),bondeq(nbond)
+       character   bondtype(nbond)*5
 c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac)
 c      vbles de asignacion
@@ -283,8 +284,8 @@ c      vbles grales
        character   attype(nac)*4
 c      vbles de los params de union
        integer   nangle,nparm
-       double precision kangle(nparm),angleeq(nparm)
-       character angletype(nparm)*8
+       double precision kangle(nangle),angleeq(nangle)
+       character angletype(nangle)*8
 c      vbles de bond, angle, dihe e imp
        integer   angexat(nac),angmxat(nac)
 	integer :: atange(nac,max_angle_ex,2),atangm(nac,max_angle_mid,2)
@@ -754,9 +755,9 @@ c      vbles grales
        double precision   ramber(3,nac),Eimp_amber
        character   attype(nac)*4
 c      vbles de los params de union
-       integer   nimp,nparm,multiimp(nparm)
-       double precision kimp(nparm),impeq(nparm),perimp(nparm)
-       character imptype(nparm)*11 
+       integer   nimp,nparm,multiimp(nimp)
+       double precision kimp(nimp),impeq(nimp),perimp(nimp)
+       character imptype(nimp)*11 
 c      vbles de bond, angle, dihe e imp
        integer   impxat(nac)
 	integer :: atimp(nac,max_improp_at,4)
