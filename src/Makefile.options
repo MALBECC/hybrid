@@ -10,6 +10,7 @@
 # intel : Enables the use of intel compilers.
 #    0 = no intel compilers; use gnu fortran compiler and libraries.
 #    1 = use the intel compilers instead of the GNU ones.
+#    2 = use the intel compilers and the MKL library for lapack.
 #
 # parallel : Option not enabled yet. Will be reserved for activating the use
 # of openmp and mpi.
@@ -55,7 +56,7 @@ qm_orca ?= 0
 
 ################################################################################
 FFLAGS += -Wl,--no-undefined
-FFLAGS += -L/usr/lib -L/usr/lib64
+FFLAGS += -L/usr/lib -L/usr/lib64 
 
 # These variables will be filled by compiler specific flags
 OPTIM0P =
@@ -90,6 +91,17 @@ else ifeq ($(intel),1)
   FC      = ifort
   FFLAGS += -fpp -module $(OBJPATH)
   LIBS   += -llapack
+  DEBUG01 = -g -check bounds -traceback
+  DEBUG02 = -g -check bounds -traceback -check all -fp-stack-check
+#  OPTIM0P = -parallel
+#  OPTIM0I = -mp1 -ip
+
+else ifeq ($(intel),2)
+  FC      = ifort
+  FFLAGS += -fpp -module $(OBJPATH)
+  LFLAGS += -L$(MKLROOT)/lib/intel64 -I$(MKLROOT)/include
+  LIBS   += -lmkl_lapack95_lp64
+  LIBS   += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
   DEBUG01 = -g -check bounds -traceback
   DEBUG02 = -g -check bounds -traceback -check all -fp-stack-check
 #  OPTIM0P = -parallel

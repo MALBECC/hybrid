@@ -47,7 +47,11 @@
 
 !call orca SCF & forces calculation
 	command=paste(qm_command,' orca.in')
-	call execute_command_line(command)
+#ifdef ORCA
+        call execute_command_line(command)
+#else 
+        STOP "ORCA is not compiled"
+#endif
 
 !read energy & QM forces
 	F_cut_QMMM=0.d0
