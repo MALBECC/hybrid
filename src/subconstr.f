@@ -162,7 +162,7 @@ c reads from .rce of a former run
 c****************************************************************************
 	subroutine subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt,
      .  nstepconstr,atmsconstr,natot,rclas,fdummy,istep,istepconstr,
-     .  ndists,coef,natms constr)
+     .  ndists,coef,natmsconstr)
 
 	use sys
         use scarlett, only: rref
