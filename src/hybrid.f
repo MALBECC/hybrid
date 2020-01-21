@@ -118,6 +118,8 @@
       double precision, dimension(:,:), allocatable :: coef !coeficients for typeconstr=8
       integer, allocatable :: atmsconstr(:,:), ndists(:) !atomos incluidos en la coordenada de reaccion
       integer :: istepconstr !auxiliar
+      logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
+      double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
 
 ! Cut Off QM-MM variables
       double precision :: rcorteqm ! not used
@@ -697,7 +699,7 @@ C Write atomic forces
          do i=1,natmsconstr
            at1=atmsconstr(1,i)
            do j=1,3
-             if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
+	     if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
            enddo
          enddo
          rconverged=(k .eq. 3*natmsconstr)

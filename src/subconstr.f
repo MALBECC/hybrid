@@ -4,6 +4,8 @@
 	use ionew
 	use fdf    
 	use sys
+        use scarlett, only: na_u, numlink, natmsconstr, rref, natot,
+     .  rclas_cut,fef_cut,cov_matrix,cov_matrix_inverted,rshxrshm
 	implicit none
 	integer i,unit,iunit,nconstr,iconstr,typeconstr(20),k
 	integer nstepconstr,atmsconstr(20,20),ndists(20)
@@ -108,9 +110,6 @@ c read variables
 	    if(i.gt.20) then
 	call die('constr opt: atoms with constrain must be lower than 20')
 	    endif
-	   else
-	     call die('constr opt: typeconstr must be 1-9')
-	   endif
 
 	enddo
 	else
