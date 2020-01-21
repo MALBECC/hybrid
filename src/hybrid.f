@@ -54,6 +54,9 @@
      . ucell,
      . ftol,
      . Ang, eV, kcal, 
+!Type 9 restraint
+     . rref,rshiftm,rshiftm2,fef,rshiftsd,rclas_cut,natmsconstr,fef_cut,
+     . Steep_change, rshxrshm, cov_matrix, cov_matrix_inverted,
 !Dynamics
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !!FIRE
@@ -157,7 +160,8 @@
 
 
 ! Auxiliars
-      integer :: i, ia, imm, iunit, ix, itest!, k, j, jnick, inick
+      integer :: i, ia, imm, iunit, ix, itest, inneri, j, at1, k !, k, j, jnick, inick
+      integer ::  at2 ,k1, k2 ! cov matrix construction
       logical :: leqi
 
 ! Others that need check
@@ -195,6 +199,11 @@
 	integer :: looplb
 
 !	rcorteqmmm=0.d0
+! Free energy gradient
+      logical :: rconverged ! True when rshiftm converged
+      double precision :: maxforce
+      integer :: maxforceatom, auxiliarunit, auxiliaruniti, i12, j12
+      integer :: INFO_inver
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !--------------------------------------------------------------------
@@ -465,11 +474,22 @@ C Calculate Rcut & block list QM-MM
 
 
 ! Start loop over constrained optimization steps
+
       if(constropt) then
         call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
+        if (nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
+          allocate(vatr(3,natot))
+	  call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
+!cambiar ucell cuando haya caja
+        else
+	  if (idyn .eq. 7) STOP "feopt selected without typeconstraint 9"
+        endif
+        if (typeconstr(1) .eq. 9 .and. idyn .eq. 7) then !alocatea cosas para FE
+          allocate(rshiftm(3,natot),rshiftm2(3,natot),fef(3,natot),
+     .    rshiftsd(3,natot)) 
+        endif
       endif
-
       do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
         optimization_lvl=3
@@ -483,7 +503,7 @@ C Calculate Rcut & block list QM-MM
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .lt. 7 ) then ! case 0 1 2 3
+        if (idyn .lt. 8 ) then ! case 0 1 2 3
           inicoor = 0
           fincoor = nmove
         endif
@@ -522,7 +542,9 @@ C Calculate Rcut & block list QM-MM
 
 
 	  do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
-       call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
+       
+       if (idyn .ne. 7)
+     . call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
      . do_SCF, do_QM_forces, do_properties, istp, step,
      . nbond, nangle, ndihe, nimp, Etot_amber, Elj,
      . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
@@ -567,7 +589,7 @@ C Write atomic forces
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
-      if (mn .eq. 0.d0 .and. idyn .eq. 6) then
+      if (mn .eq. 0.d0 .and. idyn .ge. 6) then
         mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
         write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
         write(6,999) "mn =", mn
@@ -592,11 +614,11 @@ C Write atomic forces
 	  call cgvc( natot, rclas, cfdummy, ucell, cstress, volume,
      .             dxmax, tp, ftol, strtol, varcel, relaxd, usesavecg )
 	elseif (idyn .eq. 2) then !Quick Minimization
-	  call check_convergence(relaxd, cfdummy)
+	  call check_convergence(relaxd, natot, cfdummy)
 	  if (.not. relaxd) call quick_min(natot, rclas, cfdummy, aat,
      .    vat, masst)
 	elseif (idyn .eq. 3) then !FIRE
-	  call check_convergence(relaxd, cfdummy)
+	  call check_convergence(relaxd, natot, cfdummy)
 	  if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat,
      .    time_steep, Ndescend, time_steep_max, alpha)
 	elseif (idyn .eq. 4) then !verlet
@@ -611,11 +633,165 @@ C Write atomic forces
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
 !tauber, tt
 !iunit fijado en 3
+       elseif (idyn .eq. 7) then !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< idyn 7 (FE)
+         Steep_change = .false.
+         rref=rclas
+         rshiftm=0.d0
+         rshiftm2=0.d0
+!         rshiftsd=0.d0
+         if (.not. relaxd) then
+           inneri=1
+           rconverged=.false.
+        do while ((.not. rconverged) .and. (inneri .le. 25000))  ! <<<<<<<<<<<<<<< DM in FE Calculations para MB con ts de 0.1 fs
+
+       call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
+     . do_SCF, do_QM_forces, do_properties, istp, step,
+     . nbond, nangle, ndihe, nimp, Etot_amber, Elj,
+     . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
+     . rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
+     . radblommbond, optimization_lvl, dt, sfc, water,
+     . imm,rini,rfin)
+
+       call nose(inneri,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,
+     . rclas,Ekinion,kn,vn,tempion,nfree,cmcf)
+
+
+! Save summ of rshifm and rshiftm2
+       do i=1,natmsconstr
+         do j=1,3
+         at1=atmsconstr(1,i)
+         rshiftm(j,at1)=rshiftm(j,at1)+(rclas(j,at1)-rref(j,at1))
+         rshiftm2(j,at1)=rshiftm2(j,at1)+((rclas(j,at1)-rref(j,at1))**2)
+         enddo
+       enddo
+
+! Save rshxrshm elements
+      do i=1,natmsconstr
+        at1=atmsconstr(1,i)
+        do j=1,natmsconstr
+          at2=atmsconstr(1,j)
+          do k1=1,3
+            do k2=1,3
+              rshxrshm((3*j-2)+k1-1,(3*i-2)+k2-1)=
+     .        rshxrshm((3*j-2)+k1-1,(3*i-2)+k2-1)+
+     .        (rclas(k2,at1)-rref(k2,at1))*
+     .        (rclas(k1,at2)-rref(k1,at2))
+            enddo
+          enddo
+        enddo
+      enddo
+
+! Check rshiftm convergency every 1000 steps, after the first 5000 steps
+       if (MOD(inneri,1000) .eq. 0 .and. inneri .gt. 5000) then
+
+       do i=1,natmsconstr
+         at1=atmsconstr(1,i)
+         do j=1,3
+           rshiftsd(j,at1)=
+     .     sqrt(rshiftm2(j,at1)-(rshiftm(j,at1)**2))/inneri
+         enddo
+       enddo
+
+         rconverged=.false.
+         k=0
+         do i=1,natmsconstr
+           at1=atmsconstr(1,i)
+           do j=1,3
+             if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
+           enddo
+         enddo
+         rconverged=(k .eq. 3*natmsconstr)
+         if(rconverged) write(*,*) "FEG converged in ",inneri," steps"
+       endif
+
+!Escribe cosas 
+
+       call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,
+     . nfree,cmcf)
+
+
+      if (MOD(inneri,1000) .eq. 0 .and. inneri .gt. 5000) then
+      do i=1,natmsconstr
+        at1=atmsconstr(1,i)
+        do j=1,natmsconstr
+          at2=atmsconstr(1,j)
+          do k1=1,3
+            do k2=1,3
+              cov_matrix((3*j-2)+k1-1,(3*i-2)+k2-1)=
+     .        (rshxrshm((3*j-2)+k1-1,(3*i-2)+k2-1)-
+     .        rshiftm(k2,at1)*rshiftm(k1,at2)/dble(inneri))/dble(inneri)
+            enddo
+          enddo
+        enddo
+      enddo
+      endif
+
+
+
+
+! sets variables for next cycle
+          fa = 0.d0
+          fdummy = 0.d0
+          cfdummy = 0.d0
+          inneri = inneri + 1
+       enddo! <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< DM in FE Calculations
+
+      rshiftm=rshiftm/dble(inneri-1)
+      rshxrshm=rshxrshm/dble(inneri-1)
+
+      do i=1,natmsconstr
+        at1=atmsconstr(1,i)
+        do j=1,natmsconstr
+          at2=atmsconstr(1,j)
+          do k1=1,3
+            do k2=1,3
+              cov_matrix((3*j-2)+k1-1,(3*i-2)+k2-1)=
+     .        rshxrshm((3*j-2)+k1-1,(3*i-2)+k2-1)-
+     .        rshiftm(k2,at1)*rshiftm(k1,at2)
+            enddo
+          enddo
+        enddo
+      enddo
+
+! Once rshift convergence is achieved (or inneri .gt. 25000), calculate fef
+
+           call calculate_fef(atmsconstr,kforce,maxforce,maxforceatom)
+
+!Arma rclas_cut con los átomos en el constraint
+
+         do i=1,natmsconstr
+           at1=atmsconstr(1,i)
+             do j=1,3
+              rclas_cut(j,i)=rshiftm(j,at1)+rref(j,at1)
+              fef_cut(j,i)=fef(j,at1)
+             enddo
+         enddo
+
+!Muevo (optimizador)
+
+          call check_convergence(relaxd, natmsconstr, fef_cut)
+
+          call steep(natmsconstr, rclas_cut, fef_cut, Etots, istep)
+
+           do i=1,natmsconstr
+           at1=atmsconstr(1,i)
+             do j=1,3
+               rclas(j,at1)=rclas_cut(j,i)
+             enddo
+           enddo
+
+
+        endif !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< idyn 7 (FE)
+
+
+
+
+
 	elseif (idyn .eq. -1) then !steepest descend
-	  call check_convergence(relaxd, cfdummy)
+	  call check_convergence(relaxd, natot, cfdummy)
 	  call steep(natot, rclas, cfdummy, Etots, istep)
 	elseif (idyn .eq. -2) then !L-BFGS
-	  call check_convergence(relaxd, cfdummy)
+	  call check_convergence(relaxd, natot, cfdummy)
 	  looplb=1
 	  do while(looplb.eq.1)
 	    call setulb (3*natot, lbfgs_num_corr, rclas, limlbfgd,
