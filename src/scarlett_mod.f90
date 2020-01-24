@@ -7,6 +7,7 @@
 ! General Variables
 	character*30 :: sname
 	integer :: istep, inicoor,fincoor !actual, initial and final number of move step for each restrain
+        integer :: natmsconstr !number of atoms to be restrained (typeconstr=9)
 	integer :: idyn ! kind of calculation, idyn=0 (CG minimization), idyn=1 (NEB minimization)
 	integer :: nmove !max number of move step for each restrain
 	integer :: nesp !number of QM species
@@ -52,6 +53,21 @@
 	double precision :: kn ! Kinetic energy of Nose variable
 	double precision :: vn ! Potential energyy of Nose var
 	double precision :: mn ! Mass of Nose thermostat
+! Restraint stuff JOTA                                                        
+        double precision, dimension(:,:), allocatable :: rref ! reference matr
+                                                                        
+! FE calculations stuff JOTA                                                  
+        double precision, dimension(:,:), allocatable :: rshiftm ! displacemen
+        double precision, dimension(:,:), allocatable :: rshiftm2 ! square dis
+        double precision, dimension(:,:), allocatable :: fef ! average forces 
+        double precision, dimension(:,:), allocatable :: rshiftsd ! rshift sta
+        double precision, dimension(:,:), allocatable :: rclas_cut ! posicione
+        double precision, dimension(:,:), allocatable :: fef_cut !  gradiente 
+        double precision, dimension(:,:), allocatable :: rshxrshm ! <rshift(i)
+        double precision, dimension(:,:), allocatable :: cov_matrix !         
+        double precision, dimension(:,:), allocatable :: cov_matrix_inverted !
+
+
 
 !optimization
 	double precision :: Eprev !total energy of previous steep for gradient descend

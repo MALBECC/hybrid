@@ -239,6 +239,12 @@ C Kind of dynamics
           write(6,'(a,a)')
      .     'read: Dynamics option                  = ',
      .     '    Nose termostat MD run'
+      else if (leqi(dyntype,'feopt')) then
+        idyn = 7
+          write(6,'(a,a)')
+     .     'read: Dynamics option                  = ',
+     .     '    Free Energy Optimization run'
+
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
           write(6,'(a,a)')
