@@ -55,7 +55,7 @@
 	double precision :: mn ! Mass of Nose thermostat
 ! Restraint stuff JOTA                                                        
         double precision, dimension(:,:), allocatable :: rref ! reference matr
-                                                                              
+                                                                        
 ! FE calculations stuff JOTA                                                  
         double precision, dimension(:,:), allocatable :: rshiftm ! displacemen
         double precision, dimension(:,:), allocatable :: rshiftm2 ! square dis

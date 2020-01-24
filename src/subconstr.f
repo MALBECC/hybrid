@@ -25,6 +25,7 @@ c 5 = r1 + r2 coupled
 c 6 = ( r1 + r2 ) - ( r3 + r4 ) coupled
 c 7 = plane to atom distance
 c 8 = c1*r1 + c2*r2 + c3*r3 + ....
+c 9 = quadratic potential acting on a subspace of cartesian coordinates
 
 c read variables
 	if ( fdf_block('ConstrainedOpt',iunit) ) then
@@ -75,7 +76,6 @@ c read variables
 	read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
 	   elseif (typeconstr(iconstr).eq.8) then
 	     read(iunit,*,err=100,end=100) exp,ndists(iconstr)
-
 	     if(ndists(iconstr).gt.10) then
 		call die('constr opt: ndists in typeconstr 8 must not exceed 10')
 	     endif
@@ -105,7 +105,6 @@ c read variables
             else                                                       
               call die('constr opt: typeconstr must be 1-9')           
             endif                                                     
-
 
 	    if(i.gt.20) then
 	call die('constr opt: atoms with constrain must be lower than 20')
@@ -687,7 +686,6 @@ c ndists
       elseif (typeconstr(iconstr).eq.9) then !----------------------------- Type 9 JOTA
 
         rref(1:3,1:natot)=rref(1:3,1:natot)*0.529177d0
-
         kf=kforce(iconstr)
         dx=0.d0
         dy=0.d0
@@ -697,10 +695,14 @@ c ndists
           dx=rclas(1,at1)-rref(1,at1)
           dy=rclas(2,at1)-rref(2,at1)
           dz=rclas(3,at1)-rref(3,at1)
+          write(4747,*) "i kf dx dy dz",i,kf,dx,dy,dz
+          
           fnew(1,1)=-dx*2.d0*kf
           fnew(2,1)=-dy*2.d0*kf
           fnew(3,1)=-dz*2.d0*kf
+
           fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
+
         enddo
 
         rref(1:3,1:natot)=rref(1:3,1:natot)/0.529177d0

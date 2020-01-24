@@ -483,6 +483,7 @@ C Calculate Rcut & block list QM-MM
         if (nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
           allocate(vatr(3,natot))
 	  call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
+          write(7979,*) "leo rref"
 !cambiar ucell cuando haya caja
         else
 	  if (idyn .eq. 7) STOP "feopt selected without typeconstraint 9"
