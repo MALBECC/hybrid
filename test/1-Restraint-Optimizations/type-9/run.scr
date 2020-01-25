@@ -3,9 +3,6 @@ rm Test.out
 rm Forces.dat Pos_forces.dat Forces_X.dat Forces_Y.dat Forces_Z.dat
 
 for i in -4 -5 -6 -7 -8 -9 -10; do
-#i=3
-#j=-3
-#k=-3
 for j in -4 -5 -6 -7 -8 -9 -10; do
 for k in -4 -5 -6 -7 -8 -9 -10; do
 
@@ -18,7 +15,6 @@ sed -i -e s/Z/$k/g Temp.XV
 ../../../bin/hybrid < Test.fdf >> Test.out
 
 tail Pos_forces.dat >> Forces.dat
-#cp Test.out Test_${i}_${j}_${k}.dat
 rm Test.out
 if [ $i == -4 ] && [ $j == -4 ] && [ $k == -4 ]; then
   tail -n 8 Forces.dat|grep "       4 "|awk '{print $2,$5}' >> Forces_X.dat
@@ -31,8 +27,7 @@ elif [ $i == -4 ] && [ $k == -4 ]; then
 elif [ $i == -4 ] && [ $j == -4 ]; then
   tail -n 8 Forces.dat|grep "       7 "|awk '{print $4,$7}' >> Forces_Z.dat
 fi
-#mkdir asd$i
-#cp fort.* asd$i/.
+
 done
 done
 done
