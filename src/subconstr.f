@@ -695,8 +695,7 @@ c ndists
           dx=rclas(1,at1)-rref(1,at1)
           dy=rclas(2,at1)-rref(2,at1)
           dz=rclas(3,at1)-rref(3,at1)
-          write(4747,*) "i kf dx dy dz",i,kf,dx,dy,dz
-          
+         
           fnew(1,1)=-dx*2.d0*kf
           fnew(2,1)=-dy*2.d0*kf
           fnew(3,1)=-dz*2.d0*kf
