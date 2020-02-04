@@ -57,7 +57,7 @@ c read variables
             elseif(typeconstr(iconstr) .ne. 9) then        
               read(iunit,*,err=100,end=100) exp,ro(iconstr)
 	    else
-	    if(nconstr .gt. 1) STOP "multiple constraints with typeconstr=9"
+		if(nconstr .gt. 1) STOP "multiple constraints with typeconstr=9"
 	    endif
 
 	   if (typeconstr(iconstr).eq.1) then          
