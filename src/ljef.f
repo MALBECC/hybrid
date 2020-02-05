@@ -61,7 +61,6 @@ c            flj(3)=-2.d0*fej*tz
 c       Es = 2.d0*Elj 
 	Es = 1.d0*Elj !! para que Elj quede en Hartree
 
-c	write(123123,*) Es  
       return
       end subroutine ljef
 

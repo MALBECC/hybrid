@@ -36,6 +36,8 @@
 	r_cut_list_QMMM,blocklist,blockqmmm, blockall, listqmmm, &
 !external potential
 	external_potential, &
+!restraint type 9
+        rref, natmsconstr, &
 !units
 	Ang, eV, kcal, &
 !outputs
@@ -235,7 +237,7 @@
 	  if(constropt) then
 	    call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt, &
 	    nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr, &
-	    ndists,coef)
+	    ndists,coef,natmsconstr)
 	    if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
 	  endif 
 	endif !imm
