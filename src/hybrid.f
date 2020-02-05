@@ -699,7 +699,7 @@ C Write atomic forces
          do i=1,natmsconstr
            at1=atmsconstr(1,i)
            do j=1,3
-	     if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
+		if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
            enddo
          enddo
          rconverged=(k .eq. 3*natmsconstr)
