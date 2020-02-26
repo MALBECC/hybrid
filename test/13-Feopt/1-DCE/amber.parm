@@ -1,0 +1,48 @@
+bonds
+3
+C -C   620.0    1.526       Benjamin et al, 1993
+C -Cl  464.0    1.787       Benjamin et al, 1993
+C -H   620.0    1.090       Benjamin et al, 1993
+angles
+4
+C -C -Cl    88.0      108.20    Benjamin et al, 1993
+C -C -H     70.0      109.50    Benjamin et al, 1993
+H -C -Cl    82.0      106.90    Benjamin et al, 1993
+H -C -H     35.0      109.50    Same as CT
+dihes
+3
+Cl-C -C -Cl   1   0.540          0.0             3.         Benjamin et al, 1993
+Cl-C -C -H    1   0.406          0.0             3.         Benjamin et al, 1993
+H -C -C -H    1   0.288          0.0             3.         Benjamin et al, 1993
+imps
+0
+residues
+1
+DCE 8
+ "Cl1" "Cl" 0 1 131072 1 17 -0.600000
+ "C1" "C" 0 1 131072 2 6   0.480000
+ "H1" "H" 0 1 131072 3 1  0.060000
+ "H2" "H" 0 1 131072 4 1  0.060000
+ "C2" "C" 0 1 131072 5 6   0.480000
+ "Cl2" "Cl" 0 1 131072 6 17 -0.600000
+ "H3" "H" 0 1 131072 7 1  0.060000
+ "H4" "H" 0 1 131072 8 1  0.060000
+ljs
+3
+  Cl          0.1000  0.0000
+  C           0.1000  0.0000
+  H           0.1000  0.0000
+connectivity
+1
+DCE 7 
+ 2 1
+ 2 3
+ 2 4
+ 2 5
+ 5 6
+ 5 7 
+ 5 8
+impropers
+0
+DONE
+

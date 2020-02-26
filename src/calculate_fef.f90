@@ -5,11 +5,12 @@
 
       implicit none
       integer i,j, at1
-      double precision, dimension (25), intent (in) :: kforce
+      double precision, dimension (20), intent (in) :: kforce
       double precision :: maxforce, tempforce
       integer, intent (out) :: maxforceatom
-      integer, dimension(25,25), intent(in) :: atmsconstr
+      integer, dimension(20,20), intent(in) :: atmsconstr
       double precision kf
+
 
       kf=kforce(1)
        do i=1,natmsconstr
