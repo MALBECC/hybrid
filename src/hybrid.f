@@ -545,8 +545,8 @@ C Calculate Rcut & block list QM-MM
 
 	  do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
        
-       if (idyn .ne. 7)
-     . call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
+       if (idyn .ne. 7) then
+       call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
      . do_SCF, do_QM_forces, do_properties, istp, step,
      . nbond, nangle, ndihe, nimp, Etot_amber, Elj,
      . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
@@ -577,6 +577,8 @@ C Write atomic forces
       icfmax=maxloc(dabs(cfdummy))
 
 
+
+
       write(6,'(/,a)') 'hybrid: Atomic forces (eV/Ang):'
       write(6,'(i6,3f12.6)') (ia,(cfdummy(ix,ia)*Ang/eV,ix=1,3),
      .                        ia=1,nfce)
@@ -588,6 +590,8 @@ C Write atomic forces
       write(6,'(43(1h-),/,a4,f22.6,a,i5)') 'Max',cfmax*Ang/eV,
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
+
+      endif
 
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
@@ -756,7 +760,6 @@ C Write atomic forces
       enddo
 
 ! Once rshift convergence is achieved (or inneri .gt. 25000), calculate fef
-
            call calculate_fef(atmsconstr,kforce,maxforce,maxforceatom)
 
 !Arma rclas_cut con los átomos en el constraint
@@ -808,6 +811,8 @@ C Write atomic forces
 
 
        if(idyn .gt. 3) then
+
+       if(idyn .ne. 7) then
 	write(6,999)
      .  'hybrid: Temperature Antes:', tempion, ' K'
 
@@ -826,7 +831,7 @@ C Write atomic forces
      .   'Kinetic energy of Nose variable:', kn, ' eV'
         if(idyn .eq. 6) write(6,999)
      .   'Potential energyy of Nose var:', vn, 'eV'
-
+       endif
 !      if(qm) call centerdyn(na_u,rclas,ucell,natot)
 	if (MOD((istp - inicoor),traj_frec) .eq. 0)
      .  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
@@ -844,7 +849,8 @@ C Write atomic forces
         end if
 
 !Write Energy in file
-        call wriene(step,slabel,idyn,Etots,cfmax)
+        if (idyn .ne. 7)
+     .  call wriene(step,slabel,idyn,Etots,cfmax)
 
 ! sets variables for next cycle
         fa = 0.d0

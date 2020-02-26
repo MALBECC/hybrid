@@ -96,7 +96,8 @@ c read variables
               else                                                      
                 read(iunit,*,err=100,end=100)                           
      .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)         
-              endif                                                  
+              endif
+
             allocate(rref(3,natot),rclas_cut(3,natmsconstr),            
      .      fef_cut(3,natmsconstr),                                     
      .      rshxrshm(3*natmsconstr,3*natmsconstr),                     
@@ -695,7 +696,7 @@ c ndists
           dx=rclas(1,at1)-rref(1,at1)
           dy=rclas(2,at1)-rref(2,at1)
           dz=rclas(3,at1)-rref(3,at1)
-         
+          
           fnew(1,1)=-dx*2.d0*kf
           fnew(2,1)=-dy*2.d0*kf
           fnew(3,1)=-dz*2.d0*kf
@@ -748,7 +749,7 @@ c writes variables for first step only
         write(*,'(A,F8.3)')  'actual   :', rt(iconstr)
         endif
         else
-        if(istep.eq.1) then
+        if(istep.eq.1.and.typeconstr(iconstr).ne.9) then
         write(*,'(/,A)')     'constr opt: fixed constraints'  
         write(*,'(A,i4)')    'icosntr  :', iconstr
         if(istepconstr.eq.1) then
