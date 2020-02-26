@@ -96,7 +96,6 @@ c read variables
               else                                                      
                 read(iunit,*,err=100,end=100)                           
      .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)         
-
               endif
 
             allocate(rref(3,natot),rclas_cut(3,natmsconstr),            
