@@ -482,7 +482,7 @@ C Calculate Rcut & block list QM-MM
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
         if (nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
           allocate(vatr(3,natot))
-	  call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
+	 call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
 !cambiar ucell cuando haya caja
         else
 	  if (idyn .eq. 7) STOP "feopt selected without typeconstraint 9"
@@ -703,7 +703,7 @@ C Write atomic forces
          do i=1,natmsconstr
            at1=atmsconstr(1,i)
            do j=1,3
-	     if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
+		if (abs((rshiftsd(j,at1)*inneri/rshiftm(j,at1))) .le. 0.1) k=k+1
            enddo
          enddo
          rconverged=(k .eq. 3*natmsconstr)
@@ -760,7 +760,6 @@ C Write atomic forces
       enddo
 
 ! Once rshift convergence is achieved (or inneri .gt. 25000), calculate fef
-          
            call calculate_fef(atmsconstr,kforce,maxforce,maxforceatom)
 
 !Arma rclas_cut con los átomos en el constraint

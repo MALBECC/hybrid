@@ -10,8 +10,7 @@
       integer, intent (out) :: maxforceatom
       integer, dimension(20,20), intent(in) :: atmsconstr
       double precision kf
-
-
+      
       kf=kforce(1)
        do i=1,natmsconstr
          do j=1,3
