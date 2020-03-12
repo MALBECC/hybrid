@@ -15,6 +15,7 @@
 	real(dp) :: ftol !MAx force tol criteria (in Ry/Bohr)
 	real(dp), dimension(:,:), allocatable :: xa, fa !position and forces of QM atoms
 	double precision, dimension(:,:), allocatable :: rclas !Position of all atoms
+        double precision, dimension(:,:), allocatable :: rclas_f !Position of all atoms firststep
 	double precision, dimension(:,:), allocatable :: vat !velocities of all atoms 
 	double precision, dimension(:,:), allocatable :: aat !aceleration of all atoms
 	double precision :: time_steep
