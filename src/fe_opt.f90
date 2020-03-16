@@ -211,8 +211,9 @@
       endif
       enddo
 
-!Pone en rclas las posiciones originales de todos los atomos
-      rclas=rref
+!Pone en rclas las posiciones originales de todos los atomos (rever si
+!esto es necesario
+!      rclas=rref   
 
 !Pisa en rclas las posiciones los atomos con restraint con sus posiciones medias
 
