@@ -54,12 +54,12 @@ RESREF 1
 
 %block SolventInput
 ATOM      1  C2  DCE H   1       0.000   0.000   0.000
-ATOM      2  C1  DCE H   1       0.000   0.000   1.526
+ATOM      2  C1  DCE H   1       0.000   0.000   1.726
 ATOM      3  H1  DCE H   1       1.026   0.000   1.888
 ATOM      4  H2  DCE H   1      -0.513   0.889   1.889
-ATOM      5  Cl1 DCE H   1      -0.443  -1.461   2.122
+ATOM      5  Cl1 DCE H   1       1.067  -1.227   3.212
 ATOM      6  H3  DCE H   1      -1.026   0.000  -0.363
-ATOM      7  Cl2 DCE H   1       0.843   1.461  -0.596
-ATOM      8  H4  DCE H   1       0.513  -0.889  -0.363
+ATOM      7  Cl2 DCE H   1       0.743   1.461  -0.596
+ATOM      8  H4  DCE H   1       0.513  -0.489  -0.363
 %endblock SolventInput
 
