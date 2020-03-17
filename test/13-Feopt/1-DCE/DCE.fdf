@@ -15,7 +15,7 @@ MD.TargetTemperature 300.d0 K
 MD.TauRelax 5000 fs
 MD.NoseMass 0 eV*fs**2
 MD.TrajFrec 1
-FE.DynType 0
+FE.DynType 1
 FE.DynMaxSteps 25000
 Steep.in 1d-4
 %block ChemicalSpeciesLabel

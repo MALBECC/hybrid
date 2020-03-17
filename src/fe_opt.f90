@@ -252,8 +252,7 @@
           F_i=sqrt(F_i)
           if (F_i .gt. Fmax) Fmax=F_i
         end do
-       write (456456,*) istp, Fmax
-
+!       write (456456,*) istp, Fmax
       return  
  
       end subroutine fe_opt
