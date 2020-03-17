@@ -97,9 +97,6 @@ c read variables
                 read(iunit,*,err=100,end=100)           
      .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)         
               endif
-c                do i=1,na_u-numlink
-c                write(456456,*) i,atmsconstr(iconstr,i)
-c                enddo
 
             allocate(rref(3,natot),rclas_cut(3,natmsconstr),            
      .      fef_cut(3,natmsconstr),                                     

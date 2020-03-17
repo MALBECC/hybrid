@@ -206,7 +206,6 @@
       double precision :: maxforce
       integer :: maxforceatom, auxiliarunit, auxiliaruniti, i12, j12
       integer :: INFO_inver
-      integer :: innermax 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -234,7 +233,6 @@
       recompute_cuts=.true.
       cmcf = 0
       imm=1
-      innermax=25000
 ! Initialize IOnode
       call io_setup   
 
@@ -597,11 +595,11 @@ C Write atomic forces
       
       elseif (feopt) then 
 
-      if (istp .eq. 1 .and. mn .eq. 0.d0) then
-        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
-        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
-        write(6,999) "mn =", mn
-      endif
+!      if (istp .eq. 1 .and. mn .eq. 0.d0) then
+!        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
+!        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
+!        write(6,999) "mn =", mn
+!      endif
 
        call fe_opt(rcorteqmmm, radbloqmmm, Etot,
      .  do_SCF, do_QM_forces, do_properties, istp, step,
@@ -609,7 +607,7 @@ C Write atomic forces
      .  Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
      .  rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
      .  radblommbond, optimization_lvl, dt, sfc, water,
-     .  imm,rini,rfin,innermax,maxforce,maxforceatom,rconverged,ntcon,
+     .  imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,
      .  nfree,cmcf) 
       endif
 

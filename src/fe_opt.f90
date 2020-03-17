@@ -4,18 +4,17 @@
        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,&
        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
        radblommbond, optimization_lvl, dt, sfc, water,&
-       imm,rini,rfin,innermax,maxforce,maxforceatom,rconverged,ntcon,&
+       imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,&
        nfree,cmcf)
 
       use ionew
       use scarlett, only: natmsconstr, natot, Ang, eV, kcal, rshiftm,&
         rshiftm2, rref, fef, fdummy, cfdummy, tt, masst, kn,vn, mn, &
         rclas, vat, Ekinion, tempion, tt, tempqm, tempinit, blockall, &
-        cov_matrix, rshxrshm, rshiftsd
+        cov_matrix, rshxrshm, rshiftsd, fedynamic, tauber, innermax
  
       implicit none
       integer i, j, k, inneri, at1, at2, k1, k2
-      integer, intent (in) :: innermax
       
 
 !------------------------------------------------ Variables required for free energy gradient calculations
@@ -24,6 +23,7 @@
       integer, intent (out) :: maxforceatom
       double precision :: tempforce, kf
       logical :: rconverged
+      double precision :: Fmax,F_i
 
 !------------------------------------------------ Variables required for inner MD
 
@@ -71,12 +71,19 @@
       rshiftm2=0.d0
       inneri=1
       rconverged=.false.       
+
 !         rshiftsd=0.d0
 !         if (.not. relaxd) then
 !           inneri=1
 !           rconverged=.false.
        
       call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
+
+      if (fedynamic .eq. 1) then
+        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
+        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
+        write(6,'(a,2x,F30.18)') "mn =", mn
+      endif
 
       do while ((.not. rconverged) .and. (inneri .le. innermax))  ! <<<<<<<<<<<<<<< DM in FE Calculations para MB con ts de 0.1 fs
 
@@ -88,8 +95,14 @@
         radblommbond, optimization_lvl, dt, sfc, water,&
         imm,rini,rfin)
 
-        call nose(inneri,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,&
-        rclas,Ekinion,kn,vn,tempion,nfree,cmcf)
+       if (fedynamic .eq. 0) then !berendsen
+         call berendsen(inneri,3,natot,cfdummy,dt,tauber,masst, &
+         ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
+       elseif (fedynamic .eq. 1) then !nose
+         call nose(inneri,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,&
+         rclas,Ekinion,kn,vn,tempion,nfree,cmcf)
+       endif
+
 
 ! Save summ of rshifm and rshiftm2
         do i=1,natmsconstr
@@ -230,7 +243,16 @@
 
 !Mata velocidades
 
-      vat=0
+!      vat=0
+
+!Check max force
+        Fmax=0.d0
+        do i=1, natot
+          F_i=cfdummy(1,i)**2 + cfdummy(2,i)**2 + cfdummy(3,i)**2
+          F_i=sqrt(F_i)
+          if (F_i .gt. Fmax) Fmax=F_i
+        end do
+       write (456456,*) istp, Fmax
 
       return  
  

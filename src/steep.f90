@@ -19,6 +19,7 @@
 	if (istep.eq.1) Eprev=Energy
 	if (istep.eq.1) lambda=lambda_i
 	call maxforce(cfdummy,natot,Fmax) !find max force
+!        write(456456,*) istep,Fmax
 	call move_movesteep(lambda, Fmax, natot, rclas, cfdummy)
 
 	if (Steep_change) then
