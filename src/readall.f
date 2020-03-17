@@ -128,7 +128,7 @@ C  Modules
      .   NEB_Nimages, time_steep, time_steep_max, traj_frec,
      .   lambda_i, Steep_change, normal_mass, lbfgs_verbose,
      .   lbfgs_num_corr, qm_level, qm_header_lines, qm_header,
-     .   qm_command
+     .   qm_command, feopt
 
 
       implicit none
@@ -239,11 +239,11 @@ C Kind of dynamics
           write(6,'(a,a)')
      .     'read: Dynamics option                  = ',
      .     '    Nose termostat MD run'
-      else if (leqi(dyntype,'feopt')) then
-        idyn = 7
-          write(6,'(a,a)')
-     .     'read: Dynamics option                  = ',
-     .     '    Free Energy Optimization run'
+c      else if (leqi(dyntype,'feopt')) then
+c        idyn = 7
+c          write(6,'(a,a)')
+c     .     'read: Dynamics option                  = ',
+c     .     '    Free Energy Optimization run'
 
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
@@ -311,6 +311,14 @@ C Mass of Nose variable
         endif 
       endif
 
+
+
+C Free energy gradient calculation
+
+      feopt = fdf_boolean('FE.Optimization',.false.)
+          write(6,'(a,a)')
+     .     'read: Free energy gradient calculation on',
+     .     feopt
 
 C Read if use saved XV data
       usesavexv = fdf_boolean('MD.UseSaveXV', .true.)

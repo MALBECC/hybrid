@@ -7,7 +7,7 @@ NumberOfSpecies      0
 NetCharge 0.0
 FixSpin  T
 TotalSpin 0.0
-MD.MaxForceTol    0.0004 eV/Ang
+MD.MaxForceTol    0.002 eV/Ang
 NumberOfSolventAtoms   8
 MD.LengthTimeStep 1 fs
 MD.InitialTemperature 300 K
@@ -28,6 +28,7 @@ AtomicCoordinatesFormat  Ang
 DM.UseSaveDM   T
 MD.USeSaveXV   T
 MD.UseSaveCG   T
+FE.Optimization T
 LongOutput    F
 
 %block ConstrainedOpt
@@ -39,8 +40,8 @@ natmsconstr 4
 atoms 1 2 5 7
 %endblock ConstrainedOpt
 
-MD.TypeOfRun feopt
-MD.NumCGsteps  500
+MD.TypeOfRun steep
+MD.NumCGsteps  70
 
 %block CutOffRadius
 QM  0.2
@@ -54,12 +55,12 @@ RESREF 1
 
 %block SolventInput
 ATOM      1  C2  DCE H   1       0.000   0.000   0.000
-ATOM      2  C1  DCE H   1       0.000   0.000   1.726
+ATOM      2  C1  DCE H   1       0.000   0.000   1.526
 ATOM      3  H1  DCE H   1       1.026   0.000   1.888
 ATOM      4  H2  DCE H   1      -0.513   0.889   1.889
-ATOM      5  Cl1 DCE H   1       1.067  -1.227   3.212
+ATOM      5  Cl1 DCE H   1      -0.443  -1.461   2.122
 ATOM      6  H3  DCE H   1      -1.026   0.000  -0.363
-ATOM      7  Cl2 DCE H   1       0.743   1.461  -0.596
-ATOM      8  H4  DCE H   1       0.513  -0.489  -0.363
+ATOM      7  Cl2 DCE H   1       0.843   1.461  -0.596
+ATOM      8  H4  DCE H   1       0.513  -0.889  -0.363
 %endblock SolventInput
 

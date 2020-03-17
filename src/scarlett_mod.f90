@@ -67,6 +67,7 @@
         double precision, dimension(:,:), allocatable :: rshxrshm ! <rshift(i)
         double precision, dimension(:,:), allocatable :: cov_matrix !         
         double precision, dimension(:,:), allocatable :: cov_matrix_inverted !
+        logical :: feopt ! turns on free energy gradient calculations
 
 
 

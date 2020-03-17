@@ -56,7 +56,7 @@
      . Ang, eV, kcal, 
 !Type 9 restraint
      . rref,rshiftm,rshiftm2,fef,rshiftsd,rclas_cut,natmsconstr,fef_cut,
-     . Steep_change, rshxrshm, cov_matrix, cov_matrix_inverted,
+     . Steep_change, rshxrshm, cov_matrix, cov_matrix_inverted, feopt,
 !Dynamics
      . Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn,
 !!FIRE
@@ -488,9 +488,9 @@ C Calculate Rcut & block list QM-MM
 	 call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
 !cambiar ucell cuando haya caja
         else
-	  if (idyn .eq. 7) STOP "feopt selected without typeconstraint 9"
+	  if (.not. feopt) STOP "feopt selected without typeconstraint 9"
         endif
-        if (typeconstr(1) .eq. 9 .and. idyn .eq. 7) then !alocatea cosas para FE
+        if (typeconstr(1) .eq. 9 .and. feopt) then !alocatea cosas para FE
           allocate(rshiftm(3,natot),rshiftm2(3,natot),fef(3,natot),
      .    rshiftsd(3,natot)) 
         endif
@@ -508,7 +508,7 @@ C Calculate Rcut & block list QM-MM
         endif
 
 ! Begin of coordinate relaxation iteration ============================
-        if (idyn .lt. 8 ) then ! case 0 1 2 3
+        if (idyn .lt. 7 ) then ! case 0 1 2 3
           inicoor = 0
           fincoor = nmove
         endif
@@ -523,7 +523,7 @@ C Calculate Rcut & block list QM-MM
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 8) 
+          if (idyn .ge. 7) 
      .    STOP 'only STEEP, CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
@@ -549,7 +549,7 @@ C Calculate Rcut & block list QM-MM
 	  do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
        
      
-       if (idyn .ne. 7) then
+       if (.not. feopt) then
        call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
      . do_SCF, do_QM_forces, do_properties, istp, step,
      . nbond, nangle, ndihe, nimp, Etot_amber, Elj,
@@ -595,7 +595,7 @@ C Write atomic forces
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
       
-      elseif (idyn .eq. 7) then 
+      elseif (feopt) then 
 
       if (istp .eq. 1 .and. mn .eq. 0.d0) then
         mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
@@ -657,8 +657,9 @@ C Write atomic forces
         elseif (idyn .eq. 6) then !nose
           call nose(istp,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,rclas,
      .        Ekinion,kn,vn,tempion,nfree,cmcf)
-	elseif (idyn .eq. -1 .or. idyn .eq. 7) then !steepest descend
-	  call check_convergence(relaxd, natot, cfdummy)
+	elseif (idyn .eq. -1) then !steepest descend
+          call check_convergence(relaxd, natot, cfdummy)
+          Steep_change = .false.
 	  call steep(natot, rclas, cfdummy, Etots, istep)
 	elseif (idyn .eq. -2) then !L-BFGS
 	  call check_convergence(relaxd, natot, cfdummy)
@@ -675,9 +676,9 @@ C Write atomic forces
 	end if
 
 
-       if(idyn .gt. 3) then
+       if(idyn .gt. 3 .or. feopt) then
 
-       if(idyn .ne. 7) then
+       if(.not. feopt) then
 	write(6,999)
      .  'hybrid: Temperature Antes:', tempion, ' K'
 
@@ -698,9 +699,10 @@ C Write atomic forces
      .   'Potential energyy of Nose var:', vn, 'eV'
        endif
 !      if(qm) call centerdyn(na_u,rclas,ucell,natot)
-	if (MOD((istp - inicoor),traj_frec) .eq. 0)
-     .  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
+	if (MOD((istp - inicoor),traj_frec) .eq. 0) then
+       call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot,
      .      rclas,atname,aaname,aanum,nesp,atsym,isa)
+       endif
        endif
 
 
@@ -714,7 +716,7 @@ C Write atomic forces
         end if
 
 !Write Energy in file
-        if (idyn .ne. 7)
+        if (.not. feopt)
      .  call wriene(step,slabel,idyn,Etots,cfmax)
 
 ! sets variables for next cycle
