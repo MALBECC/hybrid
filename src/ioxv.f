@@ -44,7 +44,6 @@ c Find name of file
           frstme = .false.
         endif
 
-
 	if (task.eq.'read' .or. task.eq.'READ') then
 !	  if (Band.eq.'R') then
 !	    fname = paste( sname, '.XVR')

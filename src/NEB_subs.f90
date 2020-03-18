@@ -76,16 +76,16 @@
 ! full band move until more test
 !	NEB_firstimage=2
 !	NEB_lastimage=NEB_Nimages-1
-
+! JOTA
 	if (NEB_move_method .eq. 1) THEN
 	  if (istep.eq.0) NEB_MAXFmod=MAXFmod_total
-	  if (MAXFmod_total .gt. NEB_MAXFmod) NEB_steep_size=NEB_steep_size*0.85d0
-	  NEB_MAXFmod=MAXFmod_total
+!	  if (MAXFmod_total .gt. NEB_MAXFmod) NEB_steep_size=NEB_steep_size*0.85d0
+!	  NEB_MAXFmod=MAXFmod_total
 	
-	  if (NEB_steep_size.lt.1d-5) then
-	    relaxd=.true.
-	    write(*,*) "max precision reached on atomic displacement"
-	  end if
+!	  if (NEB_steep_size.lt.1d-5) then
+!	    relaxd=.true.
+!	    write(*,*) "max precision reached on atomic displacement"
+!	  end if
 	
 	else if (NEB_move_method .ge. 2) THEN
 	  CALL NEB_calculate_T(NEB_Ekin)

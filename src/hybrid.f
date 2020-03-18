@@ -407,7 +407,7 @@
 
 ! Initialize .xyz
       xyzlabel = paste( slabel, '.xyz' )
-      open(unit=34, file=xyzlabel)
+!      open(unit=34, file=xyzlabel)
 
 ! Initialize Lio 
       if(qm) then
@@ -555,6 +555,17 @@ C Calculate Rcut & block list QM-MM
      . rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
      . radblommbond, optimization_lvl, dt, sfc, water,
      . imm, rini, rfin)
+      else
+        write(456456,*) istp, nmove
+       call fe_opt(rcorteqmmm, radbloqmmm, Etot,
+     .  do_SCF, do_QM_forces, do_properties, istp, step,
+     .  nbond, nangle, ndihe, nimp, Etot_amber, Elj,
+     .  Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
+     .  rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
+     .  radblommbond, optimization_lvl, dt, sfc, water,
+     .  imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,
+     .  nfree,cmcf)
+      endif
 
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
@@ -578,9 +589,6 @@ C Write atomic forces
       cfmax=maxval(dabs(cfdummy))
       icfmax=maxloc(dabs(cfdummy))
 
-
-
-
       write(6,'(/,a)') 'hybrid: Atomic forces (eV/Ang):'
       write(6,'(i6,3f12.6)') (ia,(cfdummy(ix,ia)*Ang/eV,ix=1,3),
      .                        ia=1,nfce)
@@ -593,24 +601,6 @@ C Write atomic forces
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
       
-      elseif (feopt) then 
-
-!      if (istp .eq. 1 .and. mn .eq. 0.d0) then
-!        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
-!        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
-!        write(6,999) "mn =", mn
-!      endif
-
-       call fe_opt(rcorteqmmm, radbloqmmm, Etot,
-     .  do_SCF, do_QM_forces, do_properties, istp, step,
-     .  nbond, nangle, ndihe, nimp, Etot_amber, Elj,
-     .  Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
-     .  rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
-     .  radblommbond, optimization_lvl, dt, sfc, water,
-     .  imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,
-     .  nfree,cmcf) 
-      endif
-
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
       if (mn .eq. 0.d0 .and. idyn .ge. 6) then
@@ -714,9 +704,9 @@ C Write atomic forces
         end if
 
 !Write Energy in file
-        if (.not. feopt)
-     .  call wriene(step,slabel,idyn,Etots,cfmax)
-
+        if (.not. feopt) then
+        call wriene(step,slabel,idyn,Etots,cfmax)
+        endif
 ! sets variables for next cycle
         fa = 0.d0
         fdummy = 0.d0
@@ -768,7 +758,7 @@ C Write atomic forces
 	  end do
 	  close(969)
 	end if
-
+        
 
 !	call NEB_save_traj_energy(istp,slabel)
 	call NEB_steep(istp, relaxd) 
@@ -827,6 +817,7 @@ C Write atomic forces
            end do
 	  call NEB_restart(2, .false.) !write restart full precision
 	else
+          if(.not. feopt) then
 	  write(*,956) rt(1), Etot/eV, Elj/eV, Etot_amber/kcal,
      .  Elink/kcal, Etots/eV
           if(constropt) then
@@ -835,6 +826,7 @@ C Write atomic forces
            call wrirtc(slabel,Etots,rt(1),istepconstr,na_u,nac,natot,
      .             rclas,atname,aaname,aanum,nesp,atsym,isa)
            call ioxvconstr( natot, ucell, rclas, vat, istepconstr )
+          endif
           endif
 	end if
 
@@ -853,7 +845,7 @@ C Write atomic forces
 
 
 
-      close(34)
+!      close(34)
 
 
 #ifdef LIO

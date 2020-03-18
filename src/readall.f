@@ -316,17 +316,17 @@ C Mass of Nose variable
 C Free energy gradient calculation
 
       feopt = fdf_boolean('FE.Optimization',.false.)
-          write(6,'(a,a)')
+          write(6,'(a,4x,l1)')
      .     'read: Free energy gradient calculation on',
      .     feopt
 
       fedynamic = fdf_integer('FE.DynType',0)
-          write(6,'(a,a)')
+          write(6,'(a,4x,I1)')
      .     'read: Thermostat 0 = beren, 1 = nose, actual=',
      .     fedynamic
 
       innermax = fdf_integer('FE.DynMaxSteps',25000)
-          write(6,'(a,a)')
+          write(6,'(a,4x,I8)')
      .     'read: Thermostat 0 = beren, 1 = nose, actual=',
      .     fedynamic
 

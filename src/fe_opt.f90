@@ -79,7 +79,7 @@
        
       call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 
-      if (fedynamic .eq. 1) then
+      if (fedynamic .eq. 1 .and. mn .eq. 0.d0) then
         mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
         write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
         write(6,'(a,2x,F30.18)') "mn =", mn
