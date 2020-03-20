@@ -1,14 +1,14 @@
-      Program HYBRID 
+      Program HYBRID
 !****************************************************************************
-! Program for QM-MM calculations. 
+! Program for QM-MM calculations.
 !
-! Original version used the SIESTA code 
+! Original version used the SIESTA code
 ! (https://departments.icmab.es/leem/siesta/CodeAccess/index.html) to treat
-! at DFT level the QM subsystem. 
+! at DFT level the QM subsystem.
 ! This version(2017) has been modified for use Lio code to treat at DFT level
 ! the QM-MM subsystem.
 ! It uses an own implementation of Amber99 force field parametrization to treat
-! the MM subsystem. 
+! the MM subsystem.
 ! Original idea by D. Scherlis, D. Estrin and P. Ordejon. 2001.
 ! Original QM-MM interfase with Siesta by D. Scherlis and P. Ordejon. 2001.
 ! Original subroutines by D. Scherlis. 2001/2002.
@@ -18,8 +18,8 @@
 ! Further modifications of QM-MM Siesta by A. Crespo and P. Ordejon. 2004.
 ! Developing of HYBRID: program for QM-MM calculations using the SIESTA
 ! as SUBROUTINE by A. Crespo and P. Ordejon. 2004.
-! This code uses several subroutines of SIESTA  as well as the 
-! SiestaAsSubroutine and FDF packages. Crespo, May 2005. 
+! This code uses several subroutines of SIESTA  as well as the
+! SiestaAsSubroutine and FDF packages. Crespo, May 2005.
 ! Modified version for use Lio as QM-MM level and debugs, N. Foglia 2017
 ! Icluded NEB method N. Foglia 2018
 !*****************************************************************************
@@ -28,32 +28,32 @@
       use precision, only: dp
       use sys, only: die
       use fdf
-      use ionew, only: io_setup!, IOnode    
-      use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, 
-     . natot,na_u,nroaa,qm, mm, atsym,  
+      use ionew, only: io_setup!, IOnode
+      use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn,
+     . natot,na_u,nroaa,qm, mm, atsym,
      . xa, fa,
-     . masst,isa, iza, pc, 
+     . masst,isa, iza, pc,
      . nac, atname, aaname, atxres, attype, qmattype, aanum, ng1,
      . bondxat, angexat,
-     . angmxat, dihexat, 
-     . dihmxat, impxat, 
+     . angmxat, dihexat,
+     . dihmxat, impxat,
      . Em, Rm,
-     . fdummy, cfdummy,  
-     . rclas, vat, aat, izs,  
-     . linkatom, numlink, linkat, linkqm, linkmm, linkmm2, 
+     . fdummy, cfdummy,
+     . rclas, vat, aat, izs,
+     . linkatom, numlink, linkat, linkqm, linkmm, linkmm2,
      . linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, !pi,
 !cutoff
      . blocklist,blockqmmm, blockall,
      . listqmmm,
 !NEB
-     . NEB_Nimages, 
-     . NEB_firstimage, NEB_lastimage,  
+     . NEB_Nimages,
+     . NEB_firstimage, NEB_lastimage,
      . rclas_BAND,
      . vclas_BAND, fclas_BAND, Energy_band,
      . NEB_distl,
      . ucell,
      . ftol,
-     . Ang, eV, kcal, 
+     . Ang, eV, kcal,
 !Type 9 restraint
      . rref,rshiftm,rshiftm2,fef,rshiftsd,rclas_cut,natmsconstr,fef_cut,
      . Steep_change, rshxrshm, cov_matrix, cov_matrix_inverted, feopt,
@@ -77,10 +77,10 @@
       integer :: istp !number of move step for each restrain starting on 1
       integer :: step !total number of steps in a MMxQM movement (not tested in this version)
       integer :: ifmax(2) !number of atom with max force on each cicle
-      real(dp) :: fmax !max force on each cicle 
+      real(dp) :: fmax !max force on each cicle
       integer :: icfmax(2) !number of atom with max force on each cicle after constrain
       real(dp) :: cfmax !max force on each cicle after constrain
-      real(dp) :: cstress(3,3) !Stress tensor, may be included in CG minimizations 
+      real(dp) :: cstress(3,3) !Stress tensor, may be included in CG minimizations
       real(dp) :: strtol !Maximum stress tolerance
       real(dp) :: Etot ! QM + QM-MM interaction energy
       real(dp) :: fres !sqrt( Sum f_i^2 / 3N )
@@ -102,7 +102,7 @@
       double precision :: Etot_amber !total MM energy
       double precision :: Elj !LJ interaction (only QMMM)
       double precision :: Etots !QM+QMMM+MM energy
-      integer :: ntcon !number of restrained degrees of freedom JOTA 
+      integer :: ntcon !number of restrained degrees of freedom JOTA
       integer :: cmcf !Center of Mass Coordinates Fixed JOTA
 
 ! ConstrOpt variables
@@ -128,7 +128,7 @@
       double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
       double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a adblommbond
       double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
-      integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA  
+      integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA
       logical ::  recompute_cuts
 ! Lio
       logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
@@ -185,7 +185,7 @@
        external
      . solv_assign, solv_ene_fce, qmmm_lst_blk, wrtcrd,
      . centermol, centerdyn, link1, link2, link3, ljef,
-     . mmForce, readcrd,  prversion, ioxvconstr,  
+     . mmForce, readcrd,  prversion, ioxvconstr,
      . wripdb, wriene, wrirtc, subconstr1, subconstr2, subconstr3
 
 
@@ -234,24 +234,24 @@
       cmcf = 0
       imm=1
 ! Initialize IOnode
-      call io_setup   
+      call io_setup
 
 ! Print version information
       call prversion
 
-! Start time counter 
-      call timestamp('Start of run')      
+! Start time counter
+      call timestamp('Start of run')
 
-! Factors of conversion to internal units 
+! Factors of conversion to internal units
       call init_hybrid('Constants')
 
-! Initialise read 
-      call reinit(slabel) 
+! Initialise read
+      call reinit(slabel)
 
-! Read and initialize basics variables 
+! Read and initialize basics variables
       call init_hybrid('Jolie')
 
-! Some definitions 
+! Some definitions
       ucell=0.d0
       fa=0.d0
       fdummy = 0.d0
@@ -283,10 +283,10 @@
       foundvat = .false.
       writeipl = fdf_boolean('WriIniParLas',.false.)
 
-! Read and assign Solvent variables 
+! Read and assign Solvent variables
       if(mm) then
-        call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas, 
-     . nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm, 
+        call MM_atoms_assign(nac, na_u, natot, atname, aaname, rclas,
+     . nroaa, aanum, qmattype, rcorteqm, rcorteqmmm, rcortemm,
      . radbloqmmm, radblommbond, radinnerbloqmmm, res_ref, nbond,
      . nangle, ndihe, nimp, attype, pc, Rm, Em, ng1, bondxat,angexat,
      . angmxat, dihexat, dihmxat, impxat)
@@ -300,20 +300,20 @@
 
       rclas(1:3,1:na_u) = xa(1:3,1:na_u)
 
-! Read simulation data 
-      call read_md( idyn, nmove, dt, dxmax, ftol, 
-     .              usesavecg, usesavexv , Nick_cent, na_u,  
+! Read simulation data
+      call read_md( idyn, nmove, dt, dxmax, ftol,
+     .              usesavecg, usesavexv , Nick_cent, na_u,
      .              natot, nfce, wricoord, mmsteps, tempinit,
      .              tt, tauber,mn)
 
-! Assignation of masses and species 
+! Assignation of masses and species
       call assign(na_u,nac,atname,iza,izs,masst)
       if (idyn .ne. 1 ) then ! Read cell shape and atomic positions from a former run
       if (usesavexv) then
-        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1) 
+        call ioxv('read',natot,ucell,rclas,vat,foundxv,foundvat,'X',-1)
         if (foundxv) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
       end if
-      else 
+      else
 	call init_hybrid("NEB")
 	call NEB_make_initial_band(usesavecg)
       end if
@@ -338,7 +338,7 @@
      .             rclas,vat,foundcrd,foundvat)
       if(foundcrd) xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 
-     
+
 ! Sets LinkAtoms' positions
       if(qm.and.mm) then
         if (linkatom) then
@@ -348,7 +348,7 @@
             xa(1:3,1:na_u)=rclas(1:3,1:na_u)
 	  else !NEB case
 	    NEB_distl=1.09
-	    do replica_number = NEB_firstimage, NEB_lastimage 
+	    do replica_number = NEB_firstimage, NEB_lastimage
 	      rclas(1:3,1:natot)=rclas_BAND(1:3,1:natot,replica_number)
 	      distl(1:15)=NEB_distl(1:15,replica_number)
 	      frstme=.true.
@@ -359,7 +359,7 @@
 	    end do
 	   end if
 
-	  ! Sets to zero pc and Em for MMLink 
+	  ! Sets to zero pc and Em for MMLink
             do i=1,numlink
               pclinkmm(i,1:4)=pc(linkmm(i,1:4))
               pc(linkmm(i,1:1))=0.d0
@@ -372,7 +372,7 @@
       endif !qm & mm
 
 
-! Dump initial coordinates to output 
+! Dump initial coordinates to output
       if (writeipl) then
         if(qm) then
           write(6,'(/a)') 'hybrid: Atomic coordinates (Ang) and species'
@@ -381,7 +381,7 @@
         endif !qm
 
 ! Dump initial Solvent coordinates to output
-        if(mm) then      
+        if(mm) then
           write(6,*)
           write(6,"('hybrid: Number of solvent atoms:',i6)") nac
           write(6,"('hybrid: Number of residues:',i4)") nroaa
@@ -409,7 +409,7 @@
       xyzlabel = paste( slabel, '.xyz' )
 !      open(unit=34, file=xyzlabel)
 
-! Initialize Lio 
+! Initialize Lio
       if(qm) then
         Etot=0.d0
         fa=0.d0
@@ -425,18 +425,18 @@
 ! calculate cell volume
         volume = volcel( ucell )
 
-! Center system 
+! Center system
 !        if (.not.foundxv)call centermol(na_u,xa,rclas,ucell,natot)
       endif !qm
 
-C Calculate Rcut & block list QM-MM 
+C Calculate Rcut & block list QM-MM
 
       if(qm.and.mm) then
         call qmmm_lst_blk(na_u,nac,natot,nroaa,atxres,rclas,
      .  rcorteqmmm,radbloqmmm,blockqmmm,listqmmm,rcorteqm,slabel,
      .  radinnerbloqmmm,blockall)
       endif !qm & mm
-        
+
 
 ! Calculate blockall for full-MM simulation JOTA
       if(mm.and. .not. qm) then
@@ -463,13 +463,12 @@ C Calculate Rcut & block list QM-MM
 	write(*,*) "inicializo"
           allocate ( nbd(3*natot),limlbfgd(3*natot))
           allocate ( iwa(9*natot) )
-          allocate ( wa(6*lbfgs_num_corr*natot + 15*natot + 
+          allocate ( wa(6*lbfgs_num_corr*natot + 15*natot +
      .    11*lbfgs_num_corr**2 + 8*lbfgs_num_corr) )
           nbd=0
           limlbfgd=0.d0
           task = 'START'
         endif
-
 
 !########################################################################################
 !#####################################  MAIN LOOPS  #####################################
@@ -490,7 +489,7 @@ C Calculate Rcut & block list QM-MM
         endif
         if (typeconstr(1) .eq. 9 .and. feopt) then !alocatea cosas para FE
           allocate(rshiftm(3,natot),rshiftm2(3,natot),fef(3,natot),
-     .    rshiftsd(3,natot)) 
+     .    rshiftsd(3,natot))
         endif
       endif
       do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
@@ -517,11 +516,11 @@ C Calculate Rcut & block list QM-MM
         istp = 0
         do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
           istp = istp + 1
- 
+
           write(6,'(/2a)') 'hybrid:                 ',
      .                    '=============================='
 
-          if (idyn .ge. 7) 
+          if (idyn .ge. 7)
      .    STOP 'only STEEP, CG, QM, FIRE or NEB minimization available'
 
           write(6,'(28(" "),a,i6)') 'Begin move = ',istep
@@ -545,8 +544,8 @@ C Calculate Rcut & block list QM-MM
 
 
 	  do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
-       
-     
+
+
        if (.not. feopt) then
        call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
      . do_SCF, do_QM_forces, do_properties, istp, step,
@@ -556,7 +555,6 @@ C Calculate Rcut & block list QM-MM
      . radblommbond, optimization_lvl, dt, sfc, water,
      . imm, rini, rfin)
       else
-        write(456456,*) istp, nmove
        call fe_opt(rcorteqmmm, radbloqmmm, Etot,
      .  do_SCF, do_QM_forces, do_properties, istp, step,
      .  nbond, nangle, ndihe, nimp, Etot_amber, Elj,
@@ -570,17 +568,17 @@ C Calculate Rcut & block list QM-MM
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
 
-C Write atomic forces 
+C Write atomic forces
       fmax = 0.0_dp
       cfmax = 0.0_dp
       fres = 0.0_dp
-      ftot = 0.0_dp 
+      ftot = 0.0_dp
       ifmax = 0
       icfmax = 0
       do ix=1,3
         do ia = 1,natot
-          ftot(ix) = ftot(ix) + cfdummy(ix,ia) 
-          fres = fres + fdummy(ix,ia)*fdummy(ix,ia) 
+          ftot(ix) = ftot(ix) + cfdummy(ix,ia)
+          fres = fres + fdummy(ix,ia)*fdummy(ix,ia)
         enddo
       enddo
       fres = dsqrt( fres / (3.0_dp*natot ) )
@@ -600,7 +598,7 @@ C Write atomic forces
       write(6,'(43(1h-),/,a4,f22.6,a,i5)') 'Max',cfmax*Ang/eV,
      .                       '  cons, atom  ',icfmax(2)
       if(nfce.ne.natot) call iofa(natot,cfdummy)
-      
+
 ! here Etot in Hartree, cfdummy in Hartree/bohr
 
       if (mn .eq. 0.d0 .and. idyn .ge. 6) then
@@ -621,7 +619,7 @@ C Write atomic forces
         end if
 
 	Ekinion=0.d0
- 
+
 
 !Move system
 	if (idyn .eq. 0) then !Conjugated Gradient
@@ -714,7 +712,7 @@ C Write atomic forces
         xa(1:3,1:na_u)=rclas(1:3,1:na_u) !Bohr
         call flush(6)
 
-! Calculation Hlink's New positions 
+! Calculation Hlink's New positions
         if(qm.and.mm) then
           if(linkatom) then
             call link3(numlink,linkat,linkqm,linkmm,rclas,
@@ -745,7 +743,7 @@ C Write atomic forces
 
       if (idyn .eq. 1 ) then !Move atoms in a NEB scheme
 
-	if (writeRF .eq. 1) then!save coordinates and forces for integration 
+	if (writeRF .eq. 1) then!save coordinates and forces for integration
 
 	  open(unit=969, file="Pos_forces.dat")
 	  do replica_number = NEB_firstimage, NEB_lastimage ! Band Replicas
@@ -758,13 +756,13 @@ C Write atomic forces
 	  end do
 	  close(969)
 	end if
-        
+
 
 !	call NEB_save_traj_energy(istp,slabel)
-	call NEB_steep(istp, relaxd) 
+	call NEB_steep(istp, relaxd, atmsconstr)
 	call NEB_save_traj_energy(istp,slabel)
 
-! Calculation Hlink's New positions 
+! Calculation Hlink's New positions
         if(qm.and.mm) then
           if(linkatom) then
 	    do replica_number = NEB_firstimage, NEB_lastimage
@@ -822,7 +820,7 @@ C Write atomic forces
      .  Elink/kcal, Etots/eV
           if(constropt) then
            call subconstr3(ro(1),rt(1),dr,Etots)
-! write .rce 
+! write .rce
            call wrirtc(slabel,Etots,rt(1),istepconstr,na_u,nac,natot,
      .             rclas,atname,aaname,aanum,nesp,atsym,isa)
            call ioxvconstr( natot, ucell, rclas, vat, istepconstr )
@@ -881,5 +879,3 @@ C Write atomic forces
 ! 444  format(2x, I6,2x, 3(f20.10,2x))
  999  format(a,2x,F30.18)
       end program HYBRID
-
-

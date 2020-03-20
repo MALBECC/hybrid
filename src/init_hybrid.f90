@@ -126,7 +126,7 @@
 	  Nav    = 6.022140857d23
 	
 	elseif ( init_type == 'NEB') then !initialize Nudged elastic band variables
-	  if (NEB_Nimages .lt. 3) STOP 'Runing NEB with less than 3 images'
+          if (NEB_Nimages .lt. 3) STOP 'Runing NEB with less than 3 images'
 	  NEB_firstimage=1
 	  NEB_lastimage=NEB_Nimages
 	  allocate(rclas_BAND(3,natot,NEB_Nimages), vclas_BAND(3,natot,NEB_Nimages), &

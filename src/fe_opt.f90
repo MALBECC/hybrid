@@ -12,14 +12,14 @@
         rshiftm2, rref, fef, fdummy, cfdummy, tt, masst, kn,vn, mn, &
         rclas, vat, Ekinion, tempion, tt, tempqm, tempinit, blockall, &
         cov_matrix, rshxrshm, rshiftsd, fedynamic, tauber, innermax
- 
+
       implicit none
       integer i, j, k, inneri, at1, at2, k1, k2
-      
+
 
 !------------------------------------------------ Variables required for free energy gradient calculations
 
-      double precision, intent(inout) :: maxforce  
+      double precision, intent(inout) :: maxforce
       integer, intent (out) :: maxforceatom
       double precision :: tempforce, kf
       logical :: rconverged
@@ -27,7 +27,7 @@
 
 !------------------------------------------------ Variables required for inner MD
 
-      integer :: ntcon !number of restrained degrees of freedom JOTA 
+      integer :: ntcon !number of restrained degrees of freedom JOTA
       integer :: nfree !number of atoms without a contrain of movement
       integer :: cmcf !Center of Mass Coordinates Fixed JOTA
 
@@ -41,7 +41,7 @@
       double precision, intent(in) :: dt !time step
       logical, intent(in) :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
       logical, intent(in) :: do_properties !control for lio properties calculation
-      integer, intent(inout) :: step !total number of steps in a MMxQM movement (not tested in this version)
+      integer, intent(inout) :: step !tofeopttal number of steps in a MMxQM movement (not tested in this version)
       integer, intent(in) :: istp !number of move step for each restrain starting on 1
       integer, intent(in) :: imm !MM step by QM each step
       integer, intent(in) :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
@@ -59,24 +59,25 @@
       double precision, dimension(20,10), intent(in) :: coef ! coeficients for typeconstr=8
       integer, dimension(20,20), intent(in) :: atmsconstr
       integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
-      integer, intent(in) :: istepconstr !step of restraint 
+      integer, intent(in) :: istepconstr !step of restraint
       integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme (1 only QM atoms with restrain,2 only MM atoms, 3 all)
       double precision, intent(in) :: sfc
       logical, intent(in) :: water
 
-!------------------------------------------------- 
+!-------------------------------------------------
+
 
       rref=rclas
       rshiftm=0.d0
       rshiftm2=0.d0
       inneri=1
-      rconverged=.false.       
+      rconverged=.false.
 
 !         rshiftsd=0.d0
 !         if (.not. relaxd) then
 !           inneri=1
 !           rconverged=.false.
-       
+
       call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 
       if (fedynamic .eq. 1 .and. mn .eq. 0.d0) then
@@ -91,7 +92,7 @@
         do_SCF, do_QM_forces, do_properties, istp, step,&
         nbond, nangle, ndihe, nimp, Etot_amber, Elj,&
         Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,&
-        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,& 
+        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
         radblommbond, optimization_lvl, dt, sfc, water,&
         imm,rini,rfin)
 
@@ -150,7 +151,7 @@
         if(rconverged) write(*,*) "FEG converged in ",inneri," steps"
        endif
 
-!Escribe cosas 
+!Escribe cosas
 
       call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,&
       nfree,cmcf)
@@ -226,7 +227,7 @@
 
 !Pone en rclas las posiciones originales de todos los atomos (rever si
 !esto es necesario
-!     rclas=rref
+     rclas=rref
 
 !Pisa en rclas las posiciones los atomos con restraint con sus posiciones medias
 
@@ -253,6 +254,6 @@
           if (F_i .gt. Fmax) Fmax=F_i
         end do
 !       write (456456,*) istp, Fmax
-      return  
- 
+      return
+
       end subroutine fe_opt
