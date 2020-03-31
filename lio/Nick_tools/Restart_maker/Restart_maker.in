@@ -1,8 +1,0 @@
-&Milla
-inputname="restart.out"
-outputname="restart.nick"
-nco_input=113
-nco_output=119
-change_to_open=f
-new_restart=-1
-&end

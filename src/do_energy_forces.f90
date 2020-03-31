@@ -135,13 +135,13 @@
 	    call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
 	    F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
 #else
-	  stop('lio not defined compile with qm_lio=1')
+	  stop ('lio not defined compile with qm_lio=1')
 #endif
 	  elseif (leqi(qm_level,'orca')) then ! call Orca
 #ifdef ORCA
 	    call SCF_orca(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, F_cut_QMMM, Iz_cut_QMMM )
 #else
-          stop('orca not defined compile with qm_orca=1')
+          stop ('orca not defined compile with qm_orca=1')
 #endif
 	  else
 	    STOP 'NO QM program defined in do_energy_forces'
