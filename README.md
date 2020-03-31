@@ -9,6 +9,7 @@ REQUIREMENTS
 * LAPACK or INTEL MKL.
 * GNU or INTEL Fortran Compiler.
 * GNU Make.
+* QM external software, LIO or Orca.
 
 COMPILATION
 ------------
@@ -49,7 +50,7 @@ Compilation will produce an executable file in /bin.
 INSTALLATION WITH LIO
 -------------------------
 
-Define LIOHOME=lio_pah/lio and compile with _qm_lio=1_ option.
+Define LIOHOME=lio_path/lio and compile with _qm_lio=1_ option.
 
 
 INSTALLATION WITH ORCA
