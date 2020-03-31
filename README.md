@@ -13,7 +13,7 @@ REQUIREMENTS
 COMPILATION
 ------------
 
-The program can be compiled using the make command. The following options can be used to modify compilation. For example, the following compiles the th intel compilers:
+The program can be compiled using the make command. The following options can be used to modify compilation. For example, the following compiles intel compilers:
 
 ```
 make intel=1
