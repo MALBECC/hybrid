@@ -1,6 +1,7 @@
 Hybrid
 ============
 
+Hybrid is QM/MM code designed primarily to obtain potential energy profiles in complex systems.
 
 REQUIREMENTS
 ------------
