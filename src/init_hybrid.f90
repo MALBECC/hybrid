@@ -9,7 +9,7 @@
 	fclas_BAND, fclas_BAND_fresh, Energy_band, NEB_firstimage, NEB_lastimage, NEB_Nimages, &
 	PNEB, PNEB_ini_atom, PNEB_last_atom, NEB_distl, NEB_CI,&
 	Ang, eV, kcal, na_u, qm, mm, nesp, natoms_partial_freeze, coord_freeze, &
-	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, MM_freeze_list, &
+	nac, r_cut_list_QMMM, nparm, izs, Em, Rm, pc, rclas, rclas_f, MM_freeze_list, &
 	masst, vat, aat, cfdummy, fdummy, qmattype, attype, atname, aaname, aanum, &
 	ng1, blocklist, blockqmmm, listqmmm, fce_amber, ng1type, angetype, & 
 	angmtype, evaldihe, evaldihm, dihety, dihmty, impty, nonbonded, &
@@ -92,6 +92,7 @@
 	!muchos allocate tienen valores fijos. habria que reveer esto en el futuro. Nick
 	  allocate(izs(natot), Em(natot), Rm(natot), pc(0:nac))
 	  allocate(rclas(3,natot), MM_freeze_list(natot), masst(natot))
+          allocate(rclas_f(3,natot))
 	  allocate(vat(3,natot),aat(3,natot), fdummy(3,natot),cfdummy(3,natot))
 	  allocate(qmattype(na_u), attype(nac), atname(nac))
 	  allocate(aaname(nac), aanum(nac), ng1(nac,6), blocklist(natot))

@@ -61,7 +61,7 @@ OBJECTS += lbfgsb.o
 OBJECTS += linpack.o
 OBJECTS += blas.o
 OBJECTS += timer.o
-OBJECTS += calculate_fef.o
+OBJECTS += fe_opt.o
 OBJECTS += SCF_orca.o
 
 FDF=libfdf.a
@@ -125,7 +125,7 @@ tmplist += solv_ene_fce.o
 tmplist += subconstr.o
 tmplist += vmb.o
 tmplist += writeall.o
-tmplist += calculate_fef.o
+tmplist += fe_opt.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/scarlett_mod.mod 
 
 ################################################################################
@@ -184,7 +184,7 @@ tmplist += ofc.o
 tmplist += qmmm_lst_blk.o
 tmplist += solv_assign.o
 tmplist += do_energy_forces.o
-tmplist += calculate_fef.o
+tmplist += fe_opt.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/ionew.o
 
 ################################################################################
