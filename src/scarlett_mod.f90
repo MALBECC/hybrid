@@ -276,4 +276,7 @@
 ! Nuevos jota
 	double precision :: Nav !Avogadro Number
 	double precision :: pi  
+
+! Perform TSH with HYB-LIO
+        logical :: HYB_TSH = .false.
 	end module scarlett

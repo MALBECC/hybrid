@@ -128,7 +128,7 @@ C  Modules
      .   NEB_Nimages, time_steep, time_steep_max, traj_frec,
      .   lambda_i, Steep_change, normal_mass, lbfgs_verbose,
      .   lbfgs_num_corr, qm_level, qm_header_lines, qm_header,
-     .   qm_command
+     .   qm_command, HYB_TSH
 
 
       implicit none
@@ -317,6 +317,12 @@ C Read if use saved XV data
           write(6,'(a,4x,l1)')
      .     'read: Use continuation files for XV    = ',
      .     usesavexv
+
+C Read TSH variable
+      HYB_TSH = fdf_boolean('MD.HYB_TSH', .false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Perform TSH dynamics?            = ',
+     .     HYB_TSH
 
 C Maximum number of steps in CG coordinate optimization
       nmove_default = 0
