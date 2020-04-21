@@ -104,7 +104,6 @@
          rclas,Ekinion,kn,vn,tempion,nfree,cmcf)
        endif
 
-
 ! Save summ of rshifm and rshiftm2
         do i=1,natmsconstr
           do j=1,3
@@ -205,7 +204,6 @@
         enddo
       enddo
 
-
 ! fef queda en Hartree/Bohr
 
       fef=fef*eV/(Ang*kcal)
@@ -227,7 +225,7 @@
 
 !Pone en rclas las posiciones originales de todos los atomos (rever si
 !esto es necesario
-     rclas=rref
+!     rclas=rref
 
 !Pisa en rclas las posiciones los atomos con restraint con sus posiciones medias
 

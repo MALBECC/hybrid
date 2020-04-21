@@ -480,19 +480,20 @@ C Calculate Rcut & block list QM-MM
       if(constropt) then
         call subconstr1(nconstr,typeconstr,kforce,nstepconstr,
      .        rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
+!        if(feopt .and. typeconstr(1) .ne. 9) STOP
+!     .  "feopt selected without typeconstraint 9"
         if (nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
           allocate(vatr(3,natot))
 	 call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
 !cambiar ucell cuando haya caja
-        else
-	  if (.not. feopt) STOP "feopt selected without typeconstraint 9"
         endif
         if (typeconstr(1) .eq. 9 .and. feopt) then !alocatea cosas para FE
           allocate(rshiftm(3,natot),rshiftm2(3,natot),fef(3,natot),
      .    rshiftsd(3,natot))
         endif
       endif
-      do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
+!      endif
+        do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
         optimization_lvl=3
         if (opt_scheme .eq. 1) optimization_lvl=1
@@ -564,6 +565,7 @@ C Calculate Rcut & block list QM-MM
      .  imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,
      .  nfree,cmcf)
       endif
+!       enddo
 
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
@@ -760,6 +762,8 @@ C Write atomic forces
 
 !	call NEB_save_traj_energy(istp,slabel)
 	call NEB_steep(istp, relaxd, atmsconstr)
+!       enddo JOTAJOTAJOTA
+
 	call NEB_save_traj_energy(istp,slabel)
 
 ! Calculation Hlink's New positions

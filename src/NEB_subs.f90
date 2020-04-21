@@ -317,8 +317,9 @@
 	  SZstep=NEB_steep_size/MAXFmod
 	  write(*,*) "maxforce", MAXFmod, "stepsize", SZstep, &
 	  "stepsize_base", NEB_steep_size
-	  rclas_BAND(1:3,1:natot,1:NEB_Nimages)=rclas_BAND(1:3,1:natot,1:NEB_Nimages)+SZstep*fclas_BAND(1:3,1:natot,1:NEB_Nimages)
-
+          do replica_number=NEB_firstimage+1, NEB_lastimage-1
+	  rclas_BAND(1:3,1:natot,replica_number)=rclas_BAND(1:3,1:natot,replica_number)+SZstep*fclas_BAND(1:3,1:natot,replica_number)
+          end do
 
 	elseif (method.eq.2) then !quick-min using velocity verlet
 
