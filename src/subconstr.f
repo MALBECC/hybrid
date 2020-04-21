@@ -88,13 +88,13 @@ c read variables
               rfin=0.d0                                                 
               nstepconstr=0                                             
               read(iunit,*,err=100,end=100) exp,natmsconstr 
-                                                                    
+
               if(natmsconstr .eq. 0) then                            
                 do i=1,na_u-numlink                                    
                   atmsconstr(iconstr,i)=i                              
                 enddo                                                  
               else                                                      
-                read(iunit,*,err=100,end=100)                           
+                read(iunit,*,err=100,end=100)           
      .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)         
               endif
 
@@ -106,10 +106,9 @@ c read variables
             else                                                       
               call die('constr opt: typeconstr must be 1-9')           
             endif                                                     
-
-	    if(i.gt.20) then
+	   if(natmsconstr.gt.20) then
 	call die('constr opt: atoms with constrain must be lower than 20')
-	    endif
+	   endif
 
 	enddo
 	else

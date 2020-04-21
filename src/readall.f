@@ -128,7 +128,7 @@ C  Modules
      .   NEB_Nimages, time_steep, time_steep_max, traj_frec,
      .   lambda_i, Steep_change, normal_mass, lbfgs_verbose,
      .   lbfgs_num_corr, qm_level, qm_header_lines, qm_header,
-     .   qm_command
+     .   qm_command, feopt, fedynamic, innermax
 
 
       implicit none
@@ -239,11 +239,11 @@ C Kind of dynamics
           write(6,'(a,a)')
      .     'read: Dynamics option                  = ',
      .     '    Nose termostat MD run'
-      else if (leqi(dyntype,'feopt')) then
-        idyn = 7
-          write(6,'(a,a)')
-     .     'read: Dynamics option                  = ',
-     .     '    Free Energy Optimization run'
+c      else if (leqi(dyntype,'feopt')) then
+c        idyn = 7
+c          write(6,'(a,a)')
+c     .     'read: Dynamics option                  = ',
+c     .     '    Free Energy Optimization run'
 
       elseif (leqi(dyntype,'neb')) then
         idyn = 1
@@ -310,6 +310,44 @@ C Mass of Nose variable
      .  'read: Nose mass                        = ',mn,'  eV/fs**2'
         endif 
       endif
+
+
+
+C Free energy gradient calculation
+
+      feopt = fdf_boolean('FE.Optimization',.false.)
+          write(6,'(a,4x,l1)')
+     .     'read: Free energy gradient calculation on',
+     .     feopt
+
+      fedynamic = fdf_integer('FE.DynType',0)
+          write(6,'(a,4x,I1)')
+     .     'read: Thermostat 0 = beren, 1 = nose, actual=',
+     .     fedynamic
+
+      innermax = fdf_integer('FE.DynMaxSteps',25000)
+          write(6,'(a,4x,I8)')
+     .     'read: Thermostat 0 = beren, 1 = nose, actual=',
+     .     fedynamic
+
+      if (feopt) then
+      if (fedynamic .eq. 0) then       
+      tauber = fdf_physical('MD.TauRelax',dt,'fs')
+        write(6,'(a,f10.4,a)')
+     .  'read: Berendsen Coupling Constant      = ',
+     .   tauber,'  fs'
+      elseif (fedynamic .eq. 1) then
+        mn = fdf_physical('MD.NoseMass',1.d2,'eV*fs**2')
+        if (mn .eq. 0) then
+          write(6,'(/,a)')
+     .  'read: Nose mass                        =   Estimated from Ndf'
+        else
+          write(6,'(a,f10.4,a)')
+     .  'read: Nose mass                        = ',mn,'  eV/fs**2'
+        endif
+      endif
+      endif
+
 
 
 C Read if use saved XV data

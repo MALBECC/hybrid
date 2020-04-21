@@ -4,30 +4,30 @@
        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,&
        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
        radblommbond, optimization_lvl, dt, sfc, water,&
-       imm,rini,rfin,innermax,maxforce,maxforceatom,rconverged,ntcon,&
+       imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,&
        nfree,cmcf)
 
       use ionew
       use scarlett, only: natmsconstr, natot, Ang, eV, kcal, rshiftm,&
         rshiftm2, rref, fef, fdummy, cfdummy, tt, masst, kn,vn, mn, &
         rclas, vat, Ekinion, tempion, tt, tempqm, tempinit, blockall, &
-        cov_matrix, rshxrshm, rshiftsd
- 
+        cov_matrix, rshxrshm, rshiftsd, fedynamic, tauber, innermax
+
       implicit none
       integer i, j, k, inneri, at1, at2, k1, k2
-      integer, intent (in) :: innermax
-      
+
 
 !------------------------------------------------ Variables required for free energy gradient calculations
 
-      double precision, intent(inout) :: maxforce  
+      double precision, intent(inout) :: maxforce
       integer, intent (out) :: maxforceatom
       double precision :: tempforce, kf
       logical :: rconverged
+      double precision :: Fmax,F_i
 
 !------------------------------------------------ Variables required for inner MD
 
-      integer :: ntcon !number of restrained degrees of freedom JOTA 
+      integer :: ntcon !number of restrained degrees of freedom JOTA
       integer :: nfree !number of atoms without a contrain of movement
       integer :: cmcf !Center of Mass Coordinates Fixed JOTA
 
@@ -59,24 +59,25 @@
       double precision, dimension(20,10), intent(in) :: coef ! coeficients for typeconstr=8
       integer, dimension(20,20), intent(in) :: atmsconstr
       integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
-      integer, intent(in) :: istepconstr !step of restraint 
+      integer, intent(in) :: istepconstr !step of restraint
       integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme (1 only QM atoms with restrain,2 only MM atoms, 3 all)
       double precision, intent(in) :: sfc
       logical, intent(in) :: water
 
-!------------------------------------------------- 
-
+!-------------------------------------------------
       rref=rclas
       rshiftm=0.d0
       rshiftm2=0.d0
       inneri=1
-      rconverged=.false.       
-!         rshiftsd=0.d0
-!         if (.not. relaxd) then
-!           inneri=1
-!           rconverged=.false.
+      rconverged=.false.
        
       call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
+
+      if (fedynamic .eq. 1 .and. mn .eq. 0.d0) then
+        mn=dble(3*natot-ntcon-cmcf)*tt*8.617d-5*(50.d0*dt)**2
+        write(6,'(/,a)') 'Calculating Nose mass as Ndf*Tt*KB*(50dt)**2'
+        write(6,'(a,2x,F30.18)') "mn =", mn
+      endif
 
       do while ((.not. rconverged) .and. (inneri .le. innermax))  ! <<<<<<<<<<<<<<< DM in FE Calculations para MB con ts de 0.1 fs
 
@@ -84,12 +85,17 @@
         do_SCF, do_QM_forces, do_properties, istp, step,&
         nbond, nangle, ndihe, nimp, Etot_amber, Elj,&
         Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,&
-        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,& 
+        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
         radblommbond, optimization_lvl, dt, sfc, water,&
         imm,rini,rfin)
 
-        call nose(inneri,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,&
-        rclas,Ekinion,kn,vn,tempion,nfree,cmcf)
+       if (fedynamic .eq. 0) then !berendsen
+         call berendsen(inneri,3,natot,cfdummy,dt,tauber,masst, &
+         ntcon,vat,rclas,Ekinion,tempion,tt,nfree,cmcf)
+       elseif (fedynamic .eq. 1) then !nose
+         call nose(inneri,natot,cfdummy,tt,dt,masst,mn,ntcon,vat,&
+         rclas,Ekinion,kn,vn,tempion,nfree,cmcf)
+       endif
 
 ! Save summ of rshifm and rshiftm2
         do i=1,natmsconstr
@@ -137,7 +143,7 @@
         if(rconverged) write(*,*) "FEG converged in ",inneri," steps"
        endif
 
-!Escribe cosas 
+!Escribe cosas
 
       call calculateTemp(Ekinion,tempion,tempqm,vat,ntcon,&
       nfree,cmcf)
@@ -191,7 +197,6 @@
         enddo
       enddo
 
-
 ! fef queda en Hartree/Bohr
 
       fef=fef*eV/(Ang*kcal)
@@ -211,8 +216,9 @@
       endif
       enddo
 
-!Pone en rclas las posiciones originales de todos los atomos
-      rclas=rref
+!Pone en rclas las posiciones originales de todos los atomos (rever si
+!esto es necesario
+!     rclas=rref
 
 !Pisa en rclas las posiciones los atomos con restraint con sus posiciones medias
 
@@ -227,10 +233,15 @@
 
       cfdummy=fef
 
-!Mata velocidades
+!Mata velocidades (rever si esto es necesario)
+!      vat=0
 
-      vat=0
-
-      return  
- 
+!Check max force
+        Fmax=0.d0
+        do i=1, natot
+          F_i=cfdummy(1,i)**2 + cfdummy(2,i)**2 + cfdummy(3,i)**2
+          F_i=sqrt(F_i)
+          if (F_i .gt. Fmax) Fmax=F_i
+        end do
+      return
       end subroutine fe_opt

@@ -257,14 +257,6 @@ C Internal variables ..........................................................
       save    bervble
       data    bervble /.false./
 
-
-C ........................
-C******************************
-C TEST JOTA - SACAR AL TERMINAR
-C      tau = tau*10000.d0
-C******************************
-
-
       if (iunit .ne. 1 .and. iunit .ne. 2 .and. iunit .ne. 3) then
           write(6,*) 'verlet2: Wrong iunit option;  must be 1, 2 or 3'
         stop
