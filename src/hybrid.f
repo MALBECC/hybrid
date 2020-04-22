@@ -416,7 +416,7 @@
         Etot=0.d0
         fa=0.d0
 #ifdef LIO
-        call init_lio_hybrid(1,na_u, nac, charge, iza, spin, dt)
+        call init_lio_hybrid(2,na_u, nac, charge, iza, spin, dt)
 #else
 	if (leqi(qm_level,'orca')) then
 	else
@@ -556,7 +556,7 @@ C Calculate Rcut & block list QM-MM
      . Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,
      . rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
      . radblommbond, optimization_lvl, dt, sfc, water,
-     . imm, rini, rfin, vat, .false.)
+     . imm, rini, rfin, vat, .false., .false.)
 
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname,
      .            aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)

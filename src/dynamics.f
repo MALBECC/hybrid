@@ -180,7 +180,7 @@ C ................
 
 C Surface Hopping
       if ( HYB_TSH ) then
-         do_HOPP = .true.
+         do_HOPP = .false.
          allocate(vel_to_lio(3,na_u)); vel_to_lio = va(:,1:na_u)
          allocate(fa_to_lio(3,natoms)); fa_to_lio = fa
          call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
@@ -189,7 +189,7 @@ C Surface Hopping
      .        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce,
      .        ro, rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
      .        radblommbond, optimization_lvl, dt, sfc, water,
-     .        1, rini, rfin, vel_to_lio, do_HOPP)
+     .        1, rini, rfin, vel_to_lio, do_HOPP, .true.)
 
 C             If the hopp is frustated -> do_TSH = .false., but if the hopp has occurred
 C             the hopp is .true. -> change forces

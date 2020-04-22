@@ -15,7 +15,7 @@
 	Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
 	rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
 	radblommbond, optimization_lvl, dt, sfc, water, imm, rini, rfin, &
-        vel_lio, do_HOPP)
+        vel_lio, do_HOPP, do_ElecInterp)
 
 ! Modules
 	use precision, only: dp
@@ -73,7 +73,8 @@
 ! Lio
 	logical, intent(in) :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
 	logical, intent(in) :: do_properties !control for lio properties calculation
-	logical, intent(inout) :: do_HOPP ! control for TSH hopp with LIO
+	logical, intent(in) :: do_ElecInterp ! control for TSH routine
+	logical, intent(inout) :: do_HOPP    ! control for TSH hopp with LIO
 
 ! Optimization scheme
 	integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme:
@@ -135,17 +136,9 @@
 
 	  if (leqi(qm_level,'lio')) then ! call Lio QM/MM
 #ifdef LIO
-          if ( do_HOPP ) then
-            ! call LIO to perform electronic interpolation and
-            ! calculates hopp probabilities
-            call TSH_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
-            F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, &
-            do_properties, vel_lio, do_HOPP)
-          else
-            call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
-            F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, &
-            do_properties) !fuerzas lio, Nick
-          endif
+         call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
+               F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, &
+               do_properties, vel_lio, do_HOPP, do_ElecInterp) !fuerzas lio, Nick
 #else
 	  stop ('lio not defined compile with qm_lio=1')
 #endif
