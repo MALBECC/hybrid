@@ -195,7 +195,7 @@
 	integer, intent(in) :: method, replica_number
 	double precision, dimension(3,natot), intent(inout) :: tang_vec
   integer, dimension(20,20), intent(in) :: atmsconstr
-	double precision, dimension(3,natot) :: tang_vecA, tang_vecB
+	double precision, dimension(3,natot) :: tang_vecA, tang_vecB, tang_vecC
 	double precision :: NORMVEC, NORMVECA, NORMVECB
 	double precision :: E0, E1, E2, Vmax, Vmin
 	integer :: initial_atom, last_atom, at1
@@ -288,9 +288,11 @@
 
 ! set tg=0 for not restrained atoms on free energy calculations
         if (feopt) then
+				tang_vecC=tang_vec
+				tang_vec=0.d0
 						do i=1,natmsconstr
 		          at1=atmsconstr(1,i)
-							tang_vec(1:3,at1)=0
+							tang_vec(1:3,at1)=tang_vecC(1:3,at1)
 		        enddo
         end if
 
