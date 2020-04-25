@@ -486,7 +486,7 @@
                   rshiftsd(3,natot))
                 endif
               endif
-        !      endif
+
               do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
         ! istepconstr marca la posicion del restrain
                 optimization_lvl=3
