@@ -741,7 +741,6 @@
 
 !	call NEB_save_traj_energy(istp,slabel)
 	      call NEB_steep(istp, relaxd, atmsconstr)
-!       enddo JOTAJOTAJOTA
 	      call NEB_save_traj_energy(istp,slabel)
 ! Calculation Hlink's New positions
         if(qm.and.mm) then
