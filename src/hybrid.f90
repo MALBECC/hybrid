@@ -402,7 +402,7 @@
 
         ! Initialize .xyz
               xyzlabel = paste( slabel, '.xyz' )
-        !      open(unit=34, file=xyzlabel)
+              open(unit=34, file=xyzlabel)
 
         ! Initialize Lio
               if(qm) then
