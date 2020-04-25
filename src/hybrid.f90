@@ -557,7 +557,6 @@
         imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon, &
         nfree,cmcf)
       endif
-!       enddo
 
       call wripdb(na_u,slabel,rclas,natot,step,nac,atname, &
       aaname,aanum,nesp,atsym,isa,listqmmm,blockqmmm)
