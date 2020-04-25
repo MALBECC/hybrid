@@ -1,4 +1,4 @@
-      Program HYBRID
+Program HYBRID
 !****************************************************************************
 ! Program for QM-MM calculations.
 !
@@ -25,162 +25,161 @@
 !*****************************************************************************
 
 ! Modules
-      use precision, only: dp
-      use sys, only: die
-      use fdf
-      use ionew, only: io_setup!, IOnode
-      use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, &
-      natot,na_u,nroaa,qm, mm, atsym, &
-      xa, fa, &
-      masst,isa, iza, pc, &
-      nac, atname, aaname, atxres, attype, qmattype, aanum, ng1, &
-      bondxat, angexat, &
-      angmxat, dihexat, &
-      dihmxat, impxat, &
-      Em, Rm, &
-      fdummy, cfdummy, &
-      rclas, vat, aat, izs, &
-      linkatom, numlink, linkat, linkqm, linkmm, linkmm2, &
-      linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, & !pi,
+   use precision, only: dp
+   use sys, only: die
+   use fdf
+   use ionew, only: io_setup!, IOnode
+   use scarlett, only: istep, nmove, nesp, inicoor,fincoor, idyn, &
+       natot,na_u,nroaa,qm, mm, atsym, &
+       xa, fa, &
+       masst,isa, iza, pc, &
+       nac, atname, aaname, atxres, attype, qmattype, aanum, ng1, &
+       bondxat, angexat, &
+       angmxat, dihexat, &
+       dihmxat, impxat, &
+       Em, Rm, &
+       fdummy, cfdummy, &
+       rclas, vat, aat, izs, &
+       linkatom, numlink, linkat, linkqm, linkmm, linkmm2, &
+       linkqmtype, Elink, distl, pclinkmm, Emlink, frstme, & !pi,
 !cutoff
-      blocklist,blockqmmm, blockall, &
-      listqmmm, &
+       blocklist,blockqmmm, blockall, &
+       listqmmm, &
 !NEB
-      NEB_Nimages, &
-      NEB_firstimage, NEB_lastimage, &
-      rclas_BAND, &
-      vclas_BAND, fclas_BAND, Energy_band, &
-      NEB_distl, &
-      ucell,&
-      ftol, &
-      Ang, eV, kcal, &
+       NEB_Nimages, &
+       NEB_firstimage, NEB_lastimage, &
+       rclas_BAND, &
+       vclas_BAND, fclas_BAND, Energy_band, &
+       NEB_distl, &
+       ucell,&
+       ftol, &
+       Ang, eV, kcal, &
 !Type 9 restraint
-      rref,rshiftm,rshiftm2,fef,rshiftsd,rclas_cut,natmsconstr,fef_cut, &
-      Steep_change, rshxrshm, cov_matrix, cov_matrix_inverted, feopt, &
+       rref,rshiftm,rshiftm2,fef,rshiftsd,rclas_cut,natmsconstr,fef_cut, &
+       Steep_change, rshxrshm, cov_matrix, cov_matrix_inverted, feopt, &
 !Dynamics
-      Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn, &
+       Ekinion, tempion, tempinit, tt, tauber, tempqm, kn, vn, mn, &
 !!FIRE
-      time_steep, Ndescend, time_steep_max, alpha, &
+       time_steep, Ndescend, time_steep_max, alpha, &
 !! LBFGS
-      lbfgs_verbose, lbfgs_num_corr, &
+       lbfgs_verbose, lbfgs_num_corr, &
 !!Lio
-      charge, spin, &
+       charge, spin, &
 !!outputs
-      writeRF, slabel, traj_frec, &
+       writeRF, slabel, traj_frec, &
 !! QM LEVEL
-      qm_level
+       qm_level
 
 
-      implicit none
+   implicit none
 ! General Variables
-      integer :: replica_number !auxiliar
-      integer :: istp !number of move step for each restrain starting on 1
-      integer :: step !total number of steps in a MMxQM movement (not tested in this version)
-      integer :: ifmax(2) !number of atom with max force on each cicle
-      real(dp) :: fmax !max force on each cicle
-      integer :: icfmax(2) !number of atom with max force on each cicle after constrain
-      real(dp) :: cfmax !max force on each cicle after constrain
-      real(dp) :: cstress(3,3) !Stress tensor, may be included in CG minimizations
-      real(dp) :: strtol !Maximum stress tolerance
-      real(dp) :: Etot ! QM + QM-MM interaction energy
-      real(dp) :: fres !sqrt( Sum f_i^2 / 3N )
-      real(dp) :: ftot(3) ! Total force in system
-      real(dp) :: dxmax !Maximum atomic displacement in one CG step (Bohr)
-      real(dp) :: tp !Target pressure
-      real(dp) :: volume !Cell volume
-      logical :: usesavexv, foundxv !control for coordinates restart
-      logical :: usesavecg !control for restart CG
-      logical :: varcel !true if variable cell optimization
-      logical :: relaxd ! True when CG converged
-      character :: paste*25
-      external :: paste
-!     logical :: actualiz!MM interaction list control
+   integer :: replica_number !auxiliar
+   integer :: istp !number of move step for each restrain starting on 1
+   integer :: step !total number of steps in a MMxQM movement (not tested in this version)
+   integer :: ifmax(2) !number of atom with max force on each cicle
+   real(dp) :: fmax !max force on each cicle
+   integer :: icfmax(2) !number of atom with max force on each cicle after constrain
+   real(dp) :: cfmax !max force on each cicle after constrain
+   real(dp) :: cstress(3,3) !Stress tensor, may be included in CG minimizations
+   real(dp) :: strtol !Maximum stress tolerance
+   real(dp) :: Etot ! QM + QM-MM interaction energy
+   real(dp) :: fres !sqrt( Sum f_i^2 / 3N )
+   real(dp) :: ftot(3) ! Total force in system
+   real(dp) :: dxmax !Maximum atomic displacement in one CG step (Bohr)
+   real(dp) :: tp !Target pressure
+   real(dp) :: volume !Cell volume
+   logical :: usesavexv, foundxv !control for coordinates restart
+   logical :: usesavecg !control for restart CG
+   logical :: varcel !true if variable cell optimization
+   logical :: relaxd ! True when CG converged
+   character :: paste*25
+   external :: paste
 !!!!
-      integer :: nfree !number of atoms without a contrain of movement
-      integer :: mmsteps !number of MM steps for each QM step, not tested
-      integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
-      double precision :: Etot_amber !total MM energy
-      double precision :: Elj !LJ interaction (only QMMM)
-      double precision :: Etots !QM+QMMM+MM energy
-      integer :: ntcon !number of restrained degrees of freedom JOTA
-      integer :: cmcf !Center of Mass Coordinates Fixed JOTA
+   integer :: nfree !number of atoms without a contrain of movement
+   integer :: mmsteps !number of MM steps for each QM step, not tested
+   integer :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
+   double precision :: Etot_amber !total MM energy
+   double precision :: Elj !LJ interaction (only QMMM)
+   double precision :: Etots !QM+QMMM+MM energy
+   integer :: ntcon !number of restrained degrees of freedom JOTA
+   integer :: cmcf !Center of Mass Coordinates Fixed JOTA
 
 ! ConstrOpt variables
-      logical :: constropt !activate restrain optimizaion
-      integer :: nconstr !number of constrains
-      integer :: nstepconstr !numero de pasos en los que barrera la coordenada de reaccion (limitado a 1-100 hay q cambiar esto, Nick)
-      integer, dimension(:), allocatable :: typeconstr !type of cosntrain (1 to 8)
-      double precision, dimension(:), allocatable :: kforce !force constant of constrain i
-      double precision :: rini,rfin  !initial and end value of reaction coordinate
-      double precision, dimension(:), allocatable :: ro ! fixed value of constrain in case nconstr > 1 for contrains 2+
-      double precision, dimension(:), allocatable :: rt ! value of reaction coordinate in constrain i
-      double precision :: dr !change of reaction coordinate in each optimization dr=(rfin-rini)/nstepconstr
-      double precision, dimension(:,:), allocatable :: coef !coeficients for typeconstr=8
-      integer, allocatable :: atmsconstr(:,:), ndists(:) !atomos incluidos en la coordenada de reaccion
-      integer :: istepconstr !auxiliar
-      logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
-      double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
+   logical :: constropt !activate restrain optimizaion
+   integer :: nconstr !number of constrains
+   integer :: nstepconstr !numero de pasos en los que barrera la coordenada de reaccion (limitado a 1-100 hay q cambiar esto, Nick)
+   integer, dimension(:), allocatable :: typeconstr !type of cosntrain (1 to 8)
+   double precision, dimension(:), allocatable :: kforce !force constant of constrain i
+   double precision :: rini,rfin  !initial and end value of reaction coordinate
+   double precision, dimension(:), allocatable :: ro ! fixed value of constrain in case nconstr > 1 for contrains 2+
+   double precision, dimension(:), allocatable :: rt ! value of reaction coordinate in constrain i
+   double precision :: dr !change of reaction coordinate in each optimization dr=(rfin-rini)/nstepconstr
+   double precision, dimension(:,:), allocatable :: coef !coeficients for typeconstr=8
+   integer, allocatable :: atmsconstr(:,:), ndists(:) !atomos incluidos en la coordenada de reaccion
+   integer :: istepconstr !auxiliar
+   logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
+   double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
 
 ! Cut Off QM-MM variables
-      double precision :: rcorteqm ! not used
-      double precision :: rcorteqmmm ! distance for QM-MM interaction
-      double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
-      double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
-      double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a adblommbond
-      double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
-      integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA
-      logical ::  recompute_cuts
+   double precision :: rcorteqm ! not used
+   double precision :: rcorteqmmm ! distance for QM-MM interaction
+   double precision :: rcortemm ! distance for LJ & Coulomb MM interaction
+   double precision :: radbloqmmm ! distance that allow to move MM atoms from QM sub-system
+   double precision :: radblommbond !parche para omitir bonds en extremos terminales, no se computan bonds con distancias mayores a adblommbond
+   double precision :: radinnerbloqmmm !distance that not allow to move MM atoms from QM sub-system
+   integer :: res_ref ! residue that is taken as reference to fix atoms by radial criteria in full MM simulations JOTA
+   logical ::  recompute_cuts
 ! Lio
-      logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
-      logical :: do_properties !control for lio properties calculation
+   logical :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
+   logical :: do_properties !control for lio properties calculation
 
 ! Optimization scheme
-      integer :: opt_scheme ! turn on optimization scheme
-      integer :: optimization_lvl ! level of movement in optimization scheme:
+   integer :: opt_scheme ! turn on optimization scheme
+   integer :: optimization_lvl ! level of movement in optimization scheme:
 ! 1- only QM atoms with restrain
 ! 2- only MM atoms
 ! 3- all
 
 !variables para centrado del sistema, mejorar esto agregando el tensor de inercia, Nick
-      logical :: Nick_cent !activa centrado y conservacion de los ejes de inercia
-      integer :: firstcent ! marca el 1er paso
-      double precision, dimension(9) :: Inivec !inertia tensor autovectors
+   logical :: Nick_cent !activa centrado y conservacion de los ejes de inercia
+   integer :: firstcent ! marca el 1er paso
+   double precision, dimension(9) :: Inivec !inertia tensor autovectors
 
 !variables para cuts
-      integer :: at_MM_cut_QMMM!, r_cut_pos
+   integer :: at_MM_cut_QMMM!, r_cut_pos
 
 ! restarts
-      logical :: foundcrd
-      logical :: foundvat !found velocities in restart
+   logical :: foundcrd
+   logical :: foundvat !found velocities in restart
 
 ! Outputs variables
-      character :: xyzlabel*20 !*.xyz name
-      integer  :: nfce !number of atoms for whom the forces will be writen, wrifces=0,1,2 => nfce = 0, na, nat
-      integer ::  wricoord !number of steps for write coordinates
-      logical :: writeipl
+   character :: xyzlabel*20 !*.xyz name
+   integer  :: nfce !number of atoms for whom the forces will be writen, wrifces=0,1,2 => nfce = 0, na, nat
+   integer ::  wricoord !number of steps for write coordinates
+   logical :: writeipl
 
 ! Auxiliars
-      integer :: i, ia, imm, iunit, ix, itest, inneri, j, at1, k !, k, j, jnick, inick
-      integer ::  at2 ,k1, k2 ! cov matrix construction
-      logical :: leqi
+   integer :: i, ia, imm, iunit, ix, itest, inneri, j, at1, k !, k, j, jnick, inick
+   integer ::  at2 ,k1, k2 ! cov matrix construction
+   logical :: leqi
 
 ! Others that need check
 !!!! General Variables
-      real(dp) :: dt !time step
-      real(dp) :: volcel
-      external :: volcel
+   real(dp) :: dt !time step
+   real(dp) :: volcel
+   external :: volcel
 
-      external &
-       chkdim, cgvc,  ioxv, fixed1, assign, &
-       iofa, ofc, reinit, read_qm, &
-       read_md, fixed2
+   external &
+      chkdim, cgvc,  ioxv, fixed1, assign, &
+      iofa, ofc, reinit, read_qm, &
+      read_md, fixed2
 
 !!!! Solvent General variables
-      double precision  :: sfc
-      logical :: water
+   double precision  :: sfc
+   logical :: water
 
 ! Solvent external variables
-       external &
+   external &
       solv_assign, solv_ene_fce, qmmm_lst_blk, wrtcrd, &
       centermol, centerdyn, link1, link2, link3, ljef, &
       mmForce, readcrd,  prversion, ioxvconstr, &
@@ -188,31 +187,31 @@
 
 ! L_BFGS variables
 !	integer,  parameter    :: m = 5, iprint = 1
-	real(dp), parameter    :: factr  = 1.0d+7, pgtol  = 1.0d-99
-	character(len=60)      :: task, csave
-	logical                :: lsave(4)
-	integer                :: isave(44)
-	real(dp)               :: dsave(29)
-	integer,  allocatable  :: nbd(:), iwa(:)
-	real(dp), allocatable  :: wa(:), limlbfgd(:)
-	integer :: looplb
+   real(dp), parameter    :: factr  = 1.0d+7, pgtol  = 1.0d-99
+   character(len=60)      :: task, csave
+   logical                :: lsave(4)
+   integer                :: isave(44)
+   real(dp)               :: dsave(29)
+   integer,  allocatable  :: nbd(:), iwa(:)
+   real(dp), allocatable  :: wa(:), limlbfgd(:)
+   integer :: looplb
 
-!	rcorteqmmm=0.d0
+!   rorteqmmm=0.d0
 ! Free energy gradient
-      logical :: rconverged ! True when rshiftm converged
-      double precision :: maxforce
-      integer :: maxforceatom, auxiliarunit, auxiliaruniti, i12, j12
-      integer :: INFO_inver
+   logical :: rconverged ! True when rshiftm converged
+   double precision :: maxforce
+   integer :: maxforceatom, auxiliarunit, auxiliaruniti, i12, j12
+   integer :: INFO_inver
 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        !--------------------------------------------------------------------
-        !need to move this to an initializacion subroutine
-        allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
-        allocate(atmsconstr(20,20), ndists(20))
+!--------------------------------------------------------------------
+!need to move this to an initializacion subroutine
+   allocate(typeconstr(20), kforce(20), ro(20), rt(20), coef(20,10))
+   allocate(atmsconstr(20,20), ndists(20))
 
-        ! Initialise some variables
-              relaxd=.false.
+! Initialise some variables
+   relaxd=.false.
               varcel=.false.
               tp=0.0
               cstress=0.0
