@@ -638,7 +638,6 @@
           Ekinion,kn,vn,tempion,nfree,cmcf)
      	  elseif (idyn .eq. -1) then !steepest descend
           call check_convergence(relaxd, natot, cfdummy)
-          Steep_change = .false.
 	        call steep(natot, rclas, cfdummy, Etots, istep)
 	      elseif (idyn .eq. -2) then !L-BFGS
 	        call check_convergence(relaxd, natot, cfdummy)
