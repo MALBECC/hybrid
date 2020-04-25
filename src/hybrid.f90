@@ -817,7 +817,7 @@
 !      do_properties=.false.
 !      end if
       enddo !istepconstr  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
-!      close(34)
+      close(34)
 
 #ifdef LIO
       if(qm) call lio_finalize()
