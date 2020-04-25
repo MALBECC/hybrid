@@ -475,8 +475,7 @@
               if(constropt) then
                 call subconstr1(nconstr,typeconstr,kforce,nstepconstr, &
                 rini,rfin,atmsconstr,dr,ro,ndists,coef,constropt)
-        !        if(feopt .and. typeconstr(1) .ne. 9) STOP &
-        !       "feopt selected without typeconstraint 9"
+
                 if (nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
                   allocate(vatr(3,natot))
                   call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
