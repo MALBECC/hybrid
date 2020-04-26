@@ -16,7 +16,7 @@ MD.TauRelax 5000 fs
 MD.NoseMass 0 eV*fs**2
 MD.TrajFrec 1
 FE.DynType 1
-FE.DynMaxSteps 10000
+FE.DynMaxSteps 1
 Steep.change false
 Steep.in 1d-4
 %block ChemicalSpeciesLabel
