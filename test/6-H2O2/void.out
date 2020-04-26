@@ -17116,3 +17116,182 @@ Timer functions: 346us.
 MM point charges: 0
  NO CONVERGENCE AT         2000  ITERATIONS
  stop for not convergion 4 times
+HYBRID 2.0 -- [ Lio-hybrid ] (1 Jun 2018)
+>> Start of run:  25-APR-2020  20:22:28
+
+                           ***********************       
+                           *  WELCOME TO HYBRID  *       
+                           ***********************       
+
+reinit: Reading from standard input
+************************** Dump of input data file ****************************
+SystemName     cut5
+SystemLabel    cut5
+CenterMolecule T
+NumberOfAtoms         4
+NumberOfSpecies      2
+NetCharge 0.0
+FixSpin  T
+TotalSpin 0.0
+MD.MaxForceTol    0.04 eV/Ang
+NumberOfSolventAtoms      0
+QM.level lio
+%block ConstrainedOpt
+nconstr 1
+steps 99
+type 2
+kte 200
+inicoord 1.2 fincoord  5.000
+atoms 1 2
+%endblock ConstrainedOpt
+%block ChemicalSpeciesLabel
+       1   8  O
+       2   1  H
+%endblock ChemicalSpeciesLabel
+AtomicCoordinatesFormat  Ang
+%block AtomicCoordinatesAndAtomicSpecies
+   0.00000   0.00000   0.000000        1
+   0.00000   0.00000   1.480000        1
+   0.89567   0.00000  -0.316663        2
+  -0.44783   0.77567   1.796667        2
+%endblock AtomicCoordinatesAndAtomicSpecies
+%block SoluteAtomTypes
+  OH  O1    AOX
+  OH  O2    AOX
+  HO  H1    AOX
+  HO  H2    AOX
+%endblock SoluteAtomTypes
+PAO.BasisType split
+PAO.BasisSize       DZP
+PAO.EnergyShift      25 meV
+PAO.SplitNorm       0.15
+WriteMDXmol F
+WriteMullikenPop 0
+XC.functional       GGA
+XC.authors          PBE
+MeshCutoff         150.0 Ry
+SpinPolarized        T
+MaxSCFIterations    80
+DM.MixingWeight      0.1
+DM.NumberPulay       3
+DM.UseSaveDM   T
+MD.USeSaveXV   T
+MD.UseSaveCG   T
+LongOutput    F
+MD.TypeOfRun    CG
+MD.NumCGsteps   500
+%block CutOffRadius
+QM  0.2
+QMMM 100.0
+MM 80.0
+BLO 80.0
+%endblock CutOffRadius
+%block SolventInput
+%endblock SolventInput
+************************** End of input data file *****************************
+
+reinit: -----------------------------------------------------------------------
+reinit: System Name: cut5                                                       
+reinit: -----------------------------------------------------------------------
+reinit: System Label: cut5                
+reinit: -----------------------------------------------------------------------
+ Hi Angi!
+
+hybrid: Running with no MM atoms
+
+read:***********************************************************************
+read: Atomic-coordinates input format  =     Cartesian coordinates (in Ang)
+read: Total number of electrons        =    18
+ opt_scheme vale           0
+read: Dynamics option                  =     CG coord. optimization
+read: Use continuation files for CG    =     T
+read: Free energy gradient calculation on    F
+read: Thermostat 0 = beren, 1 = nose, actual=    0
+read: Thermostat 0 = beren, 1 = nose, actual=           0
+read: Use continuation files for XV    =     T
+read: Maximum number of CG moves       =   500
+read: Max atomic displ per move        =     0.2000  Bohr
+read: Force tolerance                  =     0.0016  Ry/Bohr
+read: Write coordinates each           =     1  steps
+read: MM x QM steps                    =     1
+read: Write forces QM-MM               =     1
+read: ***********************************************************************
+ reading: cut5.XV                          
+
+ioxv: Reading coordinates and velocities from file
+Namelist &lionml not found.
+
+LIO input variables
+ ! -- General and theory level: -- !
+  Natom =     0, Nsol =        0, charge =     0, Nunp =     0, open =  T,
+  basis_set = DZVP                     fitting_set = DZVP Coulomb Fitting     ,
+  int_basis =  T, nMax =  2000, Told =  1.00E-06, Etold =  1.00E-01,
+  IExch =   9, rMax =    16.000000, rMaxS =     5.000000, IGrid =  2,
+  IGrid2 =  2, initial_guess =  0DBug =  F, n_ghosts =    0
+ ! -- Convergence acceleration: -- !
+  conver_method =  1, Gold =    10.000000, DIIS =  F, NDIIS =  30,
+  hybrid_converg =  F, good_cut =  1.00E-03, DIIS_bias =     1.050000,
+  DIIS_start =  1.00E-02, bDIIS_start =  1.00E-03, level_shift =  F,
+  lvl_shift_en =     0.25000000, lvl_shift_cut =     0.00500000
+ ! -- Input and output options: -- !
+  verbose =   3, style =  F, timers =   0, writeXYZ =  T, writeForces =  F,
+  dipole =  F, mulliken =  F, lowdin =  F, fukui =  F, print_coeffs =  F,
+  VCInp =  F, FRestartIn = restart.in               , restart_freq =     0,
+  FRestart = restart.out              , TDRestart =  F, writeDens =  F,
+  TD_rst_freq =    500, gaussian_convert =  F,
+  rst_dens =   0becke =  F
+ ! -- TD-DFT and external field: -- !
+  timeDep =  0, NTDStep =          0, TDStep =     0.00200000, propagator =  1,
+  NBCH =   10, field =  F, a0 =  1000.00000000, epsilon =     1.00000000,
+  Fx =     0.00000000, Fy =     0.00000000, Fz =     0.00000000, n_fields_iso =     0,
+  n_fields_aniso =     0, field_iso_file = field.in                 ,
+  field_aniso_file = fieldaniso.in            , td_do_pop =     0
+ ! -- Effective Core Potentials: -- !
+  ECPMode =  F, ECPTypes =   0, TipeECP = NOT-DEFINED              ,
+  Fock_ECP_read =  F, Fock_ECP_write =  F, cutECP =  T, cut2_0 =    35.00000000,
+  cut3_0 =    45.00000000, verbose_ECP =  0, ECP_debug =  F, fullTimer_ECP =  F,
+  local_nonlocal =  0, ECP_full_range_int =  F
+  ZListECP = 
+ ! -- Minimizations and restraints: -- !
+  steep =  F, minimzation_steep =     0.05000000, energy_cut =     0.00010000,
+  force_cut =     0.00001000, n_min_steeps =   500, lineal_search =  T,
+  n_points =     5, number_restr =     0
+ ! -- CubeGen: -- !
+  CubeGen_only =  F, cube_res =    40, cube_sel =     0, cube_dens =  F,
+  cube_orb =  F, cube_elec =  F, cube_dens_file = dens.cube                ,
+  cube_orb_file = orb.cube                 , cube_elec_file = dens.cube                
+ ! -- GPU Options: -- !
+  energy_all_iterations =  F, assign_all_functions =  F, remove_zero_weights =  T,
+  max_function_exponent =    10, free_global_memory =     0.00000000,
+  sphere_radius =     0.60000002, little_cube_size =     8.00000000,
+  min_points_per_cube =     1, gpu_level =     4
+ ! -- Transport and TBDFT: -- !
+  transport_calc =  F, generate_rho0 =  F, driving_rate =     0.00100000,
+  gate_field =  T, pop_drive =   1, save_charge_freq =     1, TBDFT_calc =     0,
+  MTB =     0, alfaTB =     0.00000000, betaTB =     0.00000000,
+  gammaTB =     0.00000000, start_TDTB =     0,
+  end_TDTB =     0, n_biasTB =     0, driving_rateTB=    0.00000000,
+  nbias=    0, TB_q_tot =   10, TB_charge_ref=    0.00000000, TB_q_told=    0.00000100
+ ! -- Ehrenfest: -- !
+  ndyn_steps =      0, edyn_steps =      0, nullify_forces =  F,
+  wdip_nfreq =     0, wdip_fname = liorun.dip               , rsti_loads =  F,
+  rsto_saves =  F, rsto_nfreq =  F, rsti_fname = liorun.rsti              ,
+  rsto_fname = liorun.rsto              , eefld_on =  F, eefld_ampx =    0.00000000,
+  eefld_ampy =     0.00000000, eefld_ampz =     0.00000000,
+  eefld_timeamp =     0.20000000, eefld_timepos =     1.00000000,
+  eefld_timegfh =  F, eefld_timegih =  F, eefld_wavelen =     0.00000000
+ ! -- Fock Bias Potentials: -- !
+  fockbias_is_active =  F, fockbias_is_shaped =  F, fockbias_timeamp0 =     0.00000000,
+  fockbias_timegrow =     0.00000000, fockbias_timefall =     0.00000000,
+  fockbias_readfile = atombias.in              
+ ! -- DOS and PDOS options: -- !
+  dos_calc =  F, pdos_calc =  F, pdos_allb =  F
+ ! -- VdW interaction options: -- !
+  dftd3 =  F
+ Runing hybrid open shell, with            0 unpaired electrons
+ Runing hybrid open shell, with            0 unpaired electrons
+
+LIO initialisation.
+  Error: Fitting set file 
+/home/jota/000-Cuarentena/bajaryprobar/2/hybrid/lio/dat/basis/fitting/DZVP Coulo
+ not found.
