@@ -97,7 +97,7 @@ $(OBJPATH)/%.o :  %.F90  $(FDF)  $(MAKEFILES) | $(OBJPATH)
 
 hybrid: $(OBJECTS:%.o=$(OBJPATH)/%.o) $(OBJPATH)/$(FDF) | version options
 	@mkdir -p ../bin
-	$(FC) $(FFLAGS) -fopenmp hybrid.f -o ../bin/$@ $^ $(LFLAGS) $(LIBS)
+	$(FC) $(FFLAGS) -fopenmp hybrid.f90 -o ../bin/$@ $^ $(LFLAGS) $(LIBS)
 	@echo
 	@echo "Compilation Succesfull "
 

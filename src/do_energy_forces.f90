@@ -32,6 +32,7 @@
 	angetype, angmtype, dihety,dihmty,impty, evaldihelog, evaldihmlog, &
 	atange, atangm, atdihe, atdihm, atimp, vat, evaldihe, evaldihm, &
 	linkat, linkqm, linkmm, linkmm2, parametro, linkqmtype, Elink, &
+        feopt, &
 !cutoff
 	r_cut_list_QMMM,blocklist,blockqmmm, blockall, listqmmm, &
 !external potential
@@ -145,7 +146,6 @@
 #endif
 	  else
 	    STOP 'NO QM program defined in do_energy_forces'
-!'
 	  end if
 
 
@@ -251,6 +251,7 @@
 	if (external_potential .gt. 0) call external_bias(external_potential,natot,rclas,fdummy,Etots)
       
 ! here Etot in Hartree
+        if (.not. feopt) then
 	write(6,*)
 	write(6,'(/,a)') 'hybrid: Potential Energy Decomposition (eV):'
 	if(qm) write(6,999)           'Elio :',Etot/eV      
@@ -259,6 +260,7 @@
 	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink/kcal
 	write(6,999)    'Etots:  ',Etots/eV
 	call flush(6)
+        endif
 
 ! Sets fdummy to zero inside mmxqm step
 	if(qm.and.mm) then

@@ -67,8 +67,9 @@
         double precision, dimension(:,:), allocatable :: rshxrshm ! <rshift(i)
         double precision, dimension(:,:), allocatable :: cov_matrix !         
         double precision, dimension(:,:), allocatable :: cov_matrix_inverted !
-
-
+        logical :: feopt ! turns on free energy gradient calculations
+        integer :: fedynamic ! inner MD thermostat for free energy gradient calculations
+        integer :: innermax ! max steps for inner MD on feg calculations
 
 !optimization
 	double precision :: Eprev !total energy of previous steep for gradient descend
