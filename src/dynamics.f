@@ -1,5 +1,12 @@
       subroutine verlet2(istep,iunit,iquench,natoms,fa,dt,ma,ntcon,va,
-     .                   xa,kin,temp,nfree,cmcf)
+     .                   xa, kin, temp, nfree, cmcf, rcorteqmmm, 
+     .                   radbloqmmm, Etot, do_SCF, do_QM_forces, 
+     .                   do_properties, istp, step, nbond, nangle, 
+     .                   ndihe, nimp, Etot_amber, Elj, Etots, constropt,
+     .                   nconstr, nstepconstr, typeconstr, kforce, ro, 
+     .                   rt, coef, atmsconstr, ndists, istepconstr, 
+     .                   rcortemm, radblommbond, optimization_lvl, sfc, 
+     .                   water, imm, rini, rfin)
 C *************************************************************************
 C Subroutine for MD simulations using the velocity-Verlet Algrithm.
 C (See Allen-Tildesley, Computer Simulations of Liquids, pg. 81)
@@ -47,7 +54,7 @@ C
 C  Modules
 C
       use precision
-      use scarlett, only: Ang,eV
+      use scarlett, only: Ang,eV,na_u,HYB_TSH
       implicit none
 
       integer 
@@ -56,7 +63,36 @@ C
       double precision
      .  dt,fa(3,natoms),kin,ma(natoms),
      .  va(3,natoms),xa(3,natoms)
-
+C Input to forces
+      integer, intent(inout) :: step !total number of steps in a MMxQM movement (not tested in this version)
+      integer, intent(in) :: istp !number of move step for each restrain starting on 1
+      integer, intent(in) :: imm !MM step by QM each step
+      integer, intent(in) :: nbond, nangle, ndihe, nimp !number of bonds, angles, dihedrals and impropers defined in amber.parm
+      real(dp), intent(inout) :: Etot ! QM + QM-MM interaction energy
+      double precision, intent(out) :: Etot_amber !total MM energy
+      double precision, intent(out) :: Elj !LJ interaction (only QMMM)
+      double precision, intent(out) :: Etots !QM+QMMM+MM energy
+      double precision, intent(in) :: rcortemm ! distance for LJ & Coulomb MM interaction
+      double precision, intent(in) :: radblommbond !parche para omitir bonds en extremos terminales
+      double precision :: rcorteqmmm !Distance for QM-MM interaction
+      double precision, intent(in) :: radbloqmmm !Distance that allow to move MM atoms from QM sub-system
+      logical, intent(in) :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
+      logical, intent(in) :: do_properties !control for lio properties calculation
+      integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme:
+      logical, intent(in) :: constropt !activate restrain optimizaion
+      integer, intent(in) :: nconstr !number of constrains
+      integer, intent(in) :: nstepconstr !numero de pasos en los que barrera la coordenada de reaccion
+      integer, dimension(20), intent(in) :: typeconstr !type of cosntrain (1 to 8)
+      double precision, dimension(20), intent(in) :: kforce !force constant of constrain i
+      double precision :: rini,rfin  !initial and end value of reaction coordinate
+      double precision, dimension(20), intent(in) :: ro ! fixed value of constrain in case nconstr > 1 for contrains 2+
+      double precision, dimension(20), intent(inout) :: rt ! value of reaction coordinate in constrain i
+      double precision, dimension(20,10), intent(in) :: coef ! coeficients for typeconstr=8
+      integer, dimension(20,20), intent(in) :: atmsconstr
+      integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
+      integer, intent(in) :: istepconstr !step of restraint 
+      double precision, intent(in) :: sfc
+      logical, intent(in) :: water
 
 C Internal variables ..........................................................
  
@@ -67,7 +103,9 @@ C Internal variables ..........................................................
      .  dot,dt2,dtby2,fovermp,temp
       
       double precision, dimension(:,:), allocatable, save ::
-     .  accold,vold
+     .  accold,vold,vel_to_lio,fa_to_lio
+
+      logical :: do_HOPP ! TSH hopp
 C ........................
 
 
@@ -139,6 +177,31 @@ C Quench velocity components going uphill
 
       endif
 C ................
+
+C Surface Hopping
+      if ( HYB_TSH ) then
+         do_HOPP = .false.
+         allocate(vel_to_lio(3,na_u)); vel_to_lio = va(:,1:na_u)
+         allocate(fa_to_lio(3,natoms)); fa_to_lio = fa
+         call do_energy_forces(rcorteqmmm, radbloqmmm, Etot,
+     .        do_SCF, do_QM_forces, do_properties, istp, step,
+     .        nbond, nangle, ndihe, nimp, Etot_amber, Elj,
+     .        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce,
+     .        ro, rt, coef, atmsconstr, ndists, istepconstr, rcortemm,
+     .        radblommbond, optimization_lvl, dt, sfc, water,
+     .        1, rini, rfin, vel_to_lio, do_HOPP, .true.)
+
+C             If the hopp is frustated -> do_TSH = .false., but if the hopp has occurred
+C             the hopp is .true. -> change forces
+         if ( do_HOPP ) then
+            write(6,*) "HOPP, Changes vel and forces in HYB"
+            va(:,1:na_u) = vel_to_lio
+         else
+            write(6,*) "NO HOPP"
+            fa=fa_to_lio
+         endif
+         deallocate(vel_to_lio,fa_to_lio)
+      endif ! end HYB TSH
 
 C Compute positions at next time step.....................................
       do ia = 1,natoms
@@ -256,6 +319,14 @@ C Internal variables ..........................................................
       logical bervble
       save    bervble
       data    bervble /.false./
+
+
+C ........................
+C******************************
+C TEST JOTA - SACAR AL TERMINAR
+C      tau = tau*10000.d0
+C******************************
+
 
       if (iunit .ne. 1 .and. iunit .ne. 2 .and. iunit .ne. 3) then
           write(6,*) 'verlet2: Wrong iunit option;  must be 1, 2 or 3'

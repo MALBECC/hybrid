@@ -407,7 +407,7 @@ Program HYBRID
       Etot=0.d0
       fa=0.d0
 #ifdef LIO
-      call init_lio_hybrid(1,na_u, nac, charge, iza, spin)
+      call init_lio_hybrid(2, na_u, nac, charge, iza, spin, dt)
 #else
       if (leqi(qm_level,'orca')) then
       else
@@ -545,7 +545,7 @@ Program HYBRID
                       Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
-                      imm, rini, rfin)
+                      imm, rini, rfin, vat, .false., .false.)
               else
                  call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
                       do_SCF, do_QM_forces, do_properties, istp, step, &
@@ -625,9 +625,15 @@ Program HYBRID
                   call check_convergence(relaxd, natot, cfdummy)
                   if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat, &
                   time_steep, Ndescend, time_steep_max, alpha)
-               elseif (idyn .eq. 4) then !verlet
+               elseif (idyn .eq. 4) then !verlet or TSH
                   call verlet2(istp, 3, 0, natot, cfdummy, dt, &
-                  masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
+                  masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf, &
+                  rcorteqmmm, radbloqmmm, Etot, do_SCF, do_QM_forces, &
+                  do_properties, istp, step, nbond, nangle, ndihe, nimp, &
+                  Etot_amber, Elj, Etots, constropt,nconstr, nstepconstr, &
+                  typeconstr, kforce, ro, rt, coef, atmsconstr, ndists, &
+                  istepconstr, rcortemm, radblommbond, optimization_lvl, &
+                  sfc, water, imm, rini, rfin)
 !iquench lo dejamos como 0, luego cambiar
                elseif (idyn .eq. 5) then !berendsen
                   call berendsen(istp,3,natot,cfdummy,dt,tauber,masst, &
