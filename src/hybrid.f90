@@ -407,7 +407,7 @@ Program HYBRID
       Etot=0.d0
       fa=0.d0
 #ifdef LIO
-      call init_lio_hybrid(2, na_u, nac, charge, iza, spin, dt)
+      call init_lio_hybrid(2, na_u, nac, charge, iza, spin, dt, masst(1:na_u))
 #else
       if (leqi(qm_level,'orca')) then
       else
