@@ -674,11 +674,12 @@ Program HYBRID
                             'Potential energyy of Nose var:', vn, 'eV'
                   endif
 !     if(qm) call centerdyn(na_u,rclas,ucell,natot)
-                  if (MOD((istp - inicoor),traj_frec) .eq. 0) then
-                     call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
-                          rclas,atname,aaname,aanum,nesp,atsym,isa)
-                  endif
                endif
+               if (MOD((istp - inicoor),traj_frec) .eq. 0) then
+                  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
+                       rclas,atname,aaname,aanum,nesp,atsym,isa)
+               endif
+
 
 !Nick center
                if (qm .and. .not. mm .and. Nick_cent) then
