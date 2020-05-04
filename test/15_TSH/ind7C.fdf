@@ -1,0 +1,58 @@
+SystemName     I7C
+SystemLabel    I7C
+CenterMolecule T    
+CG.Nick_center F    
+NumberOfAtoms        18
+NumberOfSpecies      4
+NetCharge 0.0       
+FixSpin  T          
+TotalSpin 0.0       
+MD.MaxForceTol    0.04 eV/Ang 
+NumberOfSolventAtoms   0
+%block ChemicalSpeciesLabel   
+       1   1  H
+       2   6  C 
+       3   7  N 
+       4   8  O 
+%endblock ChemicalSpeciesLabel
+ 
+AtomicCoordinatesFormat  Ang  
+%block AtomicCoordinatesAndAtomicSpecies
+    100.5848118      3.014114370     -3.809689386  1 
+    7.541899969      5.060688579     -6.289011049  1 
+    9.622489262      8.261885910     -2.959312291  1 
+    213.8063408      2.870495127      1.377610894  1 
+    3.452531006      4.446527343      5.637055276  1 
+    7.305684109      7.112931968      6.289011049  1 
+   10.920731627      9.469421385      4.620382216  1 
+    7.205528585      5.285566077     -4.291569739  2 
+    5.081475574      4.185745034     -3.057578088  2 
+    7.715754842      6.253106239     -0.175744600  2 
+    5.550127840      4.765891186     -0.470541993  2 
+    4.055353880      4.010000435      1.596819212  2 
+    4.671404842      4.858487803      4.068581968  2 
+    6.699081782      6.432630292      4.406843079  2 
+    8.297790720      7.245212849      2.356489417  2 
+   10.370821105      8.876047145      2.749552607  2 
+    8.728648448      6.678294786     -2.560579919  3 
+   11.570797673      9.762329051      1.012893606  4 
+%endblock AtomicCoordinatesAndAtomicSpecies
+ 
+QM.level lio
+MD.LengthTimeStep 0.5 fs
+!MD.InitialTemperature 300 K
+MD.TrajFrec 1
+ 
+MD.USeSaveXV   T
+MD.HYB_TSH     T
+
+MD.TypeOfRun    verlet
+MD.NumCGsteps   500
+
+%block CutOffRadius       
+QM  0.2                   
+QMMM 1000.0                 
+MM 80                 
+BLO 0.1                   
+MMBLO 8.0                 
+%endblock CutOffRadius    

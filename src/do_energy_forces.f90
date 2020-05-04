@@ -14,7 +14,8 @@
 	nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
 	Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
 	rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
-	radblommbond, optimization_lvl, dt, sfc, water, imm, rini, rfin)
+	radblommbond, optimization_lvl, dt, sfc, water, imm, rini, rfin, &
+        vel_lio, do_HOPP, do_ElecInterp)
 
 ! Modules
 	use precision, only: dp
@@ -73,6 +74,8 @@
 ! Lio
 	logical, intent(in) :: do_SCF, do_QM_forces !control for make new calculation of rho, forces in actual step
 	logical, intent(in) :: do_properties !control for lio properties calculation
+	logical, intent(in) :: do_ElecInterp ! control for TSH routine
+	logical, intent(inout) :: do_HOPP    ! control for TSH hopp with LIO
 
 ! Optimization scheme
 	integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme:
@@ -90,6 +93,7 @@
 	double precision, dimension(20), intent(in) :: ro ! fixed value of constrain in case nconstr > 1 for contrains 2+
 	double precision, dimension(20), intent(inout) :: rt ! value of reaction coordinate in constrain i
 	double precision, dimension(20,10), intent(in) :: coef ! coeficients for typeconstr=8
+	double precision, dimension(3,na_u), intent(inout) :: vel_lio ! qm velocities
 	integer, dimension(20,20), intent(in) :: atmsconstr 
 	integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
 	integer, intent(in) :: istepconstr !step of restraint 
@@ -133,8 +137,9 @@
 
 	  if (leqi(qm_level,'lio')) then ! call Lio QM/MM
 #ifdef LIO
-	    call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
-	    F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, do_properties) !fuerzas lio, Nick
+         call SCF_hyb(na_u, at_MM_cut_QMMM, r_cut_QMMM, Etot, &
+               F_cut_QMMM, Iz_cut_QMMM, do_SCF, do_QM_forces, &
+               do_properties, vel_lio, do_HOPP, do_ElecInterp) !fuerzas lio, Nick
 #else
 	  stop ('lio not defined compile with qm_lio=1')
 #endif

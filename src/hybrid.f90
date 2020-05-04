@@ -407,7 +407,7 @@ Program HYBRID
       Etot=0.d0
       fa=0.d0
 #ifdef LIO
-      call init_lio_hybrid(1,na_u, nac, charge, iza, spin)
+      call init_lio_hybrid(2, na_u, nac, charge, iza, spin, dt, masst(1:na_u))
 #else
       if (leqi(qm_level,'orca')) then
       else
@@ -545,7 +545,11 @@ Program HYBRID
                       Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
+<<<<<<< HEAD
                       imm, rini, rfin)
+=======
+                      imm, rini, rfin, vat, .false., .false.)
+>>>>>>> dc777f03750aa036e8a9cc996d8a197a229243e4
               else
                  call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
                       do_SCF, do_QM_forces, do_properties, istp, step, &
@@ -625,9 +629,21 @@ Program HYBRID
                   call check_convergence(relaxd, natot, cfdummy)
                   if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat, &
                   time_steep, Ndescend, time_steep_max, alpha)
+<<<<<<< HEAD
                elseif (idyn .eq. 4) then !verlet
                   call verlet2(istp, 3, 0, natot, cfdummy, dt, &
                   masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
+=======
+               elseif (idyn .eq. 4) then !verlet or TSH
+                  call verlet2(istp, 3, 0, natot, cfdummy, dt, &
+                  masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf, &
+                  rcorteqmmm, radbloqmmm, Etot, do_SCF, do_QM_forces, &
+                  do_properties, istp, step, nbond, nangle, ndihe, nimp, &
+                  Etot_amber, Elj, Etots, constropt,nconstr, nstepconstr, &
+                  typeconstr, kforce, ro, rt, coef, atmsconstr, ndists, &
+                  istepconstr, rcortemm, radblommbond, optimization_lvl, &
+                  sfc, water, imm, rini, rfin)
+>>>>>>> dc777f03750aa036e8a9cc996d8a197a229243e4
 !iquench lo dejamos como 0, luego cambiar
                elseif (idyn .eq. 5) then !berendsen
                   call berendsen(istp,3,natot,cfdummy,dt,tauber,masst, &
@@ -668,11 +684,20 @@ Program HYBRID
                             'Potential energyy of Nose var:', vn, 'eV'
                   endif
 !     if(qm) call centerdyn(na_u,rclas,ucell,natot)
+<<<<<<< HEAD
                   if (MOD((istp - inicoor),traj_frec) .eq. 0) then
                      call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
                           rclas,atname,aaname,aanum,nesp,atsym,isa)
                   endif
                endif
+=======
+               endif
+               if (MOD((istp - inicoor),traj_frec) .eq. 0) then
+                  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
+                       rclas,atname,aaname,aanum,nesp,atsym,isa)
+               endif
+
+>>>>>>> dc777f03750aa036e8a9cc996d8a197a229243e4
 
 !Nick center
                if (qm .and. .not. mm .and. Nick_cent) then
