@@ -1,0 +1,32 @@
+bonds
+2
+C -C   620.0    1.526       Benjamin et al, 1993
+C -Cl  464.0    1.787       Benjamin et al, 1993
+angles
+1
+C -C -Cl    88.0      108.20    Benjamin et al, 1993
+dihes
+0
+imps
+0
+residues
+1
+DCE 4
+ "Cl1" "Cl" 0 1 131072 1 17 -0.227002
+ "C1" "C" 0 1 131072 2 6   0.227000
+ "C2" "C" 0 1 131072 3 6   0.227000
+ "Cl2" "Cl" 0 1 131072 4 17 -0.227002
+ljs
+2
+  Cl          0.1000  0.0000
+  C           0.1000  0.0000
+connectivity
+1
+DCE 3 
+ 2 1
+ 2 3
+ 3 4
+impropers
+0
+DONE
+

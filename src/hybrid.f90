@@ -1,3 +1,4 @@
+
       Program HYBRID
 !****************************************************************************
 ! Program for QM-MM calculations.
@@ -120,6 +121,9 @@
       integer :: istepconstr !auxiliar
       logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
       double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
+
+! Custom potentials
+      integer :: custompot_type
 
 ! Cut Off QM-MM variables
       double precision :: rcorteqm ! not used
@@ -268,6 +272,7 @@
               nstepconstr = 0
               numlink = fdf_integer('LinkAtoms',0)
               linkatom = .false.
+              custompot_type = 0
 
               if(numlink.ne.0) linkatom = .true.
 
@@ -279,6 +284,8 @@
               constropt = fdf_block('ConstrainedOpt',iunit)
               foundvat = .false.
               writeipl = fdf_boolean('WriIniParLas',.false.)
+
+              call custom_potentials_assign(custompot_type)
 
         ! Read and assign Solvent variables
               if(mm) then
@@ -547,7 +554,7 @@
         Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
         rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
         radblommbond, optimization_lvl, dt, sfc, water, &
-        imm, rini, rfin)
+        imm, rini, rfin, custompot_type)
       else
         call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
         do_SCF, do_QM_forces, do_properties, istp, step, &
@@ -556,7 +563,7 @@
         rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
         radblommbond, optimization_lvl, dt, sfc, water, &
         imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon, &
-        nfree,cmcf)
+        nfree,cmcf, custompot_type)
       endif
 !       enddo
 
