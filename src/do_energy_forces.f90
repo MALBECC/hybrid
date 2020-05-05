@@ -15,7 +15,7 @@
 	Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
 	rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
 	radblommbond, optimization_lvl, dt, sfc, water, imm, rini, rfin, &
-  vel_lio, do_HOPP, do_ElecInterp)
+        vel_lio, do_HOPP, do_ElecInterp,custompot_type)
 
 ! Modules
 	use precision, only: dp
