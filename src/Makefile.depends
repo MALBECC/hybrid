@@ -62,6 +62,7 @@ OBJECTS += linpack.o
 OBJECTS += blas.o
 OBJECTS += timer.o
 OBJECTS += fe_opt.o
+OBJECTS += custom_potentials.o
 OBJECTS += SCF_orca.o
 
 FDF=libfdf.a
@@ -97,7 +98,8 @@ tmplist += iofa.o
 tmplist += ofc.o
 tmplist += solv_assign.o
 tmplist += fixed.o 
-tmplist += linkatom.o 
+tmplist += linkatom.o
+tmplist += custom_potentials.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/$(FDF)
 
 ################################################################################
@@ -126,6 +128,7 @@ tmplist += subconstr.o
 tmplist += vmb.o
 tmplist += writeall.o
 tmplist += fe_opt.o
+tmplist += custom_potentials.o
 $(tmplist:%.o=$(OBJPATH)/%.o) : $(OBJPATH)/scarlett_mod.mod 
 
 ################################################################################

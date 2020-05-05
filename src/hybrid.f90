@@ -1,3 +1,4 @@
+
 Program HYBRID
 !****************************************************************************
 ! Program for QM-MM calculations.
@@ -120,6 +121,9 @@ Program HYBRID
    logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
    double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
 
+! Custom potentials
+      integer :: custompot_type
+
 ! Cut Off QM-MM variables
    double precision :: rcorteqm ! not used
    double precision :: rcorteqmmm ! distance for QM-MM interaction
@@ -198,6 +202,7 @@ Program HYBRID
 
 !   rorteqmmm=0.d0
 ! Free energy gradient
+
    logical :: rconverged ! True when rshiftm converged
    double precision :: maxforce
    integer :: maxforceatom, auxiliarunit, auxiliaruniti, i12, j12
@@ -482,6 +487,78 @@ Program HYBRID
       if (typeconstr(1) .eq. 9 .and. feopt) then !alocatea cosas para FE
          allocate(rshiftm(3,natot),rshiftm2(3,natot),fef(3,natot), &
                   rshiftsd(3,natot))
+                endif
+              endif
+        !      endif
+              do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
+        ! istepconstr marca la posicion del restrain
+                optimization_lvl=3
+                if (opt_scheme .eq. 1) optimization_lvl=1
+
+                if(constropt) then
+                  write(6,*)
+                  write(6,'(A)')    '*******************************'
+                  write(6,'(A,i5)') '  Constrained Step : ', istepconstr
+                  write(6,'(A)')    '*******************************'
+                endif
+
+        ! Begin of coordinate relaxation iteration ============================
+                if (idyn .lt. 7 ) then ! case 0 1 2 3
+                  inicoor = 0
+                  fincoor = nmove
+                endif
+                at_MM_cut_QMMM=nac
+
+
+        ! Start loop over coordinate changes
+                istp = 0
+                do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
+                  istp = istp + 1
+
+                  write(6,'(/2a)') 'hybrid:                 ', &
+                                   '=============================='
+
+                  if (idyn .ge. 7) &
+                  STOP 'only STEEP, CG, QM, FIRE or NEB minimization available'
+
+                  write(6,'(28(" "),a,i6)') 'Begin move = ',istep
+                  write(6,'(2a)') '                        ', &
+                                  '=============================='
+                  write(6,*) "Optimization level: ", optimization_lvl
+
+        !start loot over NEB images
+                  do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
+                    if (idyn .eq.1) rclas(1:3,1:natot)= &
+                    rclas_BAND(1:3,1:natot,replica_number)
+
+                    if (NEB_Nimages.gt.1) then
+                      write(6,'(/2a)') '                        ', &
+                      '================================================'
+                      write(6,'(28(" "),a,i6)') 'Force calculation on Image = ', &
+                      replica_number
+                      write(6,'(2a)') '                        ', &
+                         '================================================'
+                    endif
+
+
+      do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
+      if (.not. feopt) then
+        call do_energy_forces(rcorteqmmm, radbloqmmm, Etot, &
+        do_SCF, do_QM_forces, do_properties, istp, step, &
+        nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
+        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
+        rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
+        radblommbond, optimization_lvl, dt, sfc, water, &
+        imm, rini, rfin, custompot_type)
+      else
+        call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
+        do_SCF, do_QM_forces, do_properties, istp, step, &
+        nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
+        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
+        rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
+        radblommbond, optimization_lvl, dt, sfc, water, &
+        imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon, &
+        nfree,cmcf, custompot_type)
       endif
    endif
 
@@ -545,11 +622,7 @@ Program HYBRID
                       Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
-<<<<<<< HEAD
-                      imm, rini, rfin)
-=======
                       imm, rini, rfin, vat, .false., .false.)
->>>>>>> dc777f03750aa036e8a9cc996d8a197a229243e4
               else
                  call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
                       do_SCF, do_QM_forces, do_properties, istp, step, &
@@ -629,11 +702,7 @@ Program HYBRID
                   call check_convergence(relaxd, natot, cfdummy)
                   if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat, &
                   time_steep, Ndescend, time_steep_max, alpha)
-<<<<<<< HEAD
-               elseif (idyn .eq. 4) then !verlet
-                  call verlet2(istp, 3, 0, natot, cfdummy, dt, &
-                  masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf)
-=======
+
                elseif (idyn .eq. 4) then !verlet or TSH
                   call verlet2(istp, 3, 0, natot, cfdummy, dt, &
                   masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf, &
@@ -643,7 +712,6 @@ Program HYBRID
                   typeconstr, kforce, ro, rt, coef, atmsconstr, ndists, &
                   istepconstr, rcortemm, radblommbond, optimization_lvl, &
                   sfc, water, imm, rini, rfin)
->>>>>>> dc777f03750aa036e8a9cc996d8a197a229243e4
 !iquench lo dejamos como 0, luego cambiar
                elseif (idyn .eq. 5) then !berendsen
                   call berendsen(istp,3,natot,cfdummy,dt,tauber,masst, &
@@ -684,20 +752,13 @@ Program HYBRID
                             'Potential energyy of Nose var:', vn, 'eV'
                   endif
 !     if(qm) call centerdyn(na_u,rclas,ucell,natot)
-<<<<<<< HEAD
-                  if (MOD((istp - inicoor),traj_frec) .eq. 0) then
-                     call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
-                          rclas,atname,aaname,aanum,nesp,atsym,isa)
-                  endif
-               endif
-=======
+
                endif
                if (MOD((istp - inicoor),traj_frec) .eq. 0) then
                   call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
                        rclas,atname,aaname,aanum,nesp,atsym,isa)
                endif
 
->>>>>>> dc777f03750aa036e8a9cc996d8a197a229243e4
 
 !Nick center
                if (qm .and. .not. mm .and. Nick_cent) then
