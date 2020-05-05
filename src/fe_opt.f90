@@ -88,7 +88,7 @@
         Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,&
         rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
         radblommbond, optimization_lvl, dt, sfc, water,&
-        imm,rini,rfin,vat,.false.,.false.)
+        imm,rini,rfin,vat,.false.,.false.,custompot_type)
 
        if (fedynamic .eq. 0) then !berendsen
          call berendsen(inneri,3,natot,cfdummy,dt,tauber,masst, &
