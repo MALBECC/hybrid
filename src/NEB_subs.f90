@@ -5,7 +5,7 @@
 	use scarlett, only: NEB_firstimage, NEB_lastimage,  &
         NEB_move_method, NEB_spring_constant, &
         ftol, NEB_steep_size, NEB_MAXFmod, NEB_Nimages, &
-	verbose_level, rclas_BAND
+	verbose_level, rclas_BAND, feopt
 	implicit none
 	integer, intent(in) :: istep
 	logical, intent(inout) :: relaxd
@@ -83,11 +83,11 @@
 	  if (MAXFmod_total .gt. NEB_MAXFmod) NEB_steep_size=NEB_steep_size*0.85d0
 	  NEB_MAXFmod=MAXFmod_total
 
-! Comento estoy porque con feopt los gradientes son chiquitos
-!   if (NEB_steep_size.lt.1d-5) then
-!	    relaxd=.true.
-!	    write(*,*) "max precision reached on atomic displacement"
-!	  end if
+
+   if (NEB_steep_size.lt.1d-5 .and. .not. feopt) then
+	    relaxd=.true.
+	    write(*,*) "max precision reached on atomic displacement"
+   end if
 
 	else if (NEB_move_method .ge. 2) THEN
 	  CALL NEB_calculate_T(NEB_Ekin)
