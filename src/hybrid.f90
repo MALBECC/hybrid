@@ -487,80 +487,9 @@ Program HYBRID
       if (typeconstr(1) .eq. 9 .and. feopt) then !alocatea cosas para FE
          allocate(rshiftm(3,natot),rshiftm2(3,natot),fef(3,natot), &
                   rshiftsd(3,natot))
-                endif
-              endif
-        !      endif
-              do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
-        ! istepconstr marca la posicion del restrain
-                optimization_lvl=3
-                if (opt_scheme .eq. 1) optimization_lvl=1
-
-                if(constropt) then
-                  write(6,*)
-                  write(6,'(A)')    '*******************************'
-                  write(6,'(A,i5)') '  Constrained Step : ', istepconstr
-                  write(6,'(A)')    '*******************************'
-                endif
-
-        ! Begin of coordinate relaxation iteration ============================
-                if (idyn .lt. 7 ) then ! case 0 1 2 3
-                  inicoor = 0
-                  fincoor = nmove
-                endif
-                at_MM_cut_QMMM=nac
-
-
-        ! Start loop over coordinate changes
-                istp = 0
-                do istep = inicoor,fincoor    !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< CG optimization cicle
-                  istp = istp + 1
-
-                  write(6,'(/2a)') 'hybrid:                 ', &
-                                   '=============================='
-
-                  if (idyn .ge. 7) &
-                  STOP 'only STEEP, CG, QM, FIRE or NEB minimization available'
-
-                  write(6,'(28(" "),a,i6)') 'Begin move = ',istep
-                  write(6,'(2a)') '                        ', &
-                                  '=============================='
-                  write(6,*) "Optimization level: ", optimization_lvl
-
-        !start loot over NEB images
-                  do replica_number = NEB_firstimage, NEB_lastimage      !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< Band Replicas
-                    if (idyn .eq.1) rclas(1:3,1:natot)= &
-                    rclas_BAND(1:3,1:natot,replica_number)
-
-                    if (NEB_Nimages.gt.1) then
-                      write(6,'(/2a)') '                        ', &
-                      '================================================'
-                      write(6,'(28(" "),a,i6)') 'Force calculation on Image = ', &
-                      replica_number
-                      write(6,'(2a)') '                        ', &
-                         '================================================'
-                    endif
-
-
-      do imm=1,mmsteps !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< MMxQM Steps
-      if (.not. feopt) then
-        call do_energy_forces(rcorteqmmm, radbloqmmm, Etot, &
-        do_SCF, do_QM_forces, do_properties, istp, step, &
-        nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
-        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
-        rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
-        radblommbond, optimization_lvl, dt, sfc, water, &
-        imm, rini, rfin, custompot_type)
-      else
-        call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
-        do_SCF, do_QM_forces, do_properties, istp, step, &
-        nbond, nangle, ndihe, nimp, Etot_amber, Elj, &
-        Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
-        rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
-        radblommbond, optimization_lvl, dt, sfc, water, &
-        imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon, &
-        nfree,cmcf, custompot_type)
       endif
    endif
+  !      endif
 
    do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
@@ -622,7 +551,7 @@ Program HYBRID
                       Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
-                      imm, rini, rfin, vat, .false., .false.)
+                      imm, rini, rfin, vat, .false., .false.,custompot_type)
               else
                  call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
                       do_SCF, do_QM_forces, do_properties, istp, step, &
@@ -631,7 +560,7 @@ Program HYBRID
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
                       imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon, &
-                      nfree,cmcf)
+                      nfree,cmcf,custompot_type)
               endif
 
              call wripdb(na_u,slabel,rclas,natot,step,nac,atname, &
