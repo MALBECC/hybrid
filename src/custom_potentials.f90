@@ -1,11 +1,11 @@
-!-------------------------------------------------------------------------
+!****************************************************************************
 ! This subroutine reads fdf specifications regarding custom potentials.
 ! Additional custom potential options should be added here.
 ! Options available
 ! custompot_type = 1 Special potential for a certain torsion
-! dihe_type = 1 Cosine series: sum from i=1 to ncos V(i)*cos(dihe)**(i-1)                 
+!   dihe_type = 1 Cosine series: sum from i=1 to ncos V(i)*cos(dihe)**(i-1)                 
 ! custompot_type = 2 LEPS potential (comming soon)
-!-------------------------------------------------------------------------
+!****************************************************************************
 
   subroutine custom_potentials_assign(custompot_type)
 
