@@ -1,4 +1,3 @@
-
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
@@ -8,325 +7,325 @@ END  1
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.032   1.450   4.056
+ATOM      4  Cl2 DCE A   1      -0.031   1.450   4.056
 END  2
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.065   1.450   4.055
+ATOM      3  C2  DCE A   1       0.000   1.449   2.268
+ATOM      4  Cl2 DCE A   1      -0.063   1.450   4.055
 END  3
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.098   1.449   4.054
+ATOM      4  Cl2 DCE A   1      -0.095   1.449   4.054
 END  4
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.130   1.449   4.052
+ATOM      4  Cl2 DCE A   1      -0.127   1.449   4.052
 END  5
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -0.162   1.449   4.050
+ATOM      4  Cl2 DCE A   1      -0.158   1.449   4.050
 END  6
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.195   1.451   4.046
+ATOM      3  C2  DCE A   1       0.000   1.448   2.270
+ATOM      4  Cl2 DCE A   1      -0.190   1.450   4.047
 END  7
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -0.227   1.451   4.043
+ATOM      3  C2  DCE A   1       0.000   1.449   2.269
+ATOM      4  Cl2 DCE A   1      -0.221   1.453   4.042
 END  8
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.259   1.455   4.037
+ATOM      3  C2  DCE A   1       0.000   1.448   2.269
+ATOM      4  Cl2 DCE A   1      -0.253   1.453   4.039
 END  9
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -0.291   1.455   4.033
+ATOM      3  C2  DCE A   1       0.000   1.449   2.268
+ATOM      4  Cl2 DCE A   1      -0.284   1.456   4.033
 END 10
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.324   1.459   4.027
+ATOM      3  C2  DCE A   1       0.000   1.448   2.269
+ATOM      4  Cl2 DCE A   1      -0.315   1.456   4.029
 END 11
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -0.355   1.458   4.022
+ATOM      3  C2  DCE A   1       0.000   1.449   2.268
+ATOM      4  Cl2 DCE A   1      -0.347   1.460   4.022
 END 12
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.387   1.463   4.014
+ATOM      3  C2  DCE A   1       0.000   1.448   2.269
+ATOM      4  Cl2 DCE A   1      -0.378   1.460   4.017
 END 13
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -0.419   1.464   4.007
+ATOM      3  C2  DCE A   1       0.000   1.449   2.268
+ATOM      4  Cl2 DCE A   1      -0.409   1.464   4.009
 END 14
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.450   1.468   3.998
+ATOM      4  Cl2 DCE A   1      -0.440   1.467   4.001
 END 15
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.482   1.471   3.990
+ATOM      4  Cl2 DCE A   1      -0.470   1.470   3.993
 END 16
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.513   1.474   3.981
+ATOM      4  Cl2 DCE A   1      -0.501   1.472   3.984
 END 17
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.544   1.477   3.971
+ATOM      4  Cl2 DCE A   1      -0.531   1.476   3.975
 END 18
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.268
-ATOM      4  Cl2 DCE A   1      -0.575   1.480   3.961
+ATOM      4  Cl2 DCE A   1      -0.562   1.479   3.965
 END 19
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.605   1.484   3.950
+ATOM      4  Cl2 DCE A   1      -0.592   1.482   3.955
 END 20
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.635   1.488   3.939
+ATOM      4  Cl2 DCE A   1      -0.622   1.486   3.944
 END 21
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.666   1.491   3.927
+ATOM      4  Cl2 DCE A   1      -0.652   1.490   3.933
 END 22
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.695   1.495   3.915
+ATOM      4  Cl2 DCE A   1      -0.681   1.494   3.921
 END 23
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.725   1.500   3.902
+ATOM      4  Cl2 DCE A   1      -0.711   1.498   3.908
 END 24
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.754   1.504   3.888
+ATOM      3  C2  DCE A   1       0.000   1.449   2.268
+ATOM      4  Cl2 DCE A   1      -0.740   1.502   3.895
 END 25
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.783   1.509   3.875
+ATOM      4  Cl2 DCE A   1      -0.769   1.507   3.882
 END 26
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.812   1.514   3.860
+ATOM      4  Cl2 DCE A   1      -0.798   1.511   3.867
 END 27
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.841   1.519   3.845
+ATOM      4  Cl2 DCE A   1      -0.826   1.516   3.853
 END 28
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.869   1.524   3.830
+ATOM      4  Cl2 DCE A   1      -0.854   1.521   3.838
 END 29
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.897   1.529   3.814
+ATOM      4  Cl2 DCE A   1      -0.882   1.526   3.822
 END 30
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.924   1.535   3.797
+ATOM      4  Cl2 DCE A   1      -0.910   1.532   3.805
 END 31
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.951   1.540   3.780
+ATOM      4  Cl2 DCE A   1      -0.937   1.537   3.789
 END 32
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -0.978   1.546   3.762
+ATOM      4  Cl2 DCE A   1      -0.964   1.543   3.771
 END 33
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -1.004   1.552   3.744
+ATOM      4  Cl2 DCE A   1      -0.991   1.549   3.753
 END 34
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -1.030   1.558   3.726
+ATOM      4  Cl2 DCE A   1      -1.018   1.555   3.735
 END 35
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -1.056   1.565   3.707
+ATOM      4  Cl2 DCE A   1      -1.044   1.562   3.716
 END 36
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -1.081   1.571   3.688
+ATOM      4  Cl2 DCE A   1      -1.069   1.568   3.697
 END 37
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -1.106   1.578   3.668
+ATOM      4  Cl2 DCE A   1      -1.095   1.575   3.677
 END 38
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.449   2.269
-ATOM      4  Cl2 DCE A   1      -1.130   1.584   3.648
+ATOM      4  Cl2 DCE A   1      -1.120   1.581   3.656
 END 39
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -1.154   1.591   3.627
+ATOM      3  C2  DCE A   1       0.000   1.449   2.269
+ATOM      4  Cl2 DCE A   1      -1.144   1.588   3.636
 END 40
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -1.178   1.599   3.606
+ATOM      4  Cl2 DCE A   1      -1.169   1.596   3.614
 END 41
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -1.201   1.606   3.584
+ATOM      4  Cl2 DCE A   1      -1.192   1.603   3.592
 END 42
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.269
-ATOM      4  Cl2 DCE A   1      -1.224   1.613   3.562
+ATOM      4  Cl2 DCE A   1      -1.216   1.610   3.570
 END 43
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.246   1.621   3.540
+ATOM      3  C2  DCE A   1       0.000   1.448   2.269
+ATOM      4  Cl2 DCE A   1      -1.239   1.618   3.547
 END 44
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.268   1.628   3.517
+ATOM      4  Cl2 DCE A   1      -1.261   1.626   3.524
 END 45
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.289   1.636   3.494
+ATOM      4  Cl2 DCE A   1      -1.283   1.634   3.501
 END 46
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.310   1.644   3.470
+ATOM      4  Cl2 DCE A   1      -1.305   1.642   3.477
 END 47
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.331   1.652   3.446
+ATOM      4  Cl2 DCE A   1      -1.326   1.650   3.452
 END 48
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.351   1.660   3.422
+ATOM      4  Cl2 DCE A   1      -1.347   1.658   3.427
 END 49
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.370   1.668   3.397
+ATOM      4  Cl2 DCE A   1      -1.367   1.667   3.402
 END 50
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.389   1.677   3.372
+ATOM      4  Cl2 DCE A   1      -1.386   1.676   3.376
 END 51
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.407   1.685   3.347
+ATOM      4  Cl2 DCE A   1      -1.405   1.684   3.350
 END 52
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.425   1.694   3.321
+ATOM      4  Cl2 DCE A   1      -1.424   1.693   3.323
 END 53
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.443   1.702   3.295
+ATOM      4  Cl2 DCE A   1      -1.442   1.702   3.297
 END 54
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.460   1.711   3.269
+ATOM      4  Cl2 DCE A   1      -1.459   1.711   3.270
 END 55
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
@@ -338,259 +337,259 @@ END 56
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.270
-ATOM      4  Cl2 DCE A   1      -1.492   1.729   3.215
+ATOM      4  Cl2 DCE A   1      -1.492   1.729   3.214
 END 57
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.507   1.738   3.188
+ATOM      4  Cl2 DCE A   1      -1.508   1.739   3.186
 END 58
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.521   1.748   3.161
+ATOM      4  Cl2 DCE A   1      -1.523   1.748   3.158
 END 59
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.535   1.757   3.133
+ATOM      4  Cl2 DCE A   1      -1.537   1.758   3.130
 END 60
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.549   1.766   3.105
+ATOM      4  Cl2 DCE A   1      -1.551   1.768   3.101
 END 61
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.562   1.776   3.077
+ATOM      4  Cl2 DCE A   1      -1.564   1.777   3.072
 END 62
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.574   1.785   3.049
+ATOM      4  Cl2 DCE A   1      -1.577   1.787   3.043
 END 63
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.586   1.795   3.020
+ATOM      4  Cl2 DCE A   1      -1.589   1.797   3.013
 END 64
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.597   1.805   2.991
+ATOM      4  Cl2 DCE A   1      -1.600   1.807   2.984
 END 65
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.608   1.814   2.962
+ATOM      4  Cl2 DCE A   1      -1.611   1.817   2.954
 END 66
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.271
-ATOM      4  Cl2 DCE A   1      -1.618   1.824   2.933
+ATOM      3  C2  DCE A   1       0.000   1.448   2.272
+ATOM      4  Cl2 DCE A   1      -1.621   1.827   2.924
 END 67
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.627   1.834   2.903
+ATOM      4  Cl2 DCE A   1      -1.630   1.837   2.894
 END 68
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.636   1.844   2.874
+ATOM      4  Cl2 DCE A   1      -1.639   1.848   2.864
 END 69
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.644   1.854   2.844
+ATOM      4  Cl2 DCE A   1      -1.647   1.858   2.834
 END 70
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.652   1.864   2.815
+ATOM      4  Cl2 DCE A   1      -1.655   1.868   2.803
 END 71
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.659   1.874   2.785
+ATOM      4  Cl2 DCE A   1      -1.661   1.878   2.773
 END 72
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.665   1.885   2.755
+ATOM      4  Cl2 DCE A   1      -1.668   1.889   2.743
 END 73
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.272
-ATOM      4  Cl2 DCE A   1      -1.671   1.895   2.725
+ATOM      3  C2  DCE A   1       0.000   1.448   2.273
+ATOM      4  Cl2 DCE A   1      -1.673   1.899   2.712
 END 74
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.273
-ATOM      4  Cl2 DCE A   1      -1.676   1.905   2.695
+ATOM      4  Cl2 DCE A   1      -1.678   1.909   2.682
 END 75
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.273
-ATOM      4  Cl2 DCE A   1      -1.681   1.915   2.664
+ATOM      4  Cl2 DCE A   1      -1.682   1.920   2.651
 END 76
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.448   2.273
-ATOM      4  Cl2 DCE A   1      -1.685   1.926   2.634
+ATOM      4  Cl2 DCE A   1      -1.686   1.930   2.620
 END 77
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
-ATOM      3  C2  DCE A   1       0.000   1.448   2.273
-ATOM      4  Cl2 DCE A   1      -1.688   1.936   2.603
+ATOM      3  C2  DCE A   1       0.000   1.447   2.273
+ATOM      4  Cl2 DCE A   1      -1.689   1.941   2.590
 END 78
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.273
-ATOM      4  Cl2 DCE A   1      -1.690   1.946   2.573
+ATOM      4  Cl2 DCE A   1      -1.691   1.951   2.559
 END 79
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.273
-ATOM      4  Cl2 DCE A   1      -1.693   1.957   2.542
+ATOM      4  Cl2 DCE A   1      -1.693   1.961   2.529
 END 80
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.273
-ATOM      4  Cl2 DCE A   1      -1.694   1.967   2.511
+ATOM      4  Cl2 DCE A   1      -1.694   1.972   2.499
 END 81
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.274
-ATOM      4  Cl2 DCE A   1      -1.695   1.978   2.481
+ATOM      4  Cl2 DCE A   1      -1.695   1.982   2.468
 END 82
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.274
-ATOM      4  Cl2 DCE A   1      -1.695   1.988   2.451
+ATOM      4  Cl2 DCE A   1      -1.695   1.993   2.438
 END 83
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.274
-ATOM      4  Cl2 DCE A   1      -1.694   1.999   2.420
+ATOM      4  Cl2 DCE A   1      -1.694   2.004   2.408
 END 84
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.274
-ATOM      4  Cl2 DCE A   1      -1.693   2.010   2.390
+ATOM      4  Cl2 DCE A   1      -1.693   2.014   2.378
 END 85
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.274
-ATOM      4  Cl2 DCE A   1      -1.691   2.020   2.359
+ATOM      4  Cl2 DCE A   1      -1.691   2.023   2.348
 END 86
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.274
-ATOM      4  Cl2 DCE A   1      -1.689   2.030   2.329
+ATOM      4  Cl2 DCE A   1      -1.688   2.034   2.318
 END 87
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.275
-ATOM      4  Cl2 DCE A   1      -1.686   2.041   2.298
+ATOM      4  Cl2 DCE A   1      -1.685   2.044   2.288
 END 88
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.275
-ATOM      4  Cl2 DCE A   1      -1.683   2.051   2.268
+ATOM      4  Cl2 DCE A   1      -1.681   2.054   2.258
 END 89
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.275
-ATOM      4  Cl2 DCE A   1      -1.678   2.061   2.238
+ATOM      4  Cl2 DCE A   1      -1.677   2.064   2.229
 END 90
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.275
-ATOM      4  Cl2 DCE A   1      -1.674   2.072   2.208
+ATOM      4  Cl2 DCE A   1      -1.672   2.075   2.199
 END 91
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.275
-ATOM      4  Cl2 DCE A   1      -1.668   2.082   2.178
+ATOM      4  Cl2 DCE A   1      -1.667   2.085   2.170
 END 92
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.276
-ATOM      4  Cl2 DCE A   1      -1.662   2.093   2.148
+ATOM      4  Cl2 DCE A   1      -1.661   2.095   2.141
 END 93
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.276
-ATOM      4  Cl2 DCE A   1      -1.655   2.103   2.118
+ATOM      4  Cl2 DCE A   1      -1.654   2.105   2.112
 END 94
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.276
-ATOM      4  Cl2 DCE A   1      -1.648   2.113   2.088
+ATOM      4  Cl2 DCE A   1      -1.647   2.115   2.083
 END 95
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.276
-ATOM      4  Cl2 DCE A   1      -1.640   2.124   2.059
+ATOM      4  Cl2 DCE A   1      -1.639   2.125   2.055
 END 96
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.447   2.276
-ATOM      4  Cl2 DCE A   1      -1.632   2.134   2.029
+ATOM      4  Cl2 DCE A   1      -1.631   2.135   2.026
 END 97
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.446   2.277
-ATOM      4  Cl2 DCE A   1      -1.623   2.144   2.000
+ATOM      4  Cl2 DCE A   1      -1.622   2.145   1.998
 END 98
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
 ATOM      2  C1  DCE A   1       0.000   0.000   1.788
 ATOM      3  C2  DCE A   1       0.000   1.446   2.277
-ATOM      4  Cl2 DCE A   1      -1.613   2.154   1.971
+ATOM      4  Cl2 DCE A   1      -1.613   2.155   1.970
 END 99
 
 ATOM      1  Cl1 DCE A   1       0.000   0.000   0.000
