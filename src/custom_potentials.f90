@@ -24,14 +24,16 @@
       write(6,'(/,a)')  'Custom dihedral potential is turned on'
       write(6,*)  'Atoms integrating the custom dihedral:', custom_dihe(1:4)
       write(*,*) "dihe_type", dihe_type
-        if (dihe_type .eq. 1) then ! Cosine series
-          write(6,'(/,a)')  'Potential type: Cosine series'
-          read(iunit,*) exp, ncos
-          allocate(cos_weights(ncos))
-          write(*,*) "ncos", ncos
-          read(iunit,*) exp, (cos_weights(i),i=1,ncos)
-          write(6,*)  'Cosine weights (kcal/mol): ', cos_weights(1:ncos)
-        endif
+      if (dihe_type .eq. 1) then ! Cosine series
+        write(6,'(/,a)')  'Potential type: Cosine series'
+        read(iunit,*) exp, ncos
+        allocate(cos_weights(ncos))
+        write(*,*) "ncos", ncos
+        read(iunit,*) exp, (cos_weights(i),i=1,ncos)
+         write(6,*)  'Cosine weights (kcal/mol): ', cos_weights(1:ncos)
+      endif
+    else
+      write(6,'(/,a)')  'Wrong custompot_type in CustomPotential block'
     endif
   endif
   return
