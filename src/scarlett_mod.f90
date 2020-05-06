@@ -72,9 +72,9 @@
         integer :: innermax ! max steps for inner MD on feg calculations
 
 ! Custom potentials Variables JOTA
-				integer :: ncos, dihe_type
-				integer, dimension(4) :: custom_dihe
-				double precision, dimension(:), allocatable :: cos_weights
+        integer :: ncos, dihe_type
+        integer, dimension(4) :: custom_dihe
+        double precision, dimension(:), allocatable :: cos_weights
 
 !optimization
 	double precision :: Eprev !total energy of previous steep for gradient descend
