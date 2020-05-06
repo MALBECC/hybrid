@@ -243,10 +243,10 @@ c atom4: -dr34
         fnew(3,4)=-fnew(3,3)
 
 c adding fnew to fdummy
-c test write de fuerzas
-c write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
-
-
+        fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)        
+        fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
+        fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3)
+        fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)
 
       elseif (typeconstr(iconstr).eq.2) then
 
