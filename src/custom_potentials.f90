@@ -92,29 +92,12 @@
     call diheforce2(natot,rclas,at1,at2,at3,at4,4,1.d0,fdihe)
     fnew(1:3,4)=fdihe(10:12)
 
-    ! rclas=rclas*0.529177d0
-    ! call diheforce(natot,rclas,at1,at2,at3,at4,1,1.d0,0.d0,1,1,fdihe)
-    ! fnew(1:3,1)=fdihe(1:3)
-    ! call diheforce(natot,rclas,at1,at2,at3,at4,2,1.d0,0.d0,1,1,fdihe)
-    ! fnew(1:3,2)=fdihe(4:6)
-    ! call diheforce(natot,rclas,at1,at2,at3,at4,3,1.d0,0.d0,1,1,fdihe)
-    ! fnew(1:3,3)=fdihe(7:9)
-    ! call diheforce(natot,rclas,at1,at2,at3,at4,4,1.d0,0.d0,1,1,fdihe)
-    ! fnew(1:3,4)=fdihe(10:12)
-    ! rclas=rclas/0.529177d0
     factor=0.d0
 
     do i=1,ncos
       factor=factor+cos_weights(i)*(i-1)*DCOS(dihe)**(i-2)
     enddo
     factor=factor*(-DSIN(dihe))
-   !  if((dihe.ge.0..and.dihe.le.180.).or.(dihe.gt.360)) then
-   !   fnew(1:3,1:4)=(-1.d0)*fnew(1:3,1:4)
-   ! elseif((dihe.gt.180..and.dihe.lt.360).or.(dihe.lt.0)) then
-   !   fnew(1:3,1:4)=fnew(1:3,1:4)
-   !  else
-   !   stop 'constr opt: Wrong dihedral angle value'
-   !  endif
 
     fnew=factor*fnew
     fnew=fnew*eV/(Ang*kcal) ! Converts fnew to Hartree/bohr
