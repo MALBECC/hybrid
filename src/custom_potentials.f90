@@ -95,7 +95,7 @@
     factor=0.d0
 
     do i=1,ncos
-      factor=factor+cos_weights(i)*(i-1)*DCOS(dihe)**(i-2)
+      factor=factor+cos_weights(i)*(dble(i)-1.d0)*DCOS(dihe)**(i-2)
     enddo
     factor=factor*(-DSIN(dihe))
 
