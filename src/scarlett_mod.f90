@@ -16,7 +16,7 @@
 	real(dp), dimension(:,:), allocatable :: xa, fa !position and forces of QM atoms
 	double precision, dimension(:,:), allocatable :: rclas !Position of all atoms
         double precision, dimension(:,:), allocatable :: rclas_f !Position of all atoms firststep
-	double precision, dimension(:,:), allocatable :: vat !velocities of all atoms 
+	double precision, dimension(:,:), allocatable :: vat !velocities of all atoms
 	double precision, dimension(:,:), allocatable :: aat !aceleration of all atoms
 	double precision :: time_steep
 	double precision :: time_steep_max !max value of timesteep in FIRE algorithm
@@ -32,7 +32,7 @@
 	character*500, dimension(:), allocatable :: qm_header
 	character*500 :: qm_command
 
-! Cut Off & freeeze variables 
+! Cut Off & freeeze variables
 	integer, allocatable, dimension(:) :: r_cut_list_QMMM
 	logical, allocatable, dimension(:) :: MM_freeze_list
 	integer :: natoms_partial_freeze !number of atoms with 0 force in any direction
@@ -54,22 +54,27 @@
 	double precision :: kn ! Kinetic energy of Nose variable
 	double precision :: vn ! Potential energyy of Nose var
 	double precision :: mn ! Mass of Nose thermostat
-! Restraint stuff JOTA                                                        
+! Restraint stuff JOTA
         double precision, dimension(:,:), allocatable :: rref ! reference matr
-                                                                        
-! FE calculations stuff JOTA                                                  
+
+! FE calculations stuff JOTA
         double precision, dimension(:,:), allocatable :: rshiftm ! displacemen
         double precision, dimension(:,:), allocatable :: rshiftm2 ! square dis
-        double precision, dimension(:,:), allocatable :: fef ! average forces 
+        double precision, dimension(:,:), allocatable :: fef ! average forces
         double precision, dimension(:,:), allocatable :: rshiftsd ! rshift sta
         double precision, dimension(:,:), allocatable :: rclas_cut ! posicione
-        double precision, dimension(:,:), allocatable :: fef_cut !  gradiente 
+        double precision, dimension(:,:), allocatable :: fef_cut !  gradiente
         double precision, dimension(:,:), allocatable :: rshxrshm ! <rshift(i)
-        double precision, dimension(:,:), allocatable :: cov_matrix !         
+        double precision, dimension(:,:), allocatable :: cov_matrix !
         double precision, dimension(:,:), allocatable :: cov_matrix_inverted !
         logical :: feopt ! turns on free energy gradient calculations
         integer :: fedynamic ! inner MD thermostat for free energy gradient calculations
         integer :: innermax ! max steps for inner MD on feg calculations
+
+! Custom potentials Variables JOTA
+        integer :: ncos, dihe_type
+        integer, dimension(4) :: custom_dihe
+        double precision, dimension(:), allocatable :: cos_weights
 
 !optimization
 	double precision :: Eprev !total energy of previous steep for gradient descend
@@ -112,8 +117,8 @@
 !in *.fdf
 !%block SoluteAtomTypes
 !  o   O5    PRE
-!  ^    
-!  |    
+!  ^
+!  |
 ! qmattype
 
 	integer, dimension(:), allocatable :: aanum !aanum(i) = numero de residuo al cual pertenece el atomo i
@@ -162,13 +167,13 @@
 !in amber.parm
 !dihes
 !215
-!X -CA-CA-X    4   14.50        180.0             2.         
+!X -CA-CA-X    4   14.50        180.0             2.
 !    ^         ^      ^           ^               ^
 !    |         |      |           |               |
 ! dihetype multidihe kdihe     diheeq          perdihe
 
 
-!!!! impropers 
+!!!! impropers
 	character*11, dimension(:), allocatable :: imptype
 	integer :: max_improp, max_improp_at !max number of impropers and max number of impropers by atom
 	real(dp), dimension(:), allocatable ::  kimp,impeq,perimp
@@ -206,7 +211,7 @@
 
 
 	double precision, dimension(:,:), allocatable :: fce_amber !Total MM force
-	double precision, dimension(:,:), allocatable :: fdummy !QM+MM+QMMM force 
+	double precision, dimension(:,:), allocatable :: fdummy !QM+MM+QMMM force
 	double precision, dimension(:,:), allocatable :: cfdummy !QM+MM+QMMM force after constrain
 
 

@@ -1,3 +1,4 @@
+
 Program HYBRID
 !****************************************************************************
 ! Program for QM-MM calculations.
@@ -120,6 +121,9 @@ Program HYBRID
    logical :: foundxvr, foundvatr !control for retraint type 9 coordinates restart
    double precision, dimension(:,:), allocatable :: vatr !auxiliary variable for retraint type 9 calculation
 
+! Custom potentials
+      integer :: custompot_type
+
 ! Cut Off QM-MM variables
    double precision :: rcorteqm ! not used
    double precision :: rcorteqmmm ! distance for QM-MM interaction
@@ -198,6 +202,7 @@ Program HYBRID
 
 !   rorteqmmm=0.d0
 ! Free energy gradient
+
    logical :: rconverged ! True when rshiftm converged
    double precision :: maxforce
    integer :: maxforceatom, auxiliarunit, auxiliaruniti, i12, j12
@@ -267,6 +272,7 @@ Program HYBRID
    nstepconstr = 0
    numlink = fdf_integer('LinkAtoms',0)
    linkatom = .false.
+   custompot_type = 0
 
    if(numlink.ne.0) linkatom = .true.
 
@@ -278,6 +284,9 @@ Program HYBRID
    constropt = fdf_block('ConstrainedOpt',iunit)
    foundvat = .false.
    writeipl = fdf_boolean('WriIniParLas',.false.)
+
+! Check for custom potentials in fdf file
+   call custom_potentials_assign(custompot_type)
 
 ! Read and assign Solvent variables
    if(mm) then
@@ -484,6 +493,7 @@ Program HYBRID
                   rshiftsd(3,natot))
       endif
    endif
+  !      endif
 
    do istepconstr=1,nstepconstr+1   !<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< RESTRAIN Loop
 ! istepconstr marca la posicion del restrain
@@ -545,7 +555,7 @@ Program HYBRID
                       Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
-                      imm, rini, rfin, vat, .false., .false.)
+                      imm, rini, rfin, vat, .false., .false.,custompot_type)
               else
                  call fe_opt(rcorteqmmm, radbloqmmm, Etot, &
                       do_SCF, do_QM_forces, do_properties, istp, step, &
@@ -554,7 +564,7 @@ Program HYBRID
                       rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
                       radblommbond, optimization_lvl, dt, sfc, water, &
                       imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon, &
-                      nfree,cmcf)
+                      nfree,cmcf,custompot_type)
               endif
 
              call wripdb(na_u,slabel,rclas,natot,step,nac,atname, &
@@ -625,6 +635,7 @@ Program HYBRID
                   call check_convergence(relaxd, natot, cfdummy)
                   if (.not. relaxd) call FIRE(natot, rclas, cfdummy, vat, &
                   time_steep, Ndescend, time_steep_max, alpha)
+
                elseif (idyn .eq. 4) then !verlet or TSH
                   call verlet2(istp, 3, 0, natot, cfdummy, dt, &
                   masst, ntcon, vat, rclas, Ekinion, tempion, nfree, cmcf, &
@@ -674,12 +685,12 @@ Program HYBRID
                             'Potential energyy of Nose var:', vn, 'eV'
                   endif
 !     if(qm) call centerdyn(na_u,rclas,ucell,natot)
-               endif
+
                if (MOD((istp - inicoor),traj_frec) .eq. 0) then
                   call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
                        rclas,atname,aaname,aanum,nesp,atsym,isa)
                endif
-
+             endif
 
 !Nick center
                if (qm .and. .not. mm .and. Nick_cent) then

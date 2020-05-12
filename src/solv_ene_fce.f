@@ -12,20 +12,20 @@ c this subroutine calculates the solvent energy
      .    evaldihelog,evaldihmlog,paso,nparm,
      .    actualiz,listcut,
      .    noat,noaa,sfc,timestep,
-     .    water,masst,radblommbond)     
+     .    water,masst,radblommbond)
 
 c     use precision, only: dp
-	use scarlett, only: eV, Ang, kcal, max_angle_ex, max_angle_mid, 
+	use scarlett, only: eV, Ang, kcal, max_angle_ex, max_angle_mid,
      . max_dihe_ex, max_dihe_mid, max_improp_at
         implicit none
 
 c      vbles grales
-       integer   i,j,k,na_u,natot,nac,ng1(nac,6),paso 
+       integer   i,j,k,na_u,natot,nac,ng1(nac,6),paso
        double precision  pcA(nac),rclas(3,natot),ramber(3,nac),
      .    EmA(nac),RmA(nac),pc(1:nac),Em(natot),Rm(natot),
 c agregue 0 a pc, Nick
      .    Etot_amber,Ebond_amber,Eangle_amber,Edihe_amber,Eimp_amber,
-     .    Elj_amber,Eelec_amber,Elj_amber14,Eelec_amber14 
+     .    Elj_amber,Eelec_amber,Elj_amber14,Eelec_amber14
        double precision fcetot_amber(3,nac),
      .   fcebond_amber(3,nac),fceangle_amber(3,nac),
      .   fcedihe_amber(3,nac),fceimp_amber(3,nac),
@@ -46,7 +46,7 @@ c      vbles de los params de union
 c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac),angexat(nac),angmxat(nac),
      .   dihexat(nac),dihmxat(nac),impxat(nac)
-	integer :: atange(nac,max_angle_ex,2), 
+	integer :: atange(nac,max_angle_ex,2),
      .  atangm(nac,max_angle_mid,2),
      .  atdihe(nac,max_dihe_ex,3), atdihm(nac,max_dihe_mid,3)
 	integer :: atimp(nac,max_improp_at,4)
@@ -78,7 +78,7 @@ c inicializa las energias y fuerzas
       fceimp_amber=0.d0
       fcelj_amber=0.d0
       fceelec_amber=0.d0
-      fcetotaxes_amber=0.d0   
+      fcetotaxes_amber=0.d0
       ewat=0.d0
       fwat=0.d0
 
@@ -100,11 +100,11 @@ c cambia variables
       RmA(k)=Rm(i)
       k=k+1
       enddo
- 
+
 c  pasa a las unidades de Amber
       do i=1,nac
       RmA(i) = RmA(i)*(2.d0**(1.d0/6.d0))/(2.d0*Ang) ! revisar jota
-      EmA(i) = EmA(i)*kcal/eV !627.5108d0 
+      EmA(i) = EmA(i)*kcal/eV !627.5108d0
       ramber(1:3,i)=ramber(1:3,i)/Ang   !ramber queda en angstroms
       enddo
 
@@ -120,13 +120,13 @@ c  llama a subrutina q calcula la energia y fuerzas de angles
      .       nangle,kangle,angleeq,angletype,angexat,angmxat,atange,
      .       atangm,fceangle_amber,angetype,angmtype,nparm)
 
-c  llama a subrutina q calcula la energia y fuerzas de dihedros     
-        perdihe2=perdihe  
+c  llama a subrutina q calcula la energia y fuerzas de dihedros
+        perdihe2=perdihe
         call amber_dihes(nac,ramber,Edihe_amber,
      .            attype,ndihe,kdihe,diheeq,perdihe2,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
      .            fcedihe_amber,evaldihelog,evaldihe,dihety,
-     .            evaldihmlog,evaldihm,dihmty) 
+     .            evaldihmlog,evaldihm,dihmty)
 
 c  llama a subrutina q calcula la energia y fuerzas de impropers
 
@@ -145,7 +145,7 @@ c  llama a subrutina q calcula la energia y fuerzas de terminos non-bonded
      .       nonbondedxat,scalexat,paso,actualiz,
      .       listcut,
      .       noat,noaa,sfc,timestep,
-     .       na_u,natot,rclas,water,masst,ewat,fwat)       
+     .       na_u,natot,rclas,water,masst,ewat,fwat)
 
 c  calcula la energia total de amber
        Etot_amber=Ebond_amber+Eangle_amber+Edihe_amber+Eimp_amber+
@@ -157,8 +157,8 @@ c  calcula la fuerza total de amber
 	fcetot_amber(1:3,i)=fcebond_amber(1:3,i)+fceangle_amber(1:3,i)
      .  +fcedihe_amber(1:3,i)+fceimp_amber(1:3,i)+
      .  fcelj_amber(1:3,i)+fceelec_amber(1:3,i)+fwat(1:3,i)
-       fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)     
-       fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)   
+       fcetot_amber(1:3,i)=(-1.d0)*fcetot_amber(1:3,i)
+       fcetotaxes_amber(1:3)=fcetotaxes_amber(1:3)+fcetot_amber(1:3,i)
 
 	enddo
       return
@@ -170,8 +170,8 @@ c subrutina q calcula la energia y fuerzas de bonds
      .             attype,nbond,kbond,bondeq,bondtype,bondxat,
      .             fcebond_amber,ng1type,nparm,radblommbond)
 
-       implicit none      
-c      vbles grales 
+       implicit none
+c      vbles grales
        integer   nac,ng1(nac,6),i,j,k!,l,m!,paso
        double precision   ramber(3,nac),Ebond_amber,
      .                    fcebond_amber(3,nac)
@@ -188,9 +188,9 @@ c      vbles de asignacion
        integer ng1type(nac,6)
        double precision   rij,dist,dx1,dy1,dz1,
      .                    ftotbond(3)!, dx2,dy2,dz2
-      logical           first                                                                  
-      save              first                                                                  
-      data              first /.true./    
+      logical           first
+      save              first
+      data              first /.true./
       logical           ST
        double precision :: radblommbond
 
@@ -244,11 +244,11 @@ c calculo de la E y F de bond
 
           if (rij .lt. radblommbond) then
           Ebond_amber= Ebond_amber+kbond(ng1type(i,j))*
-     .    (rij-bondeq(ng1type(i,j)))**2d0       
+     .    (rij-bondeq(ng1type(i,j)))**2d0
           dx1=(1.d0/rij)*(ramber(1,i)-ramber(1,ng1(i,j)))
           dx1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dx1
-          dy1=(1.d0/rij)*(ramber(2,i)-ramber(2,ng1(i,j))) 
-          dy1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dy1  
+          dy1=(1.d0/rij)*(ramber(2,i)-ramber(2,ng1(i,j)))
+          dy1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dy1
           dz1=(1.d0/rij)*(ramber(3,i)-ramber(3,ng1(i,j)))
           dz1=2.d0*kbond(ng1type(i,j))*(rij-bondeq(ng1type(i,j)))*dz1
           fcebond_amber(1,i)=fcebond_amber(1,i)+dx1
@@ -268,7 +268,7 @@ c parche para omitir bonds entre extremos terminales
       end
 c******************************************************
 c  subrutina q calcula la energia y fuerzas de angles
- 
+
         subroutine  amber_angles(nac,ramber,
      .   Eangle_amber,attype,nangle,kangle,angleeq,angletype,
      .   angexat,angmxat,atange,atangm,fceangle_amber,
@@ -296,20 +296,20 @@ c      vbles de asignacion
        double precision  angulo,angle,pi,dx,dy,dz,scal,r12,r32,
      .                   scalar,ftotangle(3),dr12r32,dscalar,dist,
      .                   fesq(3,nac),fmedio(3,nac)
-      logical           first                                                                  
-      save              first                                                                  
-      data              first /.true./    
-      
+      logical           first
+      save              first
+      data              first /.true./
+
        pi=DACOS(-1.d0)
        fesq=0.d0
        fmedio=0.d0
        ftotangle=0.d0
 
-c asignacion de los tipos de angulos 
+c asignacion de los tipos de angulos
       if(first) then
        do i=1,nac
         do j=1,angexat(i)
-         do k=1,nangle 
+         do k=1,nangle
           tyangle=angletype(k)
           ty1=tyangle(1:2)
           ty2=tyangle(4:5)
@@ -386,12 +386,12 @@ c para el angulo en la esquina
       dz=2.d0*kangle(angetype(i,j))*(angulo-angleeq(angetype(i,j)))*
      .                (pi/180d0)*dz
       fesq(1,i)=fesq(1,i)+dx
-      fesq(2,i)=fesq(2,i)+dy   
-      fesq(3,i)=fesq(3,i)+dz  
+      fesq(2,i)=fesq(2,i)+dy
+      fesq(3,i)=fesq(3,i)+dz
         enddo
-       enddo  
+       enddo
 
-c para el angulo en el medio   
+c para el angulo en el medio
        do i=1,nac
         do j=1,angmxat(i)
          angulo=angle(ramber(1,atangm(i,j,1)),ramber(2,atangm(i,j,1)),
@@ -440,19 +440,19 @@ c para el angulo en el medio
       fmedio(3,i)=fmedio(3,i)+dz
         enddo
        enddo
-    
+
        Eangle_amber= Eangle_amber/3d0
- 
+
        do i=1,nac
        fceangle_amber(1,i)=fesq(1,i)+fmedio(1,i)
-       fceangle_amber(2,i)=fesq(2,i)+fmedio(2,i)    
-       fceangle_amber(3,i)=fesq(3,i)+fmedio(3,i)    
+       fceangle_amber(2,i)=fesq(2,i)+fmedio(2,i)
+       fceangle_amber(3,i)=fesq(3,i)+fmedio(3,i)
        enddo
-        
+
 	end
 c****************************************************************
 c  subrutina q calcula la energia y fuerzas de dihedros
- 
+
       subroutine  amber_dihes(nac,ramber,Edihe_amber,
      .            attype,ndihe,kdihe,diheeq,perdihe,multidihe,
      .            dihetype,dihexat,dihmxat,atdihe,atdihm,
@@ -461,13 +461,13 @@ c  subrutina q calcula la energia y fuerzas de dihedros
 
 	use scarlett, only: max_dihe_ex, max_dihe_mid
         implicit none
- 
+
 c      vbles grales
 	integer :: nac
        integer i,j,k,m!,l,n!,paso
        double precision   ramber(3,nac),Edihe_amber,
      .                    fcedihe_amber(3,nac)
-       character*4, dimension(nac) ::  attype 
+       character*4, dimension(nac) ::  attype
 c      vbles de los params de union
        integer   ndihe,multidihe(ndihe)
        double precision kdihe(ndihe),diheeq(ndihe),perdihe(ndihe)
@@ -485,9 +485,9 @@ c      vbles de asignacion
      .                   fesq(3,nac),fmedio(3,nac),
      .			 fce(12)
        logical evaldihelog(nac,100),evaldihmlog(nac,100)
-      logical           first                                                                  
-      save              first                                                                  
-      data              first /.true./    
+      logical           first
+      save              first
+      data              first /.true./
 
        pi=DACOS(-1.d0)
        ftotdihe=0.d0
@@ -497,26 +497,26 @@ c asignacion de los tipos de dihedros
 	if(first) then
 	  evaldihelog=.false.
 	  evaldihmlog=.false.
-	
+
 ! Para los dihedros del extremo
-	  do i=1,nac            
+	  do i=1,nac
 	    do j=1,dihexat(i)    ! Barre todos los átomos, y en cada átomo, todos sus dihedros en extremo (?
 	      dihety(i,j)=1        ! Dihety es una matriz de dimensión nac x 100 (100 porque es
                                    ! un número seguramente más grande que dihexat máximo). Tiene,
                                    ! para cada átomo, cuántos dihedros tiene
 	      m=0
 c Comienza asignación
-	      do k=1,ndihe       ! Barre TODOS los dihedros: ndihe es el número total de dihedros 
-                             ! definidos en el amber.parm 
+	      do k=1,ndihe       ! Barre TODOS los dihedros: ndihe es el número total de dihedros
+                             ! definidos en el amber.parm
  	        tydihe=dihetype(k) ! Cada uno de los dihedros tiene asignado un tipo
 	        ty1=tydihe(1:2)    !
 	        ty2=tydihe(4:5)    ! Acá se fija entre qué tipo de átomos se da el dihedro
 	        ty3=tydihe(7:8)    !
-	        ty4=tydihe(10:11)  ! 
+	        ty4=tydihe(10:11)  !
 
 c Ahora asigna tipo de átomo a cada átomo del dihedro
-	        if(ty1.eq.'X ') then   ! Caso en que el dihedro empieza con X         
-	          if(attype(atdihe(i,j,1)).eq.ty2.and.   
+	        if(ty1.eq.'X ') then   ! Caso en que el dihedro empieza con X
+	          if(attype(atdihe(i,j,1)).eq.ty2.and.
      .              attype(atdihe(i,j,2)).eq.ty3)  then
 	            dihety(i,j)=k
 	          elseif(attype(atdihe(i,j,1)).eq.ty3.and.
@@ -527,7 +527,7 @@ c Ahora asigna tipo de átomo a cada átomo del dihedro
 	          if(attype(i).eq.ty1.and.attype(atdihe(i,j,1)).eq.
      .              ty2.and.attype(atdihe(i,j,2)).eq.ty3.and.
      .              attype(atdihe(i,j,3)).eq.ty4) then
-	            dihety(i,j)=k            
+	            dihety(i,j)=k
 	            if(perdihe(k).lt.0) then
 	              evaldihelog(i,j)=.true.
 	              m=m+1
@@ -542,14 +542,14 @@ c Ahora asigna tipo de átomo a cada átomo del dihedro
 	              evaldihelog(i,j)=.true.
 	              m=m+1
 	              evaldihe(i,j,m)=k
-	              evaldihe(i,j,m+1)=k+1    
+	              evaldihe(i,j,m+1)=k+1
 	            endif
 	          endif
-	        endif  
+	        endif
 	      enddo
 	    enddo
 	  enddo
-! Para los dihedros del medio 
+! Para los dihedros del medio
 	  do i=1,nac
 	    do j=1,dihmxat(i)
 	      dihmty(i,j)=1
@@ -579,7 +579,7 @@ c Ahora asigna tipo de átomo a cada átomo del dihedro
 	              evaldihmlog(i,j)=.true.
 	              m=m+1
 	              evaldihm(i,j,m)=k
-	              evaldihm(i,j,m+1)=k+1  
+	              evaldihm(i,j,m+1)=k+1
 	            endif
 	          elseif(attype(atdihm(i,j,1)).eq.ty4.and.attype(i).eq.
      .              ty3.and.attype(atdihm(i,j,2)).eq.ty2.and.
@@ -599,9 +599,9 @@ c Ahora asigna tipo de átomo a cada átomo del dihedro
 	first=.false.
 	endif !asignacion
 
-C Terminó asignación 
+C Terminó asignación
 
-c calcula la E y F de dihedros 
+c calcula la E y F de dihedros
 c para los dihes en la esquina
         do i=1,ndihe       !ndihe es el número total de dihedros
 	  if(perdihe(i).lt.0.d0) perdihe(i)=-perdihe(i)
@@ -613,7 +613,7 @@ c para los dihes en la esquina
      .   ramber(1,atdihe(i,j,1)),ramber(2,atdihe(i,j,1)),
      .   ramber(3,atdihe(i,j,1)),
      .   ramber(1,atdihe(i,j,2)),ramber(2,atdihe(i,j,2)),
-     .   ramber(3,atdihe(i,j,2)), 
+     .   ramber(3,atdihe(i,j,2)),
      .   ramber(1,atdihe(i,j,3)),ramber(2,atdihe(i,j,3)),
      .   ramber(3,atdihe(i,j,3)))
 
@@ -625,7 +625,7 @@ c si el dihedro es 500 es error y sale
 	  if(evaldihelog(i,j)) then
 	    do m=1,5
 	    k=evaldihe(i,j,m)
-	
+
 	    if(k.ne.0) then
 	      if(multidihe(k).ne.0) then
 c      k=evaldihe(i,j,m)
@@ -636,7 +636,7 @@ c      k=evaldihe(i,j,m)
 
 		call diheforce(nac,ramber,
      .                 i,atdihe(i,j,1),atdihe(i,j,2),atdihe(i,j,3),1,
-     .		       kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)    
+     .		       kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)
 		dx=fce(1)
 		dy=fce(2)
 		dz=fce(3)
@@ -665,7 +665,7 @@ c      k=evaldihe(i,j,m)
 	    endif
 	  endif
 	  enddo
-	enddo       
+	enddo
 
 c para los dihes en el medio
        do i=1,nac
@@ -704,7 +704,7 @@ c       k=evaldihm(i,j,m)
      .                 kdihe(k),diheeq(k),perdihe(k),multidihe(k),fce)
       dx=fce(4)
       dy=fce(5)
-      dz=fce(6)	
+      dz=fce(6)
       fmedio(1,i)=fmedio(1,i)+dx
       fmedio(2,i)=fmedio(2,i)+dy
       fmedio(3,i)=fmedio(3,i)+dz
@@ -738,11 +738,11 @@ c       k=evaldihm(i,j,m)
       fcedihe_amber(1,i)=fesq(1,i)+fmedio(1,i)
       fcedihe_amber(2,i)=fesq(2,i)+fmedio(2,i)
       fcedihe_amber(3,i)=fesq(3,i)+fmedio(3,i)
-      enddo 
+      enddo
 
        end
 c******************************************************************
-c  subrutina q calcula la energia y fuerzas de impropers 
+c  subrutina q calcula la energia y fuerzas de impropers
 
        subroutine amber_improper(nac,ramber,Eimp_amber,attype,
      .            nimp,kimp,impeq,perimp,multiimp,imptype,impxat,
@@ -757,7 +757,7 @@ c      vbles grales
 c      vbles de los params de union
        integer   nimp,nparm,multiimp(nimp)
        double precision kimp(nimp),impeq(nimp),perimp(nimp)
-       character imptype(nimp)*11 
+       character imptype(nimp)*11
 c      vbles de bond, angle, dihe e imp
        integer   impxat(nac)
 	integer :: atimp(nac,max_improp_at,4)
@@ -769,10 +769,10 @@ c      vbles de asignacion
 c	varianles de fza
 	double precision fimp(3,nac),fce(12),fimptot(3),dx,dy,dz
 	integer atom
-      logical           first                                                                  
-      save              first                                                                  
+      logical           first
+      save              first
       data              first /.true./
-    
+
        pi=DACOS(-1.d0)
        fimptot=0.d0
 
@@ -799,13 +799,13 @@ c asignacion de los tipos de impropers
         impty(i,j)=k
         elseif(attype(atimp(i,j,1)).eq.ty4.and.
      .     attype(atimp(i,j,2)).eq.ty3) then
-        impty(i,j)=k   
+        impty(i,j)=k
         endif
         elseif(ty1.eq.'X ') then
         if(attype(atimp(i,j,2)).eq.ty2.and.
      .     attype(atimp(i,j,3)).eq.ty3.and.
      .     attype(atimp(i,j,4)).eq.ty4) then
-        impty(i,j)=k   
+        impty(i,j)=k
         elseif(attype(atimp(i,j,3)).eq.ty2.and.
      .     attype(atimp(i,j,2)).eq.ty3.and.
      .     attype(atimp(i,j,1)).eq.ty4) then
@@ -860,11 +860,11 @@ c si el dihedro es 500 es error y sale
        Eimp_amber=Eimp_amber+(kimp(k)/dble(multiimp(k)))*
      .  (1+dCOS((pi/180)*(perimp(k)*dihedral-impeq(k))))
 
-c busca que atomo del impropio es el i	
+c busca que atomo del impropio es el i
 	if (i.eq.atimp(i,j,1)) atom=1
-	if (i.eq.atimp(i,j,2)) atom=2 
-	if (i.eq.atimp(i,j,3)) atom=3 
-	if (i.eq.atimp(i,j,4)) atom=4 
+	if (i.eq.atimp(i,j,2)) atom=2
+	if (i.eq.atimp(i,j,3)) atom=3
+	if (i.eq.atimp(i,j,4)) atom=4
 	       call diheforce(nac,ramber,
      .         atimp(i,j,1),atimp(i,j,2),atimp(i,j,3),atimp(i,j,4),atom,
      .                 kimp(k),impeq(k),perimp(k),multiimp(k),fce)
@@ -891,7 +891,7 @@ c subrutina que calcula la energia y fuerzas de terminos non-bonded
      .       nonbonded,scale,nonbondedxat,scalexat,paso,
      .       actualiz,listcut,noat,noaa,
      .       sfc,timestep,
-     .       na_u,natot,rclas,water,masst,ewat,fwat)       
+     .       na_u,natot,rclas,water,masst,ewat,fwat)
 
 	use scarlett, only: max_angle_ex, max_dihe_ex!, max_angle_mid,max_dihe_mid
 
@@ -908,7 +908,7 @@ c      vbles de bond, angle, dihe e imp
        integer   bondxat(nac),angexat(nac),dihexat(nac)!, angmxat(nac)
 	integer :: atange(nac,max_angle_ex,2)!, atangm(nac,max_angle_mid,2)
 	integer :: atdihe(nac,max_dihe_ex,3)!, atdihm(nac,max_dihe_mid,3)
-c      vbles de asignacion      
+c      vbles de asignacion
        integer nonbonded(nac,100),scale(nac,100),scalexat(nac),
      . nonbondedxat(nac),acs
        double precision Rij,Eij,distancia,unidades,
@@ -916,17 +916,17 @@ c      vbles de asignacion
      .                  dist2,distancia2,rcut,Rij6,distancia2_3,
      .                  fac,ca,cb,cc,cd,sfc,timestep,e2f,
      .                  x0,x1,rinn,rout
-       logical actualiz 
+       logical actualiz
 c variables asoc a las fzas
        double precision dx1,dy1,dz1,dx2,dy2,dz2,felec(3,nac),
      .  felectot(3),fel,flj(3,nac),fljtot(3),listcut
 c variables de la lista de vecinos
-       integer, dimension(:), allocatable ::         
+       integer, dimension(:), allocatable ::
      .  veclist, veclistemp, veclistxat
        save veclist, veclistxat
-      logical           first                                        
-      save              first                                    
-      data              first /.true./    
+      logical           first
+      save              first
+      data              first /.true./
 
 	pi=DACOS(-1.d0)
         unidades=((1.602177d-19**2d0)*6.022140857d23)/(1.0d-10*4d0*
@@ -940,19 +940,19 @@ c variables de la lista de vecinos
         epsilon=1.d0
         factorlj=2.d0
         factorelec=1.2d0  !No sé qué es Jota
-	acs=200	
+	acs=200
 	ewat=0.d0
 	fwat=0.d0
 c	dimvec=nac*3000
 c cambio dim vec, Nick  antes alocateaba mas chico de lo q podeia llegar a necesitar
 	dimvec=nac*(nac+1)/2
-c	if(dimvec.gt.100000000) stop 
+c	if(dimvec.gt.100000000) stop
 c     .  'Solvent Energy and Forces: "dimvec" too large!'
 
 
 c asigna los atomos nonbonded y su tipo
-         if(first) then       
-           do i=1,nac 
+         if(first) then
+           do i=1,nac
              m=1
              do j=1,bondxat(i)
 	       if(i.lt.ng1(i,j))then
@@ -974,13 +974,13 @@ c se fija los que estan 1-4(scaled)
              do j=1,dihexat(i)
 	       if(i.lt.atdihe(i,j,3)) then
 c se fija si ya lo puso (por si hay dihedros repetidos)
-	         do n=1,m-1	  
-	           if(atdihe(i,j,3).eq.scale(i,n)) goto 10  
+	         do n=1,m-1
+	           if(atdihe(i,j,3).eq.scale(i,n)) goto 10
 	         enddo
 c se fija si no lo puso en nonbonded (se no es tambien 1-3)
 	         do n=1,nonbondedxat(i)
-	           if(atdihe(i,j,3).eq.nonbonded(i,n)) goto 10	
-	         enddo	
+	           if(atdihe(i,j,3).eq.nonbonded(i,n)) goto 10
+	         enddo
 
                  scale(i,m)=atdihe(i,j,3)
                  m=m+1
@@ -992,8 +992,8 @@ c se fija si no lo puso en nonbonded (se no es tambien 1-3)
 	  first=.false.
 	endif !asignacion
 
-c ahora crea la lista de vecinos si estan dentro de listcut+sfc, 
-c se debe actualizar cada 20 fs. 
+c ahora crea la lista de vecinos si estan dentro de listcut+sfc,
+c se debe actualizar cada 20 fs.
 	acs=int(20/timestep)
 	if(mod(paso,acs).eq.0.or.paso.eq.1) actualiz=.true.
 
@@ -1002,7 +1002,7 @@ c llama a la sub q agrega el water restrain potential
         call waters(na_u,nac,natot,rclas,masst,noaa,noat,ewat,fwat)
 	endif
 
-c si listcut > 100A, la lista se hace SOLO el 1er paso 
+c si listcut > 100A, la lista se hace SOLO el 1er paso
 	if(listcut.ge.100.and.paso.ne.1) actualiz=.false.
 
 c crea la lista veclist y el indice veclistxat
@@ -1071,7 +1071,7 @@ c  calculo de la E y F de terminos non-bonded
 c loop scale nonbonded
 
 c        write(*,*) "flag conect"
-c        do i=1,nac 
+c        do i=1,nac
 c                write(*,*) i, scalexat(i)
 c        end do
 c	STOP
@@ -1083,7 +1083,7 @@ c test Nick
 
 	do i=1,nac
 	 do k=1,scalexat(i)
-	 j=scale(i,k)	
+	 j=scale(i,k)
                 dx1=ramber(1,i)-ramber(1,j)
                 dy1=ramber(2,i)-ramber(2,j)
                 dz1=ramber(3,i)-ramber(3,j)
@@ -1126,7 +1126,7 @@ c test Nick
 
 c fin scaled nonbonden
 c loop nonscaled nonbonded
-        n_pointer=1      
+        n_pointer=1
         x0=listcut
         x1=listcut+sfc
 	cb=-sfc/x0**2d0
@@ -1180,7 +1180,7 @@ c loop nonscaled nonbonded
                 felec(2,j)=felec(2,j)+dy2*fel
                 felec(3,j)=felec(3,j)+dz2*fel
 		elseif(distancia2.gt.rinn.and.distancia2.lt.rout) then
-                distancia = sqrt(distancia2)     
+                distancia = sqrt(distancia2)
 		Rij=Rm(i)+Rm(j)
                 Eij=sqrt(Em(i)*Em(j))
                 Rij6 = Rij**6d0
@@ -1224,7 +1224,7 @@ c******************************************************************
 c subrutina q calcula el water restarin potential
 
 	subroutine waters(na_u,nac,natot,rclas,masst,noaa,noat,ewat,fwat)
-	
+
 	use scarlett, only: Ang!, eV, kcal
 	implicit none
 	integer, intent(in) :: na_u,nac,natot
@@ -1244,7 +1244,7 @@ c subrutina q calcula el water restarin potential
 
 c calcula el masscenter del sistema y el rwat
         ramber(1:3,1:natot)=rclas(1:3,1:natot)/Ang
-        masscenter=0.d0 
+        masscenter=0.d0
         do i=1,natot
         masscenter(1:3)=masscenter(1:3)+masst(i)*ramber(1:3,i)
         enddo
@@ -1256,12 +1256,12 @@ c calcula el masscenter del sistema y el rwat
         if(dist2.gt.mdist) mdist=dist2
         enddo
 
-	rwat=sqrt(mdist) - 2.5d0        
+	rwat=sqrt(mdist) - 2.5d0
 	write(6,'(a,2x,f8.4)') 'Water Cutoff Radius:', rwat
 
 c calculo la matrix con las aguas xa los at MM
         ramber=0.d0
-        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)/Ang 
+        ramber(1:3,1:nac)=rclas(1:3,na_u+1:natot)/Ang
         k=1
         do i=1,nac
         if(noaa(i).eq.'HOH'.and.noat(i).eq.'O') then
@@ -1297,7 +1297,6 @@ c calculo de la Ene y la fza para el potencial de las aguas Ewat = 0.0
        fwat(3,i)=fwat(3,i)-dz
         endif
         enddo
- 
+
         end
 c********************************************************************************
-

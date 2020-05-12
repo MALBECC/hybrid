@@ -5,7 +5,7 @@
        rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
        radblommbond, optimization_lvl, dt, sfc, water,&
        imm,rini,rfin,maxforce,maxforceatom,rconverged,ntcon,&
-       nfree,cmcf)
+       nfree,cmcf,custompot_type)
 
       use ionew
       use scarlett, only: natmsconstr, natot, Ang, eV, kcal, rshiftm,&
@@ -63,6 +63,7 @@
       integer, intent(in) :: optimization_lvl ! level of movement in optimization scheme (1 only QM atoms with restrain,2 only MM atoms, 3 all)
       double precision, intent(in) :: sfc
       logical, intent(in) :: water
+      integer :: custompot_type
 
 !-------------------------------------------------
       rref=rclas
@@ -70,7 +71,7 @@
       rshiftm2=0.d0
       inneri=1
       rconverged=.false.
-       
+
       call vmb(natot,tempinit,masst,vat,cmcf,blockall,ntcon)
 
       if (fedynamic .eq. 1 .and. mn .eq. 0.d0) then
@@ -87,7 +88,7 @@
         Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro,&
         rt, coef, atmsconstr, ndists, istepconstr, rcortemm,&
         radblommbond, optimization_lvl, dt, sfc, water,&
-        imm,rini,rfin,vat,.false.,.false.)
+        imm,rini,rfin,vat,.false.,.false.,custompot_type)
 
        if (fedynamic .eq. 0) then !berendsen
          call berendsen(inneri,3,natot,cfdummy,dt,tauber,masst, &

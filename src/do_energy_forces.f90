@@ -1,5 +1,5 @@
 !****************************************************************************
-! Subroutine do_energy_forces 
+! Subroutine do_energy_forces
 !
 ! Calculates energy and forces for QM & MM subsystems
 ! Position of all atoms in rclas in Bohrs
@@ -15,7 +15,7 @@
 	Etots, constropt,nconstr, nstepconstr, typeconstr, kforce, ro, &
 	rt, coef, atmsconstr, ndists, istepconstr, rcortemm, &
 	radblommbond, optimization_lvl, dt, sfc, water, imm, rini, rfin, &
-        vel_lio, do_HOPP, do_ElecInterp)
+        vel_lio, do_HOPP, do_ElecInterp,custompot_type)
 
 ! Modules
 	use precision, only: dp
@@ -24,7 +24,7 @@
 	use fdf
 !, only: leqi
 	use scarlett, only: qm, mm, na_u, natot, nroaa, masst, pc, &
-	fdummy, cfdummy, nac, rclas, Em, Rm, linkatom, numlink, pclinkmm, & 
+	fdummy, cfdummy, nac, rclas, Em, Rm, linkatom, numlink, pclinkmm, &
 	Emlink, istep, idyn, nparm, atname, aaname, attype, ng1, &
 	bondtype, kbond, bondeq, bondxat, angletype, kangle,angleeq, &
 	angexat, angmxat, dihetype, kdihe,diheeq, perdihe, multidihe, dihexat, &
@@ -33,6 +33,7 @@
 	angetype, angmtype, dihety,dihmty,impty, evaldihelog, evaldihmlog, &
 	atange, atangm, atdihe, atdihm, atimp, vat, evaldihe, evaldihm, &
 	linkat, linkqm, linkmm, linkmm2, parametro, linkqmtype, Elink, &
+        feopt, &
 !cutoff
 	r_cut_list_QMMM,blocklist,blockqmmm, blockall, listqmmm, &
 !external potential
@@ -92,11 +93,14 @@
 	double precision, dimension(20), intent(in) :: ro ! fixed value of constrain in case nconstr > 1 for contrains 2+
 	double precision, dimension(20), intent(inout) :: rt ! value of reaction coordinate in constrain i
 	double precision, dimension(20,10), intent(in) :: coef ! coeficients for typeconstr=8
+
+
 	double precision, dimension(3,na_u), intent(inout) :: vel_lio ! qm velocities
 	integer, dimension(20,20), intent(in) :: atmsconstr 
 	integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
-	integer, intent(in) :: istepconstr !step of restraint 
-
+	integer, intent(in) :: istepconstr !step of restraint
+! Custom potentials
+	integer :: custompot_type
 ! Others that need check
 ! Solvent General variables
 	double precision, intent(in) :: sfc
@@ -107,17 +111,17 @@
 
 ! ---------------------------------------------------------------------------------------
 	at_MM_cut_QMMM = nac
-! Calculate Energy and Forces form QM-QM/MM subsystems 
+! Calculate Energy and Forces form QM-QM/MM subsystems
 	if(qm .and. (imm.eq.1)) then
 	  if (allocated(r_cut_QMMM)) deallocate(r_cut_QMMM)
 	  if (allocated(F_cut_QMMM)) deallocate(F_cut_QMMM)
 	  if (allocated(Iz_cut_QMMM)) deallocate(Iz_cut_QMMM)
- 
+
 	  call compute_cutsqmmm(at_MM_cut_QMMM,istepconstr,radbloqmmm, &
 	  rcorteqmmm,nroaa)
 
 	  allocate (r_cut_QMMM(3,at_MM_cut_QMMM+na_u), F_cut_QMMM(3,at_MM_cut_QMMM+na_u), &
-	  Iz_cut_QMMM(at_MM_cut_QMMM+na_u)) 
+	  Iz_cut_QMMM(at_MM_cut_QMMM+na_u))
 
 	  r_cut_QMMM=0.d0
 	  F_cut_QMMM=0.d0
@@ -150,7 +154,6 @@
 #endif
 	  else
 	    STOP 'NO QM program defined in do_energy_forces'
-!'
 	  end if
 
 
@@ -169,11 +172,11 @@
 	if(imm.gt.1) then
 	  write(6,*)
 	  write(6,'(A)')    '*******************************'
-	  write(6,'(A,i5)') '   MM x QM Step : ', imm 
+	  write(6,'(A,i5)') '   MM x QM Step : ', imm
 	  write(6,'(A)')    '*******************************'
 	endif
-	
-! Calculation of last QM-MM interaction: LJ Energy and Forces only 
+
+! Calculation of last QM-MM interaction: LJ Energy and Forces only
 	if((qm.and.mm)) call ljef(na_u,nac,natot,rclas,Em,Rm,fdummy,Elj,listqmmm)
 
 ! LinkAtom: set again linkmm atoms parameters
@@ -205,12 +208,12 @@
 	endif !mm
 
 
-! fce_amber in kcal/(molAng) 
-! converts fdummy to Kcal/mol/Ang          
+! fce_amber in kcal/(molAng)
+! converts fdummy to Kcal/mol/Ang
 	fdummy(1:3,1:natot)=fdummy(1:3,1:natot)*Ang*kcal/eV
 
 ! here Etot in Hartree, fdummy in kcal/mol Ang
-! add famber to fdummy  
+! add famber to fdummy
 	if(mm) fdummy(1:3,na_u+1:natot)=fdummy(1:3,na_u+1:natot) +fce_amber(1:3,1:nac)
 
 ! here fdummy in kcal/mol/Ang
@@ -225,7 +228,7 @@
 	    bondtype,angletype,dihetype,linkqmtype, &
 	    Elink,parametro,step)
 
-! Set again link atoms parameters to zero for next step  
+! Set again link atoms parameters to zero for next step
 	    do i=1,numlink
 	      pclinkmm(i,1:4)=pc(linkmm(i,1:4))
 	      pc(linkmm(i,1:1))=0.d0
@@ -237,14 +240,14 @@
 
 	if(optimization_lvl.eq.1) fdummy=0.d0 !only move atoms with restrain
 
-! Calculation of Constrained Optimization Energy and Forces 
+! Calculation of Constrained Optimization Energy and Forces
 	if(imm.eq.1) then
 	  if(constropt) then
 	    call subconstr2(nconstr,typeconstr,kforce,rini,rfin,ro,rt, &
 	    nstepconstr,atmsconstr,natot,rclas,fdummy,istp,istepconstr, &
 	    ndists,coef,natmsconstr)
 	    if(idyn .ge. 4) call subconstr4(istep,rt(1),slabel)
-	  endif 
+	  endif
 	endif !imm
 
 ! Converts fdummy Hartree/bohr
@@ -254,16 +257,19 @@
 
 
 	if (external_potential .gt. 0) call external_bias(external_potential,natot,rclas,fdummy,Etots)
-      
+	if (custompot_type .eq. 1) call custom_dihe_energy_forces(Etots)
+
 ! here Etot in Hartree
+        if (.not. feopt) then
 	write(6,*)
 	write(6,'(/,a)') 'hybrid: Potential Energy Decomposition (eV):'
-	if(qm) write(6,999)           'Elio :',Etot/eV      
-	if(qm.and.mm) write(6,999)    'Elj:    ',Elj/eV       
-	if(mm) write(6,999)      'Esolv:  ',Etot_amber/kcal   
+	if(qm) write(6,999)           'Elio :',Etot/eV
+	if(qm.and.mm) write(6,999)    'Elj:    ',Elj/eV
+	if(mm) write(6,999)      'Esolv:  ',Etot_amber/kcal
 	if(Elink.ne.0.0) write(6,999) 'Elink:  ',Elink/kcal
 	write(6,999)    'Etots:  ',Etots/eV
 	call flush(6)
+        endif
 
 ! Sets fdummy to zero inside mmxqm step
 	if(qm.and.mm) then
@@ -288,4 +294,3 @@
 
  999  format(a,2x,F30.12)
 	end subroutine do_energy_forces
-

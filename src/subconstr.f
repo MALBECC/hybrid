@@ -2,7 +2,7 @@
      .             rini,rfin,atmsconstr,dr,ro,ndists,coef,constrlog)
 
 	use ionew
-	use fdf    
+	use fdf
 	use sys
         use scarlett, only: na_u, numlink, natmsconstr, rref, natot,
      .  rclas_cut,fef_cut,cov_matrix,cov_matrix_inverted,rshxrshm
@@ -16,9 +16,9 @@
         logical   found, constrlog
         data      found /.false./
 
-c 8 ways of defining the reaction coordinate 
+c 8 ways of defining the reaction coordinate
 c 1 = r2 - r1 coupled
-c 2 = distance 
+c 2 = distance
 c 3 = angle
 c 4 = dihedral
 c 5 = r1 + r2 coupled
@@ -36,31 +36,31 @@ c read variables
 	    return
 	  endif
 	  read(iunit,*,err=100,end=100) exp,nconstr
-	
+
 	  if(nconstr.gt.20) then
 	    call die('constr opt: nconstr must be lower than 20')
 	  endif
-	
+
 	  read(iunit,*,err=100,end=100) exp,nstepconstr
-	
+
 	  if(nstepconstr.eq.0) then
 	    call die('constr opt: nstepconstr must be larger than 0')
 	  elseif(nstepconstr.gt.100) then
 	    call die('constr opt: nstepconstr must be lower than 100')
 	  endif
-	
+
 	  do iconstr=1,nconstr
 	    read(iunit,*,err=100,end=100) exp,typeconstr(iconstr)
 	    read(iunit,*,err=100,end=100) exp,kforce(iconstr)
 	    if(iconstr.eq.1 .and. typeconstr(iconstr) .ne. 9) then
 	      read(iunit,*,err=100,end=100) exp,rini,exp,rfin
-            elseif(typeconstr(iconstr) .ne. 9) then        
+            elseif(typeconstr(iconstr) .ne. 9) then
               read(iunit,*,err=100,end=100) exp,ro(iconstr)
 	    else
 		if(nconstr .gt. 1) STOP "multiple constraints with typeconstr=9"
 	    endif
 
-	   if (typeconstr(iconstr).eq.1) then          
+	   if (typeconstr(iconstr).eq.1) then
 		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
 	   elseif (typeconstr(iconstr).eq.2) then
 		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,2)
@@ -71,7 +71,7 @@ c read variables
 	   elseif (typeconstr(iconstr).eq.5) then
 		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,4)
 	   elseif (typeconstr(iconstr).eq.6) then
-		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,8) 
+		read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,8)
 	   elseif (typeconstr(iconstr).eq.7) then
 	read(iunit,*,err=100,end=100) exp,(atmsconstr(iconstr,i),i=1,5)
 	   elseif (typeconstr(iconstr).eq.8) then
@@ -79,33 +79,33 @@ c read variables
 	     if(ndists(iconstr).gt.10) then
 		call die('constr opt: ndists in typeconstr 8 must not exceed 10')
 	     endif
-	     read(iunit,*,err=100,end=100) 
+	     read(iunit,*,err=100,end=100)
      . exp,(coef(iconstr,i),i=1,ndists(iconstr))
-	     read(iunit,*,err=100,end=100) 
+	     read(iunit,*,err=100,end=100)
      . exp,(atmsconstr(iconstr,i),i=1,ndists(iconstr)*2)
              elseif (typeconstr(iconstr).eq.9) then   !------------------------------ Type 9
-              rini=0.d0 
-              rfin=0.d0                                                 
-              nstepconstr=0                                             
-              read(iunit,*,err=100,end=100) exp,natmsconstr 
+              rini=0.d0
+              rfin=0.d0
+              nstepconstr=0
+              read(iunit,*,err=100,end=100) exp,natmsconstr
 
-              if(natmsconstr .eq. 0) then                            
-                do i=1,na_u-numlink                                    
-                  atmsconstr(iconstr,i)=i                              
-                enddo                                                  
-              else                                                      
-                read(iunit,*,err=100,end=100)           
-     .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)         
+              if(natmsconstr .eq. 0) then
+                do i=1,na_u-numlink
+                  atmsconstr(iconstr,i)=i
+                enddo
+              else
+                read(iunit,*,err=100,end=100)
+     .          exp,(atmsconstr(iconstr,i),i=1,natmsconstr)
               endif
 
-            allocate(rref(3,natot),rclas_cut(3,natmsconstr),            
-     .      fef_cut(3,natmsconstr),                                     
-     .      rshxrshm(3*natmsconstr,3*natmsconstr),                     
-     .      cov_matrix(3*natmsconstr,3*natmsconstr),                   
-     .      cov_matrix_inverted(3*natmsconstr,3*natmsconstr))          
-            else                                                       
-              call die('constr opt: typeconstr must be 1-9')           
-            endif                                                     
+            allocate(rref(3,natot),rclas_cut(3,natmsconstr),
+     .      fef_cut(3,natmsconstr),
+     .      rshxrshm(3*natmsconstr,3*natmsconstr),
+     .      cov_matrix(3*natmsconstr,3*natmsconstr),
+     .      cov_matrix_inverted(3*natmsconstr,3*natmsconstr))
+            else
+              call die('constr opt: typeconstr must be 1-9')
+            endif
 	   if(natmsconstr.gt.20) then
 	call die('constr opt: atoms with constrain must be lower than 20')
 	   endif
@@ -114,7 +114,7 @@ c read variables
 	else
 	call die('constr opt: You must specify the ConstraindeOpt block')
 	endif
-	write(6,'(/,a)') 'constr opt: Starting a Constrained 
+	write(6,'(/,a)') 'constr opt: Starting a Constrained
      . optimization run'
 
 c calculates initial ro for all types of constraints
@@ -147,8 +147,8 @@ c reads from .rce of a former run
         k=k-1
         if(nstepconstr.gt.k) then
         nstepconstr=nstepconstr-k
-        ro(1)=ro(1)+dr*k  
-        write(6,'(/,a)') 
+        ro(1)=ro(1)+dr*k
+        write(6,'(/,a)')
      .  'constr opt: Re-starting a Constrained optimization run'
         endif
         endif !found
@@ -169,7 +169,7 @@ c****************************************************************************
 	integer i,natot,iconstr,istep,istepconstr,ndists(20),natmsconstr
 	integer nconstr,typeconstr(20),atmsconstr(20,20),nstepconstr
 	double precision kforce(20),ro(20),rt(20),rini,rfin,coef(20,10)
-	
+
 	integer at1,at2,at3,at4,at5,at6,at7,at8
 	double precision, intent(inout) ::  rclas(3,natot),fdummy(3,natot)
 	double precision fce,fnew(3,10),rp(3),r12,r34,r56,r78,dist,
@@ -179,7 +179,7 @@ c****************************************************************************
 
 	pi = acos(-1.0d0)
 
-c change units 
+c change units
         rclas(1:3,1:natot)=rclas(1:3,1:natot)*0.529177d0 !pasa a Angstroms
 
 c loop over nconstr
@@ -192,8 +192,8 @@ c loop over typeconstr
         at1=atmsconstr(iconstr,1)
         at2=atmsconstr(iconstr,2)
         at3=atmsconstr(iconstr,3)
-        at4=atmsconstr(iconstr,4)  
- 
+        at4=atmsconstr(iconstr,4)
+
         r12=dist(rclas(1,at1),rclas(2,at1),rclas(3,at1),
      .   rclas(1,at2),rclas(2,at2),rclas(3,at2))
         r34=dist(rclas(1,at3),rclas(2,at3),rclas(3,at3),
@@ -201,7 +201,7 @@ c loop over typeconstr
         rtot=r34-r12
 
         rt(iconstr)=rtot
-        req=ro(iconstr) 
+        req=ro(iconstr)
         kf=kforce(iconstr)
 
 c atom1: dr12
@@ -242,30 +242,23 @@ c atom4: -dr34
         fnew(2,4)=-fnew(2,3)
         fnew(3,4)=-fnew(3,3)
 
-c adding fnew to fdummy 
-        fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
+c adding fnew to fdummy
+        fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)        
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
-        fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3) 
-        fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)      
-
-c test write de fuerzas
-c write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
-
-
+        fdummy(1:3,at3)= fdummy(1:3,at3)+fnew(1:3,3)
+        fdummy(1:3,at4)= fdummy(1:3,at4)+fnew(1:3,4)
 
       elseif (typeconstr(iconstr).eq.2) then
 
         at1=atmsconstr(iconstr,1)
         at2=atmsconstr(iconstr,2)
- 
+
         rtot=dist(rclas(1,at1),rclas(2,at1),rclas(3,at1),
      .   rclas(1,at2),rclas(2,at2),rclas(3,at2))
 
         rt(iconstr)=rtot
         req=ro(iconstr)
         kf=kforce(iconstr)
-	write(6969,*) "kforce, req, rt" 
-        write(6969,*) kforce
 
 c atom1: dr12
         dx=0.d0
@@ -285,10 +278,8 @@ c atom2: -fce over atom1
         fnew(1,2)=-fnew(1,1)
         fnew(2,2)=-fnew(2,1)
         fnew(3,2)=-fnew(3,1)
- 
+
 c adding fnew to fdummy
-	write(6969,*) "fnew" 
-        write(6969,*) fnew
 
         fdummy(1:3,at1)= fdummy(1:3,at1)+fnew(1:3,1)
         fdummy(1:3,at2)= fdummy(1:3,at2)+fnew(1:3,2)
@@ -297,7 +288,7 @@ c adding fnew to fdummy
 c        write(666,*) "r, Frestr", rtot, -kf*(rtot-req)
 
       elseif(typeconstr(iconstr).eq.3) then
-        
+
         at1=atmsconstr(iconstr,1)
         at2=atmsconstr(iconstr,2)
         at3=atmsconstr(iconstr,3)
@@ -397,7 +388,7 @@ c Normalize req to 0-360 range
         end do
 
         if(req.le.90 .and.rtot.gt.180) rtot=rtot-360.d0
-        if(req.ge.270.and.rtot.le.180) rtot=rtot+360.d0 
+        if(req.ge.270.and.rtot.le.180) rtot=rtot+360.d0
         F=2.d0*kf*(rtot-req)*pi/180.d0
         call diheforce2(natot,rclas,at1,at2,at3,at4,
      .          1,F,fdihe)
@@ -695,7 +686,7 @@ c ndists
           dx=rclas(1,at1)-rref(1,at1)
           dy=rclas(2,at1)-rref(2,at1)
           dz=rclas(3,at1)-rref(3,at1)
-          
+
           fnew(1,1)=-dx*2.d0*kf
           fnew(2,1)=-dy*2.d0*kf
           fnew(3,1)=-dz*2.d0*kf
@@ -749,7 +740,7 @@ c writes variables for first step only
         endif
         else
         if(istep.eq.1.and.typeconstr(iconstr).ne.9) then
-        write(*,'(/,A)')     'constr opt: fixed constraints'  
+        write(*,'(/,A)')     'constr opt: fixed constraints'
         write(*,'(A,i4)')    'icosntr  :', iconstr
         if(istepconstr.eq.1) then
         write(*,'(A,i4)')    'type     :', typeconstr(iconstr)
@@ -784,9 +775,9 @@ c writes variables for first step only
         endif
 
 c nconstr
-        enddo 
+        enddo
 
-c change units 
+c change units
         rclas(1:3,1:natot)=rclas(1:3,1:natot)/0.529177d0
         end
 
