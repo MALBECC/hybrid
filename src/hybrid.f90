@@ -476,6 +476,7 @@ Program HYBRID
       if (nconstr .eq. 1 .and. typeconstr(1) .eq. 9) then
          allocate(vatr(3,natot))
          call ioxv('read',natot,ucell,rref,vatr,foundxvr,foundvatr,'r',-1)
+         if (.not. foundxvr) rref=rclas
 !cambiar ucell cuando haya caja
       endif
 
