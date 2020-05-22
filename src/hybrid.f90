@@ -688,11 +688,15 @@ Program HYBRID
 !     if(qm) call centerdyn(na_u,rclas,ucell,natot)
                endif
 
-               if (MOD((istp - inicoor),traj_frec) .eq. 0) then
-                  call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
-                       rclas,atname,aaname,aanum,nesp,atsym,isa)
+               if ( traj_frec /= -1 ) then
+                  if (MOD((istp - inicoor),traj_frec) .eq. 0) then
+                     call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
+                          rclas,atname,aaname,aanum,nesp,atsym,isa)
+                  elseif ( traj_frec .eq. -1 .and. .not. constropt) then
+                    call wrirtc(slabel,Etots,dble(istp),istp,na_u,nac,natot, &
+                    rclas,atname,aaname,aanum,nesp,atsym,isa)
+                  endif
                endif
-
 !Nick center
                if (qm .and. .not. mm .and. Nick_cent) then
                   write(*,*) "Centrando Nick"
