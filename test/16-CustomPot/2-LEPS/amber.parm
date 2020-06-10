@@ -1,0 +1,24 @@
+bonds
+0
+angles
+0
+dihes
+0
+imps
+0
+residues
+1
+TSC 3
+ "Cl1" "Cl" 0 1 131072 1 17 -0.000001
+ "C1"  "C"  0 1 131072 2 6   0.000001
+ "Cl2" "Cl" 0 1 131072 4 17 -0.000001
+ljs
+2
+  Cl          0.1000  0.0000
+  C           0.1000  0.0000
+connectivity
+0
+impropers
+0
+DONE
+
