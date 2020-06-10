@@ -139,7 +139,7 @@ C  Modules
      .  na, nfce, mmsteps,
      .  wricoord, nat
 
-      integer :: i, iunit
+      integer :: i, iunit, trj_frc0
 
       double precision
      .  dt, dxmax, ftol, tempinit,
@@ -415,7 +415,9 @@ C hay qunificar los timesteeps
 
 
 C Trajectory frecuency to write coordinates and Energy 
-	traj_frec = fdf_integer('MD.TrajFrec',100)
+        if ( idyn .gt. 3 ) trj_frc0 = 100
+        if ( idyn .le. 3 ) trj_frc0 = -1
+	traj_frec = fdf_integer('MD.TrajFrec',trj_frc0)
 
 C Quench Option
       qnch_default = .false.
