@@ -75,6 +75,9 @@
         integer :: ncos, dihe_type
         integer, dimension(4) :: custom_dihe
         double precision, dimension(:), allocatable :: cos_weights
+				double precision, dimension(3) :: lepsmask
+				double precision, dimension(3) :: leps1D,leps1B,leps1R0
+				double precision, dimension(3) :: leps3D,leps3B,leps3R0
 
 !optimization
 	double precision :: Eprev !total energy of previous steep for gradient descend
@@ -281,7 +284,7 @@
 
 ! Nuevos jota
 	double precision :: Nav !Avogadro Number
-	double precision :: pi  
+	double precision :: pi
 
 ! Perform TSH with HYB-LIO
         logical :: HYB_TSH = .false.

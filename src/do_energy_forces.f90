@@ -96,7 +96,7 @@
 
 
 	double precision, dimension(3,na_u), intent(inout) :: vel_lio ! qm velocities
-	integer, dimension(20,20), intent(in) :: atmsconstr 
+	integer, dimension(20,20), intent(in) :: atmsconstr
 	integer, dimension(20), intent(in) :: ndists !atomos incluidos en la coordenada de reaccion
 	integer, intent(in) :: istepconstr !step of restraint
 ! Custom potentials
@@ -258,7 +258,8 @@
 
 	if (external_potential .gt. 0) call external_bias(external_potential,natot,rclas,fdummy,Etots)
 	if (custompot_type .eq. 1) call custom_dihe_energy_forces(Etots)
-
+	if (custompot_type .eq. 2) call leps_energy_forces(Etots)
+	
 ! here Etot in Hartree
         if (.not. feopt) then
 	write(6,*)
