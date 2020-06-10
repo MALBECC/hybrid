@@ -1,0 +1,71 @@
+SystemName     TSC
+SystemLabel    TSC
+CenterMolecule T
+CG.Nick_center F
+NumberOfAtoms         0
+NumberOfSpecies      0
+FixSpin  T
+TotalSpin 0.0
+NumberOfSolventAtoms  3 
+MD.MaxForceTol    0.001 eV/Ang
+Steep.in 1d-4
+%block ChemicalSpeciesLabel
+%endblock ChemicalSpeciesLabel
+
+AtomicCoordinatesFormat  Ang
+%block AtomicCoordinatesAndAtomicSpecies
+%endblock AtomicCoordinatesAndAtomicSpecies
+
+%block SoluteAtomTypes
+%endblock SoluteAtomTypes
+
+DM.UseSaveDM   T
+MD.USeSaveXV   T
+MD.UseSaveCG   T
+LongOutput    F
+PFIntegrationOutput 0
+
+%block CustomPotential
+type 2
+mask 1 2 3
+1D 234.524674 234.524674 64.925971
+1B 0.929968 0.929968 0.432955
+1R0 1.776382 1.776382 2.094857
+3D 220.244820 220.244820 284.999867
+3B 4.822681 4.822681 1.016811
+3R0 1.785014 1.785014 2.186060
+%endblock CustomPotential
+
+%block NewMasses
+C 15
+%endblock NewMasses
+
+%block ConstrainedOpt
+nconstr 1
+steps 99
+type 1
+kte 200
+inicoord -3.0 fincoord 3.0
+atoms 1 2 3 2
+%endblock ConstrainedOpt
+
+MD.TypeOfRun    CG
+MD.NumCGsteps   500
+Tstep 0.1
+
+%block CutOffRadius
+QM  0.2
+QMMM 10000000.0
+MM 12.0
+BLO 18.0
+MMBLO 80.0
+IBLO 0.0
+RESREF 1
+%endblock CutOffRadius
+
+%block SolventInput
+ATOM      1  Cl1 TSC C   1       0.000   0.000   0.000
+ATOM      2  C1  TSC C   1       4.830   0.000   0.000
+ATOM      3  Cl2 TSC C   1       6.660   0.000   0.000
+%endblock SolventInput
+
